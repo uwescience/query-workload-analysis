@@ -1,4 +1,8 @@
-# Install
+# SDSS query analysis tools
+
+A set of scripts that allow us to extract queries from logs, have sql server explain them and then analyze the results.
+
+## Install
 
 I suggest, you use a virtual environment.
 
@@ -16,8 +20,6 @@ cp default.ini default.ini.local
 vim default.ini.local
 ```
 
-# Run
-
-[wip]
+## Run
 
 You should be able to run `explain_queries default.ini.local`.
