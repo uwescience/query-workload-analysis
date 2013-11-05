@@ -16,10 +16,10 @@ def consume(database, files):
         with open(logfile, 'rb') as f:
             reader = csv.reader(f)
 
-            # ignore header
-            reader.next()
-
             for row in reader:
+                # ignore header, if present
+                if row[0] == 'yy':
+                    continue
                 data = {
                     'client': row[9],
                     'server': row[11],
