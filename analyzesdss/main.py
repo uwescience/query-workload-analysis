@@ -2,7 +2,7 @@
 
 Usage:
   sdss_tools consume [DATABASE] -i INPUT ...
-  sdss_tools analyze CONFIG
+  sdss_tools explain CONFIG
   sdss_tools (-h | --help)
   sdss_tools --version
 
@@ -28,13 +28,13 @@ def main():
         db = arguments['DATABASE'] or 'sqlite:///:memory:'
         consume_logs.consume(db, arguments['-i'])
 
-    if arguments['analyze']:
+    if arguments['explain']:
         config = {}
         with open(arguments['CONFIG']) as f:
             for line in f:
                 key, val = line.split('=')
                 config[key.strip()] = val.strip()
-        explain_queries.analyze(config)
+        explain_queries.explain(config)
 
 
 if __name__ == '__main__':
