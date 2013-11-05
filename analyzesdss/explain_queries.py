@@ -1,16 +1,4 @@
-"""Query explainer.
-
-Usage:
-  explain_queries.py <config>
-  explain_queries.py (-h | --help)
-  explain_queries.py --version
-
-Options:
-  -h --help     Show this screen.
-  --version     Show version.
-"""
 import sqlalchemy as sa
-from docopt import docopt
 
 
 def analyze(config):
@@ -44,18 +32,3 @@ def analyze(config):
 
     db.engine.execute('set showplan_xml off')
     db.engine.execute('set noexec off')
-
-
-def main():
-    arguments = docopt(__doc__, version='Query explainer')
-    print arguments
-    d = {}
-    with open(arguments['<config>']) as f:
-        for line in f:
-            key, val = line.split('=')
-            d[key.strip()] = val.strip()
-    print d
-    analyze(d)
-
-if __name__ == '__main__':
-    main()

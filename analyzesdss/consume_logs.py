@@ -1,8 +1,9 @@
 import dataset
 
 
-def main():
-    db = dataset.connect('sqlite:///:memory:')
+def consume(database, files):
+    print database, files
+    db = dataset.connect(database)
 
     table = db['sometable']
     table.insert(dict(name='John Doe', age=37))
@@ -10,6 +11,3 @@ def main():
 
     john = table.find_one(name='John Doe')
     print john
-
-if __name__ == '__main__':
-    main()

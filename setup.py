@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 setup(name='SDSS Query Analysis',
-      version='0.0.0.1',
+      version='0.0.1',
       description='A collection of scripts to analyze the SDSS queries.',
       author='Dan Halperin, Dominik Moritz',
       author_email='',
@@ -15,8 +15,7 @@ setup(name='SDSS Query Analysis',
       ],
       entry_points={
             'console_scripts': [
-                  'consume_logs = analyzesdss.consume_logs:main',
-                  'explain_queries = analyzesdss.explain_queries:main'
+                  'sdss_tools = analyzesdss.main:main'
             ],
       },
      )

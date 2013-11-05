@@ -22,7 +22,7 @@ vim default.ini.local
 
 ## Run
 
-You should be able to run `explain_queries default.ini.local`.
+You should be able to run `sdss_tools analyze default.ini.local`.
 
 ## Uses
 
