@@ -4,7 +4,6 @@ try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
-import json
 
 
 # From http://homework.nwsnet.de/products/45be_remove-namespace-in-an-xml-document-using-elementtree
@@ -38,10 +37,14 @@ def print_rel_op_tags(root, depth=0):
         print_rel_op_tags(child, depth)
 
 
-def get_query_plans(tree):
-    """Returns a list of the query plans in the given XML tree"""
+def get_query_plans(tree, details=False):
+    """Returns a list of the query plans in the given XML tree
+
+    :param details: Show costs and operator configs
+    :type details: bool
+    """
     qplans = tree.findall('.//QueryPlan')
-    return [operator_tree(qplan) for qplan in qplans]
+    return [operator_tree(qplan, details) for qplan in qplans]
 
 
 def flatten(plan):
@@ -53,30 +56,35 @@ def flatten(plan):
     return flatten(plan[0]) + flatten(plan[1:])
 
 
-def operator_tree(root):
+def operator_tree(root, details):
     """Returns a tree as a list of plan dictionaries, stored recursively. Each
     node has a value (its name) and a list of children, possibly empty."""
     if root is None or root == []:
         return None
-    children = [operator_tree(child) for child in root]
+    children = [operator_tree(child, details) for child in root]
     children = [x for x in children if x is not None]
     children = flatten(children)
 
     if root.tag == 'RelOp':
-        return {
-            'value': root.attrib['PhysicalOp'],
-            'children': children
-        }
+        if details:
+            return {
+                'operator': root.attrib['PhysicalOp'],
+                'cpu': float(root.attrib['EstimateCPU']),
+                'io': float(root.attrib['EstimateIO']),
+                'total': float(root.attrib['EstimatedTotalSubtreeCost']),
+                'rows': int(root.attrib['EstimateRows']),
+                'children': children
+            }
+        else:
+            return {
+                'operator': root.attrib['PhysicalOp'],
+                'children': children
+            }
 
     if len(children) == 1:
         children = children[0]
 
     return children
-
-
-def json_pretty(obj):
-    """A simple wrapper for the json pretty string given in the json docs"""
-    return json.dumps(obj, sort_keys=True, indent=4, separators=(',', ': '))
 
 
 def indent(elem, level=0):
@@ -105,9 +113,4 @@ def clean(xml_string):
     remove_subnodes_named(tree, 'UDF')
     remove_subnodes_named(tree, 'OutputList')
 
-    print_rel_op_tags(tree.getroot())
-
-    print json_pretty(get_query_plans(tree))
-
-    indent(tree.getroot())
-    tree.write('clean.xml')
+    return tree

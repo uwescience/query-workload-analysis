@@ -1,5 +1,6 @@
 import sqlalchemy as sa
 import parse_xml
+from utils import json_pretty
 
 
 def explain(config):
@@ -30,7 +31,18 @@ def explain(config):
         res = connection.execute(query).fetchall()[0]
 
         xml_string = "".join([x for x in res])
-        parse_xml.clean(xml_string)
+        tree = parse_xml.clean(xml_string)
+
+        # print operators
+        # parse_xml.print_rel_op_tags(tree.getroot())
+
+        # get the simplified query plan as dictionary
+        query_plan = parse_xml.get_query_plans(tree, details=True)
+        print json_pretty(query_plan)
+
+        # indent tree and export as xml file
+        # parse_xml.indent(tree.getroot())
+        # tree.write('clean.xml')
 
         connection.execute('set showplan_xml off')
         connection.execute('set noexec off')
