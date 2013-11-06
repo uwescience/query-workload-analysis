@@ -3,7 +3,7 @@
 Usage:
   sdss_tools consume [DATABASE] -i INPUT ...
   sdss_tools stats [DATABASE]
-  sdss_tools explain CONFIG
+  sdss_tools explain CONFIG [DATABASE]
   sdss_tools (-h | --help)
   sdss_tools --version
 
@@ -38,7 +38,8 @@ def main():
             for line in f:
                 key, val = line.split('=')
                 config[key.strip()] = val.strip()
-        explain_queries.explain(config)
+        db = arguments['DATABASE'] or 'sqlite:///test.sqlite'
+        explain_queries.explain(config, db)
 
 
 if __name__ == '__main__':

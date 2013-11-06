@@ -67,14 +67,15 @@ def operator_tree(root, details):
             refs = root.xpath('.//ColumnReference')
             not_ref = root.xpath('.//RelOp//ColumnReference')
             for ref in set(refs) - set(not_ref):
-                tables.append(ref.attrib['Table'].strip('[').strip(']'))
+                if 'Table' in ref.attrib:
+                    tables.append(ref.attrib['Table'].strip('[').strip(']'))
 
             return {
                 'operator': root.attrib['PhysicalOp'],
                 'cpu': float(root.attrib['EstimateCPU']),
                 'io': float(root.attrib['EstimateIO']),
                 'total': float(root.attrib['EstimatedTotalSubtreeCost']),
-                'rows': int(root.attrib['EstimateRows']),
+                'rows': float(root.attrib['EstimateRows']),
                 'children': children,
                 'tables': list(set(tables))
             }
