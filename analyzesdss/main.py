@@ -2,6 +2,7 @@
 
 Usage:
   sdss_tools consume [DATABASE] -i INPUT ...
+  sdss_tools stats [DATABASE]
   sdss_tools explain CONFIG
   sdss_tools (-h | --help)
   sdss_tools --version
@@ -17,14 +18,19 @@ nothing continued to happen."
 from docopt import docopt
 import consume_logs
 import explain_queries
+import query_stats
 
 
 def main():
     arguments = docopt(__doc__, version='SDSS Tools 0.0.1')
 
     if arguments['consume']:
-        db = arguments['DATABASE'] or 'sqlite:///:memory:'
+        db = arguments['DATABASE'] or 'sqlite:///test.sqlite'
         consume_logs.consume(db, arguments['-i'])
+
+    if arguments['stats']:
+        db = arguments['DATABASE'] or 'sqlite:///test.sqlite'
+        query_stats.print_stats(db)
 
     if arguments['explain']:
         config = {}
