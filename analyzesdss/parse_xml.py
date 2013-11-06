@@ -1,9 +1,5 @@
 #!/usr/bin/env python
-
-try:
-    import xml.etree.cElementTree as ET
-except ImportError:
-    import xml.etree.ElementTree as ET
+from lxml import etree as ET
 
 
 # From http://homework.nwsnet.de/products/45be_remove-namespace-in-an-xml-document-using-elementtree
@@ -29,7 +25,7 @@ def remove_subnodes_named(tree, tag):
 
 
 def print_rel_op_tags(root, depth=0):
-    """Prints the relational operators in a hierachical fashion"""
+    """Prints the relational operators in a hierarchical fashion"""
     if root.tag == 'RelOp':
         print "%s%s" % (' ' * depth, root.attrib['PhysicalOp'])
         depth += 1
@@ -67,13 +63,20 @@ def operator_tree(root, details):
 
     if root.tag == 'RelOp':
         if details:
+            tables = []
+            refs = root.xpath('.//ColumnReference')
+            not_ref = root.xpath('.//RelOp//ColumnReference')
+            for ref in set(refs) - set(not_ref):
+                tables.append(ref.attrib['Table'].strip('[').strip(']'))
+
             return {
                 'operator': root.attrib['PhysicalOp'],
                 'cpu': float(root.attrib['EstimateCPU']),
                 'io': float(root.attrib['EstimateIO']),
                 'total': float(root.attrib['EstimatedTotalSubtreeCost']),
                 'rows': int(root.attrib['EstimateRows']),
-                'children': children
+                'children': children,
+                'tables': list(set(tables))
             }
         else:
             return {

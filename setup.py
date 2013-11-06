@@ -11,7 +11,8 @@ setup(name='SDSS Query Analysis',
       install_requires=[
           'dataset',
           'pymssql',
-          'docopt'
+          'docopt',
+          'lxml'
       ],
       entry_points={
             'console_scripts': [
