@@ -22,8 +22,6 @@ import explain_queries
 def main():
     arguments = docopt(__doc__, version='SDSS Tools 0.0.1')
 
-    print arguments
-
     if arguments['consume']:
         db = arguments['DATABASE'] or 'sqlite:///:memory:'
         consume_logs.consume(db, arguments['-i'])
