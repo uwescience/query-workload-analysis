@@ -4,6 +4,7 @@ Usage:
   sdss_tools consume [DATABASE] -i INPUT ...
   sdss_tools stats [DATABASE]
   sdss_tools explain CONFIG [DATABASE]
+  sdss_tools analyze [DATABASE]
   sdss_tools (-h | --help)
   sdss_tools --version
 
@@ -19,6 +20,7 @@ from docopt import docopt
 import consume_logs
 import explain_queries
 import query_stats
+import query_analysis
 
 
 def main():
@@ -40,6 +42,10 @@ def main():
                 config[key.strip()] = val.strip()
         db = arguments['DATABASE'] or 'sqlite:///test.sqlite'
         explain_queries.explain(config, db)
+
+    if arguments['analyze']:
+        db = arguments['DATABASE'] or 'sqlite:///test.sqlite'
+        query_analysis.analyze(db)
 
 
 if __name__ == '__main__':
