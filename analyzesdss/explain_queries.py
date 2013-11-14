@@ -1,3 +1,4 @@
+import json
 import dataset
 import sqlalchemy as sa
 import parse_xml
@@ -31,11 +32,12 @@ def explain(config, database=None):
 
         if database:
             db = dataset.connect(database)
-            queries = db.query('SELECT * FROM logs WHERE db = "BestDR5" GROUP BY query')
+            queries = list(db.query('SELECT * FROM logs WHERE db = "BestDR5" GROUP BY query'))
         else:
             queries = EXAMPLE
 
         errors = []
+        table = db['logs']
 
         for query in queries:
             if query['error']:
@@ -61,6 +63,8 @@ def explain(config, database=None):
             # parse_xml.indent(tree.getroot())
             # tree.write('clean.xml')
 
+            query['plan'] = json.dumps(query_plan)
+            table.update(query, ['id'])
         connection.execute('set showplan_xml off')
         connection.execute('set noexec off')
 
