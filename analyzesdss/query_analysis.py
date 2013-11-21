@@ -48,7 +48,7 @@ def find_recurring(db):
 
 
 def get_aggregated_cost(db, cost, query):
-    result = db.query('SELECT SUM(cost) cost FROM (SELECT {query}, COUNT(*) count, {cost} cost FROM logs WHERE db = "BestDR5" AND plan != "" GROUP BY {query})'.format(cost=cost, query=query))
+    result = db.query('SELECT SUM(cost) cost FROM (SELECT {query}, COUNT(*) count, AVG({cost}) cost FROM logs WHERE db = "BestDR5" AND plan != "" GROUP BY {query})'.format(cost=cost, query=query))
     return list(result)[0]['cost']
 
 
@@ -78,7 +78,10 @@ def analyze(database):
     print "Overall cost assuming 1 (aka number of queries):", get_cost(db, '1')
     print "Overall real cost:", get_cost(db, 'elapsed')
 
+    print
+
     print "Cost of 1, aggregate on query:", get_aggregated_cost(db, '1', 'query')
     print "Real cost, aggregate on query:", get_aggregated_cost(db, 'elapsed', 'query')
     print "Cost of 1, aggregate on plan:", get_aggregated_cost(db, '1', 'plan')
     print "Real cost, aggregate on plan:", get_aggregated_cost(db, 'elapsed', 'plan')
+    print "(Average cost assumed per query)"
