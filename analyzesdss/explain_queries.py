@@ -56,7 +56,10 @@ def explain(config, database=None):
             # parse_xml.print_rel_op_tags(tree.getroot())
 
             # get the simplified query plan as dictionary
-            query_plan = parse_xml.get_query_plans(tree, details=True)
+            query_plans = parse_xml.get_query_plans(tree, details=True)
+            assert(len(query_plans) == 1)
+
+            query_plan = query_plans[0]
             print json_pretty(query_plan)
 
             # indent tree and export as xml file
@@ -64,6 +67,7 @@ def explain(config, database=None):
             # tree.write('clean.xml')
 
             query['plan'] = json.dumps(query_plan)
+            query['estimated_cost'] = query_plan['total']
             table.update(query, ['id'])
         connection.execute('set showplan_xml off')
         connection.execute('set noexec off')

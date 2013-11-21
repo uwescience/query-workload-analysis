@@ -37,7 +37,7 @@ def find_recurring(db):
 
     for query in queries:
         plan = json.loads(query['plan'])
-        tables = set(get_tables(plan[0]))
+        tables = set(get_tables(plan))
         new = tables - seen
         count_new += len(new)
         count_recurring += len(seen) - len(new)
@@ -77,11 +77,18 @@ def analyze(database):
 
     print "Overall cost assuming 1 (aka number of queries):", get_cost(db, '1')
     print "Overall real cost:", get_cost(db, 'elapsed')
+    print "Overall estimated cost:", get_cost(db, 'estimated_cost')
 
     print
 
     print "Cost of 1, aggregate on query:", get_aggregated_cost(db, '1', 'query')
     print "Real cost, aggregate on query:", get_aggregated_cost(db, 'elapsed', 'query')
+    print "Estimated cost, aggregate on query:", get_aggregated_cost(db, 'estimated_cost', 'query')
     print "Cost of 1, aggregate on plan:", get_aggregated_cost(db, '1', 'plan')
     print "Real cost, aggregate on plan:", get_aggregated_cost(db, 'elapsed', 'plan')
+    print "Estimated cost, aggregate on plan:", get_aggregated_cost(db, 'estimated_cost', 'plan')
     print "(Average cost assumed per query)"
+
+    print
+
+    find_recurring(db)
