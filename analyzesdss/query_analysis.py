@@ -85,16 +85,16 @@ def analyze(database):
     print "Distinct queries with query plan:", num_interesting_queries
 
     print "Overall cost assuming 1 (aka number of queries):", get_cost(db, '1')
-    print "Overall real cost:", get_cost(db, 'elapsed')
+    print "Overall actual cost:", get_cost(db, 'elapsed')
     print "Overall estimated cost:", get_cost(db, 'estimated_cost')
 
     print
 
     print "Cost of 1, aggregate on query:", get_aggregated_cost(db, '1', 'query')
-    print "Real cost, aggregate on query:", get_aggregated_cost(db, 'elapsed', 'query')
+    print "Actual cost, aggregate on query:", get_aggregated_cost(db, 'elapsed', 'query')
     print "Estimated cost, aggregate on query:", get_aggregated_cost(db, 'estimated_cost', 'query')
     print "Cost of 1, aggregate on plan:", get_aggregated_cost(db, '1', 'plan')
-    print "Real cost, aggregate on plan:", get_aggregated_cost(db, 'elapsed', 'plan')
+    print "Actual cost, aggregate on plan:", get_aggregated_cost(db, 'elapsed', 'plan')
     print "Estimated cost, aggregate on plan:", get_aggregated_cost(db, 'estimated_cost', 'plan')
     print "(Average cost assumed per query)"
 
@@ -117,9 +117,9 @@ def analyze(database):
     #print scipy.stats.pearsonr(actual, estimated)
 
     plt.scatter(estimated, actual, c=colors, s=60, alpha=0.6)
-    plt.title("Correlation estimated and real cost")
+    plt.title("Correlation estimated and actual cost")
     plt.xlim(xmin=0)
     plt.ylim(ymin=0)
     plt.xlabel('Estimated')
-    plt.ylabel('Real')
+    plt.ylabel('Actual')
     plt.show()
