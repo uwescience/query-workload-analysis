@@ -32,7 +32,7 @@ def print_stats(db):
 
 
 def find_recurring(db):
-    queries = db.query('SELECT *, COUNT(*) c FROM logs WHERE db = "BestDR5" AND plan != "" GROUP BY query ORDER BY id ASC')
+    queries = db.query('SELECT *, COUNT(*) c FROM logs_dr5_explained GROUP BY query ORDER BY id ASC')
 
     seen = set()
 
@@ -52,12 +52,12 @@ def find_recurring(db):
 
 
 def get_aggregated_cost(db, cost, query):
-    result = db.query('SELECT SUM(cost) cost FROM (SELECT {query}, COUNT(*) count, AVG({cost}) cost FROM logs WHERE db = "BestDR5" AND plan != "" GROUP BY {query})'.format(cost=cost, query=query))
+    result = db.query('SELECT SUM(cost) cost FROM (SELECT {query}, COUNT(*) count, AVG({cost}) cost FROM logs_dr5_explained GROUP BY {query})'.format(cost=cost, query=query))
     return list(result)[0]['cost']
 
 
 def get_cost(db, cost):
-    result = db.query('SELECT SUM({cost}) cost FROM logs WHERE db = "BestDR5" AND plan != ""'.format(cost=cost))
+    result = db.query('SELECT SUM({cost}) cost FROM logs_dr5_explained'.format(cost=cost))
     return list(result)[0]['cost']
 
 
@@ -74,9 +74,14 @@ def analyze(database):
         "Run explain to see more!"
         return
 
+    #db.query('DROP VIEW IF EXISTS logs_dr5_explained')
+    exists = list(db.query('SELECT count(*) c FROM sqlite_master WHERE name="logs_dr5_explained"'))[0]['c'] > 0
+    if not exists:
+        db.query('CREATE VIEW logs_dr5_explained AS SELECT * FROM logs WHERE db = "BestDR5" AND plan != ""')
+
     print
 
-    num_interesting_queries = list(db.query('SELECT COUNT(*) c FROM (SELECT query FROM logs WHERE db = "BestDR5" AND plan != "")'))[0]['c']
+    num_interesting_queries = list(db.query('SELECT COUNT(*) c FROM logs_dr5_explained'))[0]['c']
     print "Distinct queries with query plan:", num_interesting_queries
 
     print "Overall cost assuming 1 (aka number of queries):", get_cost(db, '1')
