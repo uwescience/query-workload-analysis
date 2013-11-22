@@ -32,7 +32,7 @@ def explain(config, database=None):
 
         if database:
             db = dataset.connect(database)
-            queries = list(db.query('SELECT * FROM logs WHERE db = "BestDR5" GROUP BY query'))
+            queries = list(db.query('SELECT * FROM logs WHERE db = "BestDR5"'))
         else:
             queries = EXAMPLE
 
