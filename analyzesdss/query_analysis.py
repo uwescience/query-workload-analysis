@@ -1,5 +1,9 @@
 import json
+import hashlib
 
+import numpy as np
+#import scipy.stats
+import matplotlib.pyplot as plt
 import dataset
 
 
@@ -92,3 +96,25 @@ def analyze(database):
     print
 
     find_recurring(db)
+
+    print
+
+    print "Correlation between estimated and actual cost"
+    costs = list(db.query('SELECT elapsed actual, estimated_cost estimated, query query FROM logs WHERE db = "BestDR5" AND plan != ""'))
+    actual = np.array([x['actual'] for x in costs], dtype=np.float)
+    estimated = np.array([x['estimated'] for x in costs], dtype=np.float)
+    queries = np.array([int(hashlib.md5(x['query']).hexdigest()[:10], 16) for x in costs], dtype=np.float)
+
+    colors = queries / np.max(queries)
+
+    #print "Correlation:", np.correlate(actual, estimated)
+    #print np.corrcoef([actual, estimated])
+    #print scipy.stats.pearsonr(actual, estimated)
+
+    plt.scatter(estimated, actual, c=colors, s=60, alpha=0.6)
+    plt.title("Correlation estimated and real cost")
+    plt.xlim(xmin=0)
+    plt.ylim(ymin=0)
+    plt.xlabel('Estimated')
+    plt.ylabel('Real')
+    plt.show()

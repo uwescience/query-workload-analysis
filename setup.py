@@ -12,7 +12,8 @@ setup(name='SDSS Query Analysis',
           'dataset',
           'pymssql',
           'docopt',
-          'lxml'
+          'lxml',
+          'matplotlib'
       ],
       entry_points={
             'console_scripts': [
