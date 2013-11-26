@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from collections import defaultdict
+
 from lxml import etree as ET
 
 
@@ -63,21 +65,23 @@ def operator_tree(root, details):
 
     if root.tag == 'RelOp':
         if details:
-            tables = []
+            tables = defaultdict(list)
             refs = root.xpath('.//ColumnReference')
             not_ref = root.xpath('.//RelOp//ColumnReference')
             for ref in set(refs) - set(not_ref):
                 if 'Table' in ref.attrib:
-                    tables.append(ref.attrib['Table'].strip('[').strip(']'))
+                    name = ref.attrib['Table'].strip('[').strip(']')
+                    tables[name].append(ref.attrib['Column'])
 
             return {
                 'operator': root.attrib['PhysicalOp'],
                 'cpu': float(root.attrib['EstimateCPU']),
                 'io': float(root.attrib['EstimateIO']),
                 'total': float(root.attrib['EstimatedTotalSubtreeCost']),
-                'rows': float(root.attrib['EstimateRows']),
+                'numRows': float(root.attrib['EstimateRows']),
+                'rowSize': float(root.attrib['AvgRowSize']),
                 'children': children,
-                'tables': list(set(tables))
+                'columns': tables
             }
         else:
             return {
