@@ -14,6 +14,47 @@ def get_tables(query_plan):
     return tables
 
 
+def hash_dict(d):
+    keys = sorted(d.keys())
+    return hash(frozenset(keys + [frozenset(d[k]) for k in keys]))
+
+
+def get_hash(tree):
+    h = hash_dict(tree['columns'])
+    h = hash(h + hash(tree['operator']))
+    for child in tree['children']:
+        h = hash(get_hash(child) + h)
+    return h
+
+cost_saved = 0
+rows_cached = 0
+
+
+def find_recurring(db):
+    queries = db.query('SELECT *, COUNT(*) c FROM logs_dr5_explained GROUP BY query ORDER BY id ASC')
+
+    seen = set()
+
+    def check_tree(tree):
+        global cost_saved
+        global rows_cached
+        h = get_hash(tree)
+        if h in seen:
+            cost_saved += tree['total']
+        else:
+            seen.add(h)
+            rows_cached += tree['numRows']
+            for child in tree['children']:
+                check_tree(child)
+
+    for query in queries:
+        plan = json.loads(query['plan'])
+        check_tree(plan)
+
+    print "Saved cost", cost_saved
+    print "Cached rows:", rows_cached
+
+
 def print_stats(db):
     num_interesting_queries = list(db.query('SELECT COUNT(*) c FROM (SELECT DISTINCT query FROM logs WHERE db = "BestDR5")'))[0]['c']
     print "Distinct queries in BestDR5:", num_interesting_queries
@@ -29,26 +70,6 @@ def print_stats(db):
     result = db.query('SELECT COUNT(*) c, error_msg FROM logs where error GROUP BY error_msg ORDER BY c DESC')
     for line in result:
         print '{:3}'.format(line['c']), line['error_msg']
-
-
-def find_recurring(db):
-    queries = db.query('SELECT *, COUNT(*) c FROM logs_dr5_explained GROUP BY query ORDER BY id ASC')
-
-    seen = set()
-
-    count_new = 0
-    count_recurring = 0
-
-    for query in queries:
-        plan = json.loads(query['plan'])
-        tables = set(get_tables(plan))
-        new = tables - seen
-        count_new += len(new)
-        count_recurring += len(seen) - len(new)
-        seen |= new
-
-    print "New", count_new
-    print "Recurring", count_recurring
 
 
 def get_aggregated_cost(db, cost, query):
