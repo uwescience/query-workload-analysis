@@ -35,14 +35,14 @@ def print_rel_op_tags(root, depth=0):
         print_rel_op_tags(child, depth)
 
 
-def get_query_plans(tree, details=False):
+def get_query_plans(tree, cost=False):
     """Returns a list of the query plans in the given XML tree
 
-    :param details: Show costs and operator configs
-    :type details: bool
+    :param cost: Show costs and operator configs
+    :type cost: bool
     """
     qplans = tree.findall('.//QueryPlan')
-    return [operator_tree(qplan, details) for qplan in qplans]
+    return [operator_tree(qplan, cost) for qplan in qplans]
 
 
 def flatten(plan):
@@ -54,40 +54,37 @@ def flatten(plan):
     return flatten(plan[0]) + flatten(plan[1:])
 
 
-def operator_tree(root, details):
+def operator_tree(root, cost):
     """Returns a tree as a list of plan dictionaries, stored recursively. Each
     node has a value (its name) and a list of children, possibly empty."""
     if root is None or root == []:
         return None
-    children = [operator_tree(child, details) for child in root]
+    children = [operator_tree(child, cost) for child in root]
     children = [x for x in children if x is not None]
     children = flatten(children)
 
     if root.tag == 'RelOp':
-        if details:
-            tables = defaultdict(list)
-            refs = root.xpath('.//ColumnReference')
-            not_ref = root.xpath('.//RelOp//ColumnReference')
-            for ref in set(refs) - set(not_ref):
-                if 'Table' in ref.attrib:
-                    name = ref.attrib['Table'].strip('[').strip(']')
-                    tables[name].append(ref.attrib['Column'])
-
-            return {
-                'operator': root.attrib['PhysicalOp'],
+        tables = defaultdict(list)
+        refs = root.xpath('.//ColumnReference')
+        not_ref = root.xpath('.//RelOp//ColumnReference')
+        for ref in set(refs) - set(not_ref):
+            if 'Table' in ref.attrib:
+                name = ref.attrib['Table'].strip('[').strip(']')
+                tables[name].append(ref.attrib['Column'])
+        ret = {
+            'operator': root.attrib['PhysicalOp'],
+            'children': children,
+            'columns': tables
+        }
+        if cost:
+            ret.update({
                 'cpu': float(root.attrib['EstimateCPU']),
                 'io': float(root.attrib['EstimateIO']),
                 'total': float(root.attrib['EstimatedTotalSubtreeCost']),
                 'numRows': float(root.attrib['EstimateRows']),
                 'rowSize': float(root.attrib['AvgRowSize']),
-                'children': children,
-                'columns': tables
-            }
-        else:
-            return {
-                'operator': root.attrib['PhysicalOp'],
-                'children': children
-            }
+            })
+        return ret
 
     if len(children) == 1:
         children = children[0]

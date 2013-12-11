@@ -31,9 +31,16 @@ rows_cached = 0
 
 
 def find_recurring(db):
+    print "Find recurring subtrees in distinct queries:"
     queries = db.query('SELECT *, COUNT(*) c FROM logs_dr5_explained GROUP BY query ORDER BY id ASC')
 
     seen = set()
+
+    global cost_saved
+    global rows_cached
+
+    cost_saved = 0
+    rows_cached = 0
 
     def check_tree(tree):
         global cost_saved
@@ -51,7 +58,10 @@ def find_recurring(db):
         plan = json.loads(query['plan'])
         check_tree(plan)
 
-    print "Saved cost", cost_saved
+    cost = get_cost(db, 'estimated_cost')
+
+    print "Saved cost", cost_saved, str(cost_saved / cost * 100) + "%"
+    print "Remaining cost", cost - cost_saved
     print "Cached rows:", rows_cached
 
 
@@ -114,9 +124,9 @@ def analyze(database):
     print "Cost of 1, aggregate on query:", get_aggregated_cost(db, '1', 'query')
     print "Actual cost, aggregate on query:", get_aggregated_cost(db, 'elapsed', 'query')
     print "Estimated cost, aggregate on query:", get_aggregated_cost(db, 'estimated_cost', 'query')
-    print "Cost of 1, aggregate on plan:", get_aggregated_cost(db, '1', 'plan')
-    print "Actual cost, aggregate on plan:", get_aggregated_cost(db, 'elapsed', 'plan')
-    print "Estimated cost, aggregate on plan:", get_aggregated_cost(db, 'estimated_cost', 'plan')
+    print "Cost of 1, aggregate on plan:", get_aggregated_cost(db, '1', 'simple_plan')
+    print "Actual cost, aggregate on plan:", get_aggregated_cost(db, 'elapsed', 'simple_plan')
+    print "Estimated cost, aggregate on plan:", get_aggregated_cost(db, 'estimated_cost', 'simple_plan')
     print "(Average cost assumed per query)"
 
     print
