@@ -39,7 +39,7 @@ def explain(config, database=None):
         errors = []
         table = db['logs']
 
-        for query in queries:
+        for i, query in enumerate(queries):
             if query['error']:
                 continue
 
@@ -64,8 +64,8 @@ def explain(config, database=None):
             query['plan'] = json.dumps(query_plan)
 
             # indent tree and export as xml file
-            # parse_xml.indent(tree.getroot())
-            # tree.write('clean.xml')
+            parse_xml.indent(tree.getroot())
+            tree.write('clean_{}.xml'.format(i))
 
             simple_query_plan = parse_xml.get_query_plans(tree, cost=False)[0]
             query['simple_plan'] = json.dumps(simple_query_plan)

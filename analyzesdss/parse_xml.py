@@ -109,6 +109,14 @@ def indent(elem, level=0):
             elem.tail = i
 
 
+def get_hash(root, t):
+    stmt = root.xpath('.//StmtSimple')[0]
+    if t == 'query':
+        return stmt.attrib['QueryHash']
+    elif t == 'plan':
+        return stmt.attrib['QueryPlanHash']
+
+
 def clean(xml_string):
     XMLNS = "http://schemas.microsoft.com/sqlserver/2004/07/showplan"
 
