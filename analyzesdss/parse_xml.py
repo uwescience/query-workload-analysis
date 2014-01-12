@@ -35,14 +35,14 @@ def print_rel_op_tags(root, depth=0):
         print_rel_op_tags(child, depth)
 
 
-def get_query_plans(tree, cost=False):
+def get_query_plans(tree, cost=False, show_filters=False):
     """Returns a list of the query plans in the given XML tree
 
     :param cost: Show costs and operator configs
     :type cost: bool
     """
     qplans = tree.findall('.//QueryPlan')
-    return [operator_tree(qplan, cost) for qplan in qplans]
+    return [operator_tree(qplan, cost, show_filters) for qplan in qplans]
 
 
 def flatten(plan):
@@ -54,27 +54,45 @@ def flatten(plan):
     return flatten(plan[0]) + flatten(plan[1:])
 
 
-def operator_tree(root, cost):
+def operator_tree(root, cost, show_filters):
     """Returns a tree as a list of plan dictionaries, stored recursively. Each
     node has a value (its name) and a list of children, possibly empty."""
     if root is None or root == []:
         return None
-    children = [operator_tree(child, cost) for child in root]
+    children = [operator_tree(child, cost, show_filters) for child in root]
     children = [x for x in children if x is not None]
     children = flatten(children)
 
     if root.tag == 'RelOp':
         tables = defaultdict(list)
+        filters = []
         refs = root.xpath('.//ColumnReference')
         not_ref = root.xpath('.//RelOp//ColumnReference')
         for ref in set(refs) - set(not_ref):
             if 'Table' in ref.attrib:
                 name = ref.attrib['Table'].strip('[').strip(']')
                 tables[name].append(ref.attrib['Column'])
+
+        tvf = root.xpath('TableValuedFunction')
+        if tvf:
+            tbl = tvf[0].xpath('Object')[0].attrib['Table'].strip('[').strip(']')
+            consts = tvf[0].xpath('ParameterList//Const')
+            tables[tbl] = []
+            if show_filters:
+                filters.append({tbl: [x.attrib['ConstValue'] for x in consts]})
+
+        predicates = root.xpath('.//Predicate')
+        not_predicates = root.xpath('.//RelOp//Predicate')
+        for pred in set(predicates) - set(not_predicates):
+            sos = pred.xpath('ScalarOperator')
+            for so in sos:
+                if show_filters:
+                    filters.append(so.attrib['ScalarString'])
         ret = {
-            'operator': root.attrib['PhysicalOp'],
+            'operator': root.attrib['LogicalOp'],
             'children': children,
-            'columns': tables
+            'columns': tables,
+            'filters': filters
         }
         if cost:
             ret.update({

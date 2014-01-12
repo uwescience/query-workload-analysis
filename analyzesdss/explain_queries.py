@@ -56,7 +56,8 @@ def explain(config, database=None):
             # parse_xml.print_rel_op_tags(tree.getroot())
 
             # get the simplified query plan as dictionary
-            query_plans = parse_xml.get_query_plans(tree, cost=True)
+            query_plans = parse_xml.get_query_plans(
+                tree, cost=True, show_filters=True)
             assert(len(query_plans) == 1)
 
             query_plan = query_plans[0]
@@ -67,7 +68,8 @@ def explain(config, database=None):
             parse_xml.indent(tree.getroot())
             tree.write('clean_{}.xml'.format(i))
 
-            simple_query_plan = parse_xml.get_query_plans(tree, cost=False)[0]
+            simple_query_plan = parse_xml.get_query_plans(
+                tree, cost=False, show_filters=False)[0]
             query['simple_plan'] = json.dumps(simple_query_plan)
 
             query['estimated_cost'] = query_plan['total']
