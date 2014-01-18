@@ -42,7 +42,11 @@ def get_query_plans(tree, cost=False, show_filters=False):
     :type cost: bool
     """
     qplans = tree.findall('.//QueryPlan')
-    return [operator_tree(qplan, cost, show_filters) for qplan in qplans]
+    refs = tree.xpath('.//QueryPlan/ParameterList/ColumnReference')
+    parameters = [(x.attrib['Column'],
+                  x.attrib['ParameterCompiledValue']) for x in refs]
+    return [operator_tree(
+        qplan, cost, show_filters, parameters) for qplan in qplans]
 
 
 def flatten(plan):
@@ -54,12 +58,13 @@ def flatten(plan):
     return flatten(plan[0]) + flatten(plan[1:])
 
 
-def operator_tree(root, cost, show_filters):
+def operator_tree(root, cost, show_filters, parameters):
     """Returns a tree as a list of plan dictionaries, stored recursively. Each
     node has a value (its name) and a list of children, possibly empty."""
     if root is None or root == []:
         return None
-    children = [operator_tree(child, cost, show_filters) for child in root]
+    children = [operator_tree(
+        child, cost, show_filters, parameters) for child in root]
     children = [x for x in children if x is not None]
     children = flatten(children)
 
@@ -75,7 +80,8 @@ def operator_tree(root, cost, show_filters):
 
         tvf = root.xpath('TableValuedFunction')
         if tvf:
-            tbl = tvf[0].xpath('Object')[0].attrib['Table'].strip('[').strip(']')
+            tbl = tvf[0].xpath(
+                'Object')[0].attrib['Table'].strip('[').strip(']')
             consts = tvf[0].xpath('ParameterList//Const')
             tables[tbl] = []
             if show_filters:
@@ -87,7 +93,10 @@ def operator_tree(root, cost, show_filters):
             sos = pred.xpath('ScalarOperator')
             for so in sos:
                 if show_filters:
-                    filters.append(so.attrib['ScalarString'])
+                    scalarString = so.attrib['ScalarString']
+                    for p in parameters:
+                        scalarString = scalarString.replace(p[0], p[1])
+                    filters.append(scalarString)
         ret = {
             'operator': root.attrib['LogicalOp'],
             'children': children,
