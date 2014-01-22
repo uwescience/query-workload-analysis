@@ -21,6 +21,7 @@ def hash_dict(d):
 
 def get_hash(tree):
     h = hash_dict(tree['columns'])
+    h = hash(frozenset(['filters']))
     h = hash(h + hash(tree['operator']))
     for child in tree['children']:
         h = hash(get_hash(child) + h)

@@ -71,13 +71,20 @@ def operator_tree(root, cost, show_filters, parameters):
     if root.tag == 'RelOp':
         tables = defaultdict(list)
         filters = []
+
+        # add column references
         refs = root.xpath('.//ColumnReference')
         not_ref = root.xpath('.//RelOp//ColumnReference')
         for ref in set(refs) - set(not_ref):
             if 'Table' in ref.attrib:
                 name = ref.attrib['Table'].strip('[').strip(']')
-                tables[name].append(ref.attrib['Column'])
+                if "join" in root.attrib['LogicalOp'].lower():
+                    # add join attribute as filter
+                    filters.append(name + "." + ref.attrib['Column'])
+                else:
+                    tables[name].append(ref.attrib['Column'])
 
+        # extract the parameter list as filters from table valued functions
         tvf = root.xpath('TableValuedFunction')
         if tvf:
             tbl = tvf[0].xpath(
@@ -87,22 +94,39 @@ def operator_tree(root, cost, show_filters, parameters):
             if show_filters:
                 filters.append({tbl: [x.attrib['ConstValue'] for x in consts]})
 
+        # if the rel op is top, use the (constant) expression as filter
+        if root.attrib['LogicalOp'] == "Top":
+            for x in root.xpath('Top/TopExpression//Const'):
+                filters.append(x.attrib['ConstValue'].strip("(").strip(")"))
+
+        # set row count as filter for top sort
+        if root.attrib['LogicalOp'] == "TopN Sort":
+            filters.append(root.xpath('TopSort')[0].attrib['Rows'])
+
+        # extract scalar strings (where clause expression) from predicates
         predicates = root.xpath('.//Predicate')
         not_predicates = root.xpath('.//RelOp//Predicate')
+        if not predicates:
+            predicates = root.xpath('.//SeekPredicates')
+            not_predicates = root.xpath('.//RelOp//SeekPredicates')
         for pred in set(predicates) - set(not_predicates):
             sos = pred.xpath('ScalarOperator')
+            if not sos:
+                sos = root.xpath('.//ScalarOperator')
             for so in sos:
                 if show_filters:
                     scalarString = so.attrib['ScalarString']
                     for p in parameters:
                         scalarString = scalarString.replace(p[0], p[1])
                     filters.append(scalarString)
+
         ret = {
             'operator': root.attrib['LogicalOp'],
             'children': children,
             'columns': tables,
             'filters': filters
         }
+
         if cost:
             ret.update({
                 'cpu': float(root.attrib['EstimateCPU']),
