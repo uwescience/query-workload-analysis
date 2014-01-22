@@ -93,7 +93,7 @@ def get_cost(db, cost):
     return list(result)[0]['cost']
 
 
-def analyze(database):
+def analyze(database, show_plots):
     db = dataset.connect(database)
 
     print "Limited to DR5"
@@ -134,24 +134,25 @@ def analyze(database):
 
     find_recurring(db)
 
-    print
+    if show_plots:
+        print
 
-    print "Correlation between estimated and actual cost"
-    costs = list(db.query('SELECT elapsed actual, estimated_cost estimated, query query FROM logs WHERE db = "BestDR5" AND plan != ""'))
-    actual = np.array([x['actual'] for x in costs], dtype=np.float)
-    estimated = np.array([x['estimated'] for x in costs], dtype=np.float)
-    queries = np.array([int(hashlib.md5(x['query']).hexdigest()[:10], 16) for x in costs], dtype=np.float)
+        print "Correlation between estimated and actual cost"
+        costs = list(db.query('SELECT elapsed actual, estimated_cost estimated, query query FROM logs WHERE db = "BestDR5" AND plan != ""'))
+        actual = np.array([x['actual'] for x in costs], dtype=np.float)
+        estimated = np.array([x['estimated'] for x in costs], dtype=np.float)
+        queries = np.array([int(hashlib.md5(x['query']).hexdigest()[:10], 16) for x in costs], dtype=np.float)
 
-    colors = queries / np.max(queries)
+        colors = queries / np.max(queries)
 
-    #print "Correlation:", np.correlate(actual, estimated)
-    #print np.corrcoef([actual, estimated])
-    #print scipy.stats.pearsonr(actual, estimated)
+        #print "Correlation:", np.correlate(actual, estimated)
+        #print np.corrcoef([actual, estimated])
+        #print scipy.stats.pearsonr(actual, estimated)
 
-    plt.scatter(estimated, actual, c=colors, s=60, alpha=0.6)
-    plt.title("Correlation estimated and actual cost")
-    plt.xlim(xmin=0)
-    plt.ylim(ymin=0)
-    plt.xlabel('Estimated')
-    plt.ylabel('Actual')
-    plt.show()
+        plt.scatter(estimated, actual, c=colors, s=60, alpha=0.6)
+        plt.title("Correlation estimated and actual cost")
+        plt.xlim(xmin=0)
+        plt.ylim(ymin=0)
+        plt.xlabel('Estimated')
+        plt.ylabel('Actual')
+        plt.show()

@@ -3,12 +3,13 @@
 Usage:
   sdss_tools consume [DATABASE] -i INPUT ...
   sdss_tools explain CONFIG [DATABASE]
-  sdss_tools analyze [DATABASE]
+  sdss_tools analyze [DATABASE] [--plots]
   sdss_tools (-h | --help)
   sdss_tools --version
 
 Options:
   -i INPUT     Logs to be read into database
+  --plots      Show plots
   -h --help    Show this screen.
   --version    Show version.
 
@@ -39,7 +40,7 @@ def main():
 
     if arguments['analyze']:
         db = arguments['DATABASE'] or 'sqlite:///test.sqlite'
-        query_analysis.analyze(db)
+        query_analysis.analyze(db, arguments['--plots'])
 
 
 if __name__ == '__main__':
