@@ -69,7 +69,7 @@ def operator_tree(root, cost, show_filters, parameters):
     children = flatten(children)
 
     if root.tag == 'RelOp':
-        tables = defaultdict(list)
+        tables = defaultdict(set)
         filters = []
 
         # add column references
@@ -82,7 +82,7 @@ def operator_tree(root, cost, show_filters, parameters):
                     # add join attribute as filter
                     filters.append(name + "." + ref.attrib['Column'])
                 else:
-                    tables[name].append(ref.attrib['Column'])
+                    tables[name].add(ref.attrib['Column'])
 
         # extract the parameter list as filters from table valued functions
         tvf = root.xpath('TableValuedFunction')
