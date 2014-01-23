@@ -16,13 +16,14 @@ def get_tables(query_plan):
 
 def hash_dict(d):
     keys = sorted(d.keys())
-    return hash(frozenset(keys + [frozenset(d[k]) for k in keys]))
+    flattened_values = [x for l in d.values() for x in l]
+    return hash(frozenset(keys + flattened_values))
 
 
 def get_hash(tree):
-    h = hash_dict(tree['columns'])
-    h = hash(frozenset(['filters']))
-    h = hash(h + hash(tree['operator']))
+    c = hash_dict(tree['columns'])
+    f = c + hash(frozenset(['filters']))
+    h = hash(f + hash(tree['operator']))
     for child in tree['children']:
         h = hash(get_hash(child) + h)
     return h
@@ -35,7 +36,7 @@ def find_recurring(db):
     print "Find recurring subtrees in distinct queries:"
     queries = db.query('SELECT *, COUNT(*) c FROM logs_dr5_explained GROUP BY query ORDER BY id ASC')
 
-    seen = set()
+    seen = {}
 
     global cost_saved
     global rows_cached
@@ -50,7 +51,7 @@ def find_recurring(db):
         if h in seen:
             cost_saved += tree['total']
         else:
-            seen.add(h)
+            seen[h] = tree
             rows_cached += tree['numRows']
             for child in tree['children']:
                 check_tree(child)
