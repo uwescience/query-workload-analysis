@@ -106,16 +106,23 @@ def operator_tree(root, cost, show_filters, parameters):
         # extract scalar strings (where clause expression) from predicates
         predicates = root.xpath('.//Predicate')
         not_predicates = root.xpath('.//RelOp//Predicate')
-        if not predicates:
+        if not (set(predicates) - set(not_predicates)):
             predicates = root.xpath('.//SeekPredicates')
             not_predicates = root.xpath('.//RelOp//SeekPredicates')
+        if not (set(predicates) - set(not_predicates)):
+            predicates = root.xpath('.//DefinedValue')
+            not_predicates = root.xpath('.//RelOp//DefinedValue')
+
         for pred in set(predicates) - set(not_predicates):
             sos = pred.xpath('ScalarOperator')
+            nosos = []
             if not sos:
-                sos = root.xpath('.//ScalarOperator')
-            for so in sos:
+                sos = pred.xpath('.//ScalarOperator')
+                nosos = pred.xpath('.//RelOp//ScalarOperator')
+            for so in set(sos) - set(nosos):
                 if show_filters:
                     scalarString = so.attrib['ScalarString']
+                    # replace all parameters with concrete values
                     for p in parameters:
                         scalarString = scalarString.replace(p[0], p[1])
                     filters.append(scalarString)
