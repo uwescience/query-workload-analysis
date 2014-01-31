@@ -10,6 +10,7 @@ Activate your virtual env and then install freetds and the dependencies.
 
 ```bash
 brew install freetds freetype
+pip install -r requirements.txt
 pip install -e .  # or python setup.py develop
 ```
 
