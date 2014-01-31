@@ -40,8 +40,6 @@ def find_recurring(db):
     cost_saved = [0]
     rows_cached = [0]
 
-    tables = Counter()
-
     def check_tree(tree):
         """Checks the tree for recurring subexpressions"""
         h = get_hash(tree)
@@ -53,15 +51,9 @@ def find_recurring(db):
             for child in tree['children']:
                 check_tree(child)
 
-    def count_tables(tree):
-        """Count the tables used in query"""
-        for table in get_tables(tree):
-            tables[table] += 1
-
     for query in queries:
         plan = json.loads(query['plan'])
         check_tree(plan)
-        count_tables(plan)
 
     cost = get_cost(db, 'estimated_cost')
 
@@ -69,9 +61,22 @@ def find_recurring(db):
     print "Remaining cost", cost - cost_saved[0]
     print "Cached rows:", rows_cached[0]
 
-    print
 
-    print "Accessed used:"
+def used_tables(db):
+    queries = db.query('SELECT *, COUNT(*) c FROM logs_dr5_explained GROUP BY query ORDER BY id ASC')
+
+    tables = Counter()
+
+    def count_tables(tree):
+        """Count the tables used in query"""
+        for table in get_tables(tree):
+            tables[table] += 1
+
+    for query in queries:
+        plan = json.loads(query['plan'])
+        count_tables(plan)
+
+    print "Tables used:"
     for table, count in sorted(tables.iteritems(),
                                key=lambda t: t[1], reverse=True):
         print "  {}: {}".format(table, count)
@@ -144,6 +149,10 @@ def analyze(database, show_plots):
     print
 
     find_recurring(db)
+
+    print
+
+    used_tables(db)
 
     if show_plots:
         print
