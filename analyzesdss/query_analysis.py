@@ -28,31 +28,24 @@ def get_hash(tree):
         h = hash(get_hash(child) + h)
     return h
 
-cost_saved = 0
-rows_cached = 0
-
-
 def find_recurring(db):
     print "Find recurring subtrees in distinct queries:"
     queries = db.query('SELECT *, COUNT(*) c FROM logs_dr5_explained GROUP BY query ORDER BY id ASC')
 
     seen = {}
 
-    global cost_saved
-    global rows_cached
-
-    cost_saved = 0
-    rows_cached = 0
+    # has to be list (mutuable) so that we can modify it in sub-function
+    cost_saved = [0]
+    rows_cached = [0]
 
     def check_tree(tree):
-        global cost_saved
-        global rows_cached
+        """Checks the tree for recurring subexpressions"""
         h = get_hash(tree)
         if h in seen:
-            cost_saved += tree['total']
+            cost_saved[0] += tree['total']
         else:
             seen[h] = tree
-            rows_cached += tree['numRows']
+            rows_cached[0] += tree['numRows']
             for child in tree['children']:
                 check_tree(child)
 
@@ -62,9 +55,9 @@ def find_recurring(db):
 
     cost = get_cost(db, 'estimated_cost')
 
-    print "Saved cost", cost_saved, str(cost_saved / cost * 100) + "%"
-    print "Remaining cost", cost - cost_saved
-    print "Cached rows:", rows_cached
+    print "Saved cost", cost_saved, str(cost_saved[0] / cost * 100) + "%"
+    print "Remaining cost", cost - cost_saved[0]
+    print "Cached rows:", rows_cached[0]
 
 
 def print_stats(db):
