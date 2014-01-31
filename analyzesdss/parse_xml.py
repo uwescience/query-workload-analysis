@@ -121,6 +121,8 @@ def operator_tree(root, cost, show_filters, parameters):
                 nosos = pred.xpath('.//RelOp//ScalarOperator')
             for so in set(sos) - set(nosos):
                 if show_filters:
+                    if 'ScalarString' not in so.attrib:
+                        continue
                     scalarString = so.attrib['ScalarString']
                     # replace all parameters with concrete values
                     for p in parameters:

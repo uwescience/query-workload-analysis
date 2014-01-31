@@ -2,7 +2,7 @@ import json
 import dataset
 import sqlalchemy as sa
 import parse_xml
-from utils import json_pretty
+import utils
 
 EXAMPLE = [{'query': '''
 SELECT  top 1   p.objID, p.run,
@@ -32,7 +32,8 @@ def explain(config, database=None):
 
         if database:
             db = dataset.connect(database)
-            queries = list(db.query('SELECT * FROM logs WHERE db = "BestDR5"'))
+            queries = list(db.query(
+                'SELECT * FROM logs WHERE db = "BestDR5" AND error != ""'))
         else:
             queries = EXAMPLE
 
@@ -40,8 +41,7 @@ def explain(config, database=None):
         table = db['logs']
 
         for i, query in enumerate(queries):
-            if query['error']:
-                continue
+            print "Explain query", i
 
             try:
                 res = connection.execute(query['query']).fetchall()[0]
@@ -61,8 +61,8 @@ def explain(config, database=None):
             assert(len(query_plans) == 1)
 
             query_plan = query_plans[0]
-            print json_pretty(query_plan)
-            query['plan'] = json.dumps(query_plan)
+            print utils.json_pretty(query_plan)
+            query['plan'] = json.dumps(query_plan, cls=utils.SetEncoder)
 
             # indent tree and export as xml file
             parse_xml.indent(tree.getroot())
@@ -70,7 +70,8 @@ def explain(config, database=None):
 
             simple_query_plan = parse_xml.get_query_plans(
                 tree, cost=False, show_filters=False)[0]
-            query['simple_plan'] = json.dumps(simple_query_plan)
+            query['simple_plan'] = json.dumps(
+                simple_query_plan, cls=utils.SetEncoder)
 
             query['estimated_cost'] = query_plan['total']
             table.update(query, ['id'])
