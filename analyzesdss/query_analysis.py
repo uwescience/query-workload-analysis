@@ -1,5 +1,6 @@
 import json
 import hashlib
+from collections import Counter
 
 import numpy as np
 #import scipy.stats
@@ -8,7 +9,7 @@ import dataset
 
 
 def get_tables(query_plan):
-    tables = query_plan.get('tables', [])
+    tables = query_plan.get('columns', {}).keys()
     for child in query_plan['children']:
         tables += get_tables(child)
     return tables
@@ -28,6 +29,7 @@ def get_hash(tree):
         h = hash(get_hash(child) + h)
     return h
 
+
 def find_recurring(db):
     print "Find recurring subtrees in distinct queries:"
     queries = db.query('SELECT *, COUNT(*) c FROM logs_dr5_explained GROUP BY query ORDER BY id ASC')
@@ -37,6 +39,8 @@ def find_recurring(db):
     # has to be list (mutuable) so that we can modify it in sub-function
     cost_saved = [0]
     rows_cached = [0]
+
+    tables = Counter()
 
     def check_tree(tree):
         """Checks the tree for recurring subexpressions"""
@@ -49,15 +53,28 @@ def find_recurring(db):
             for child in tree['children']:
                 check_tree(child)
 
+    def count_tables(tree):
+        """Count the tables used in query"""
+        for table in get_tables(tree):
+            tables[table] += 1
+
     for query in queries:
         plan = json.loads(query['plan'])
         check_tree(plan)
+        count_tables(plan)
 
     cost = get_cost(db, 'estimated_cost')
 
     print "Saved cost", cost_saved, str(cost_saved[0] / cost * 100) + "%"
     print "Remaining cost", cost - cost_saved[0]
     print "Cached rows:", rows_cached[0]
+
+    print
+
+    print "Accessed used:"
+    for table, count in sorted(tables.iteritems(),
+                               key=lambda t: t[1], reverse=True):
+        print "  {}: {}".format(table, count)
 
 
 def print_stats(db):
