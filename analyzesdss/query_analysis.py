@@ -5,6 +5,8 @@ from collections import Counter
 import numpy as np
 #import scipy.stats
 import matplotlib.pyplot as plt
+import prettyplotlib as ppl
+import matplotlib as mpl
 import dataset
 
 
@@ -147,11 +149,8 @@ def analyze(database, show_plots):
     print "(Average cost assumed per query)"
 
     print
-
     find_recurring(db)
-
     print
-
     used_tables(db)
 
     if show_plots:
@@ -163,16 +162,33 @@ def analyze(database, show_plots):
         estimated = np.array([x['estimated'] for x in costs], dtype=np.float)
         queries = np.array([int(hashlib.md5(x['query']).hexdigest()[:10], 16) for x in costs], dtype=np.float)
 
+        cost_hist = list(db.query('SELECT elapsed, COUNT(*) c FROM logs_dr5_explained GROUP BY elapsed ORDER BY elapsed'))
+
         colors = queries / np.max(queries)
 
-        #print "Correlation:", np.correlate(actual, estimated)
-        #print np.corrcoef([actual, estimated])
-        #print scipy.stats.pearsonr(actual, estimated)
+        fig, axes = plt.subplots(2)
 
-        plt.scatter(estimated, actual, c=colors, s=60, alpha=0.6)
-        plt.title("Correlation estimated and actual cost")
-        plt.xlim(xmin=0)
-        plt.ylim(ymin=0)
-        plt.xlabel('Estimated')
-        plt.ylabel('Actual')
+        # Correlation
+
+        ax = axes[0]
+
+        ppl.scatter(ax, estimated, actual, c=colors, s=60, alpha=0.6)
+
+        ax.set_title("Correlation estimated and actual cost")
+        ax.set_xlim(xmin=0)
+        ax.set_ylim(ymin=0)
+        ax.set_xlabel('Estimated')
+        ax.set_ylabel('Actual')
+
+        ax = axes[1]
+
+        # Cost historgam
+
+        val, weight = zip(*[(x['elapsed'], x['c']) for x in cost_hist])
+        ppl.hist(ax, val, bins=10, weights=weight, grid='y')
+
+        ax.set_title("Correlation estimated and actual cost")
+        ax.set_xlabel('Elapsed time')
+        ax.set_ylabel('Count')
+
         plt.show()
