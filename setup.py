@@ -9,7 +9,7 @@ setup(name='Query Workload Analysis',
       author_email='',
       packages=find_packages(exclude=['tests']),
       entry_points={
-            'console_scripts': [
+                  'console_scripts': [
                   'qwla = workloadanalysis.main:main'
-            ],
+                  ],
       },)

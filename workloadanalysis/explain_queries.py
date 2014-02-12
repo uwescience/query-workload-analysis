@@ -14,7 +14,9 @@ p.rerun, p.camcol, p.field, p.obj,
 '''}]
 
 
-def explain(config, database=None):
+def explain(config, database, sdss):
+    """Explain queries and store the results in database
+    """
     db = sa.create_engine(
         'mssql+pymssql://%s:%s@%s:%s/%s?charset=UTF-8' % (
             config['user'],
@@ -42,6 +44,7 @@ def explain(config, database=None):
 
         for i, query in enumerate(queries):
             print "Explain query", i
+            query = dict(query)
 
             try:
                 res = connection.execute(query['query']).fetchall()[0]
@@ -66,7 +69,7 @@ def explain(config, database=None):
 
             # indent tree and export as xml file
             parse_xml.indent(tree.getroot())
-            tree.write('clean_{}.xml'.format(i))
+            #tree.write('clean_{}.xml'.format(i))
 
             simple_query_plan = parse_xml.get_query_plans(
                 tree, cost=False, show_filters=False)[0]

@@ -1,11 +1,11 @@
-"""Query explainer.
+"""Query workload analysis.
 
 Usage:
-  sdss_tools consume [DATABASE] -i INPUT ...
-  sdss_tools explain CONFIG [DATABASE]
-  sdss_tools analyze [DATABASE] [--plots]
-  sdss_tools (-h | --help)
-  sdss_tools --version
+  qwla (sdss|sqlshare) consume [DATABASE] -i INPUT ...
+  qwla (sdss|sqlshare) explain CONFIG [DATABASE]
+  qwla (sdss|sqlshare) analyze [DATABASE] [--plots]
+  qwla (-h | --help)
+  qwla --version
 
 Options:
   -i INPUT     Logs to be read into database
@@ -25,9 +25,10 @@ import query_analysis
 def main():
     arguments = docopt(__doc__, version='SDSS Tools 0.0.1')
 
+    db = arguments['DATABASE'] or 'sqlite:///test.sqlite'
+
     if arguments['consume']:
-        db = arguments['DATABASE'] or 'sqlite:///test.sqlite'
-        consume_logs.consume(db, arguments['-i'])
+        consume_logs.consume(db, arguments['-i'], arguments['sdss'])
 
     if arguments['explain']:
         config = {}
@@ -35,12 +36,10 @@ def main():
             for line in f:
                 key, val = line.split('=')
                 config[key.strip()] = val.strip()
-        db = arguments['DATABASE'] or 'sqlite:///test.sqlite'
-        explain_queries.explain(config, db)
+        explain_queries.explain(config, db, arguments['sdss'])
 
     if arguments['analyze']:
-        db = arguments['DATABASE'] or 'sqlite:///test.sqlite'
-        query_analysis.analyze(db, arguments['--plots'])
+        query_analysis.analyze(db, arguments['--plots'], arguments['sdss'])
 
 
 if __name__ == '__main__':

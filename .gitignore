@@ -1,2 +1,3 @@
 default.ini.local
 *.egg-info/*
+clean_data/*

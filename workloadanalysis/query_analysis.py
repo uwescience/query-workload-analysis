@@ -111,9 +111,7 @@ def get_cost(db, cost):
     return list(result)[0]['cost']
 
 
-def analyze(database, show_plots):
-    db = dataset.connect(database)
-
+def analyze_sdss(db, show_plots):
     print "Limited to DR5"
     print
 
@@ -192,3 +190,14 @@ def analyze(database, show_plots):
         ax.set_ylabel('Count')
 
         plt.show()
+
+
+def analyze(database, show_plots, sdss):
+    """Analyze the query log from the database
+    """
+    db = dataset.connect(database)
+
+    if sdss:
+        analyze_sdss(db, show_plots)
+    else:
+        raise NotImplementedError
