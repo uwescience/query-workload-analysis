@@ -1,6 +1,8 @@
-# SDSS query analysis tools
+# Query workload analysis tools
 
 A set of scripts that allow us to extract queries from logs, have sql server explain them and then analyze the results.
+
+Built for the SDSS sky survey and SQLShare logs.
 
 ## Install
 
@@ -11,7 +13,7 @@ Activate your virtual env and then install freetds and the dependencies.
 ```bash
 brew install freetds freetype
 pip install -r requirements.txt
-pip install -e .  # or python setup.py develop
+pip install -e .  # or `python setup.py develop` if you are a developer
 ```
 
 Create a copy of the config file and set the password.
@@ -23,7 +25,7 @@ vim default.ini.local
 
 ## Run
 
-You should be able to run `sdss_tools analyze default.ini.local`.
+You should be able to run `qwla --help`.
 
 ## Trubleshooting
 
