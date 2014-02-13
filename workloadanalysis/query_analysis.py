@@ -2,11 +2,6 @@ import json
 import hashlib
 from collections import Counter
 
-import numpy as np
-#import scipy.stats
-import matplotlib.pyplot as plt
-import prettyplotlib as ppl
-import matplotlib as mpl
 import dataset
 
 
@@ -152,6 +147,11 @@ def analyze_sdss(db, show_plots):
     used_tables(db)
 
     if show_plots:
+        import numpy as np
+        #import scipy.stats
+        import matplotlib.pyplot as plt
+        import prettyplotlib as ppl
+        import matplotlib as mpl
         print
 
         print "Correlation between estimated and actual cost"

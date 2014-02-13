@@ -10,8 +10,23 @@ I suggest, you use a virtual environment.
 
 Activate your virtual env and then install freetds and the dependencies.
 
+### First, install freetds
+
+Mac os
+
 ```bash
 brew install freetds freetype
+```
+
+Ubuntu
+
+```bash
+sudo apt-get install freetds-dev
+```
+
+### Then install the tools
+
+```bash
 pip install -r requirements.txt
 pip install -e .  # or `python setup.py develop` if you are a developer
 ```
