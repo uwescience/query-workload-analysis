@@ -33,7 +33,7 @@ def find_recurring(db):
 
     seen = {}
 
-    # has to be list (mutuable) so that we can modify it in sub-function
+    # has to be list (mutable) so that we can modify it in sub-function
     cost_saved = [0]
     rows_cached = [0]
 
@@ -180,7 +180,7 @@ def analyze_sdss(db, show_plots):
 
         ax = axes[1]
 
-        # Cost historgam
+        # Cost histogram
 
         val, weight = zip(*[(x['elapsed'], x['c']) for x in cost_hist])
         ppl.hist(ax, val, bins=10, weights=weight, grid='y')
