@@ -1,4 +1,4 @@
-import csv
+import unicodecsv as csv
 import dataset
 
 TYPES = {}
@@ -35,7 +35,7 @@ def consume_sdss(db, f):
     table = db['logs']
     rows = []
 
-    reader = csv.reader(csv_fixer(f))
+    reader = csv.reader(csv_fixer(f), encoding='latin-1')
 
     for row in reader:
         # ignore header, if present
