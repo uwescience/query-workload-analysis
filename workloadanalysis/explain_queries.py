@@ -14,7 +14,7 @@ p.rerun, p.camcol, p.field, p.obj,
 '''}]
 
 
-def explain(config, database, sdss):
+def explain(config, database, quiet, sdss):
     """Explain queries and store the results in database
     """
     db = sa.create_engine(
@@ -25,7 +25,7 @@ def explain(config, database, sdss):
             config['port'],
             config['db']
         ),
-        echo=True
+        echo=(not quiet)
     )
 
     with db.connect() as connection:
@@ -64,7 +64,8 @@ def explain(config, database, sdss):
             assert(len(query_plans) == 1)
 
             query_plan = query_plans[0]
-            print utils.json_pretty(query_plan)
+            if not quiet:
+                print utils.json_pretty(query_plan)
             query['plan'] = json.dumps(query_plan, cls=utils.SetEncoder)
 
             # indent tree and export as xml file

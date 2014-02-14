@@ -2,7 +2,7 @@
 
 Usage:
   qwla (sdss|sqlshare) consume INPUT... [-d DATABASE]
-  qwla (sdss|sqlshare) explain CONFIG [-d DATABASE]
+  qwla (sdss|sqlshare) explain CONFIG -q [-d DATABASE]
   qwla (sdss|sqlshare) analyze [--plots] [-d DATABASE]
   qwla (-h | --help)
   qwla --version
@@ -12,6 +12,7 @@ Options:
   -d [DATABASE]  The database to read from or write into
   CONFIG         How to connect to SQLServer
   --plots        Show plots
+  -q             Don't print results to stdout
   -h --help      Show this screen.
   --version      Show version.
 
@@ -39,7 +40,7 @@ def main():
             for line in f:
                 key, val = line.split('=')
                 config[key.strip()] = val.strip()
-        explain_queries.explain(config, db, arguments['sdss'])
+        explain_queries.explain(config, db, arguments['-q'], arguments['sdss'])
 
     if arguments['analyze']:
         query_analysis.analyze(db, arguments['--plots'], arguments['sdss'])
