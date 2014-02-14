@@ -35,7 +35,7 @@ def explain(config, database, quiet, sdss):
         if database:
             db = dataset.connect(database)
             queries = list(db.query(
-                'SELECT * FROM logs WHERE db = "BestDR5" AND error != ""'))
+                'SELECT * FROM logs WHERE db = "BestDR5" AND error != "" GROUP BY query'))
         else:
             queries = EXAMPLE
 
@@ -61,7 +61,9 @@ def explain(config, database, quiet, sdss):
             # get the simplified query plan as dictionary
             query_plans = parse_xml.get_query_plans(
                 tree, cost=True, show_filters=True)
-            assert(len(query_plans) == 1)
+            if len(query_plans) != 1:
+                print query_plans
+                raise Exception("Found two query plans")
 
             query_plan = query_plans[0]
             if not quiet:
