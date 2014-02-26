@@ -1,6 +1,7 @@
 import json
 import hashlib
 from collections import Counter
+from tabulate import tabulate
 
 import dataset
 
@@ -92,8 +93,7 @@ def print_stats(db):
     print
     print "Error messages:"
     result = db.query('SELECT COUNT(*) c, error_msg FROM logs where error GROUP BY error_msg ORDER BY c DESC')
-    for line in result:
-        print '{:3}'.format(line['c']), line['error_msg']
+    print tabulate(result, headers=['count', 'error msg'])
 
 
 def get_aggregated_cost(db, cost, query):

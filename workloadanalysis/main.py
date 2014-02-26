@@ -2,6 +2,7 @@
 
 Usage:
   qwla (sdss|sqlshare) consume INPUT... [-d DATABASE]
+  qwla (sdss|sqlshare) summarize [-d DATABASE]
   qwla (sdss|sqlshare) explain CONFIG -q [-d DATABASE]
   qwla (sdss|sqlshare) analyze [--plots] [-d DATABASE]
   qwla (-h | --help)
@@ -23,6 +24,7 @@ from docopt import docopt
 import consume_logs
 import explain_queries
 import query_analysis
+import summary
 
 
 def main():
@@ -33,6 +35,9 @@ def main():
 
     if arguments['consume']:
         consume_logs.consume(db, arguments['INPUT'], arguments['sdss'])
+
+    if arguments['summarize']:
+        summary.summarize(db, arguments['sdss'])
 
     if arguments['explain']:
         config = {}

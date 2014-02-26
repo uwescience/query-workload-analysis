@@ -1,4 +1,5 @@
 dataset
+tabulate
 pymssql
 docopt
 lxml
