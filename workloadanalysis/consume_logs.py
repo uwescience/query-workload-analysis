@@ -68,6 +68,31 @@ def consume_sdss(db, f):
 
     table.insert_many(rows, types=TYPES)
 
+def consume_sqlshare(db,f):
+    table = db['logs']
+    rows = []
+
+    reader = csv.reader(f, delimiter='\t',dialect=csv.excel)
+    reader.next()
+
+    for row in reader:
+        try:
+            data = {
+                'id': int(row[0]),
+                'owner': row[1],
+                'time_start': row[2],
+                'time_end': row[3],
+                'status': row[4],
+                'query': pretty_query(row[5]),
+                'length': int(row[6]),
+                'runtime': int(row[7]) 
+            }
+        except Exception as e:
+            print row, e
+            return
+        rows.append(data)
+
+    table.insert_many(rows, types=TYPES)
 
 def consume(database, files, sdss):
     """Import logs into database
@@ -78,5 +103,5 @@ def consume(database, files, sdss):
             if sdss:
                 consume_sdss(db, f)
             else:
-                raise NotImplementedError
+                consume_sqlshare(db,f)
         print "Imported", i + 1, "of", len(files)
