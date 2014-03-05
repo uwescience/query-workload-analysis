@@ -2,8 +2,9 @@ import json
 import hashlib
 from collections import Counter
 from tabulate import tabulate
-
 import dataset
+
+from utils import format_tabulate as ft
 
 
 def get_tables(query_plan):
@@ -93,7 +94,7 @@ def print_stats(db):
     print
     print "Error messages:"
     result = db.query('SELECT COUNT(*) c, error_msg FROM logs where error GROUP BY error_msg ORDER BY c DESC')
-    print tabulate(result, headers=['count', 'error msg'])
+    print tabulate(ft(result), headers=['count', 'error msg'])
 
 
 def get_aggregated_cost(db, cost, query):
@@ -151,7 +152,6 @@ def analyze_sdss(db, show_plots):
         #import scipy.stats
         import matplotlib.pyplot as plt
         import prettyplotlib as ppl
-        import matplotlib as mpl
         print
 
         print "Correlation between estimated and actual cost"
@@ -178,12 +178,12 @@ def analyze_sdss(db, show_plots):
         ax.set_xlabel('Estimated')
         ax.set_ylabel('Actual')
 
-        ax = axes[1]
-
         # Cost histogram
 
+        ax = axes[1]
+
         val, weight = zip(*[(x['elapsed'], x['c']) for x in cost_hist])
-        ppl.hist(ax, val, bins=10, weights=weight, grid='y')
+        ppl.hist(ax, np.array(val), bins=10, weights=weight, grid='y')
 
         ax.set_title("Correlation estimated and actual cost")
         ax.set_xlabel('Elapsed time')

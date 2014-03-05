@@ -14,3 +14,10 @@ def json_pretty(obj):
     """A simple wrapper for the json pretty string given in the json docs"""
     return dumps(obj, sort_keys=True, indent=4, separators=(',', ': '),
                  cls=SetEncoder)
+
+
+def format_tabulate(tuples):
+    """Transforms relation from dataset into something we can show
+    with tabulate"""
+    for t in tuples:
+        yield t.values()
