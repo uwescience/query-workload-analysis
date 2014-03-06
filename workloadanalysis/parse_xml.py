@@ -137,6 +137,7 @@ def operator_tree(root, cost, show_filters, parameters):
 
         ret = {
             'operator': root.attrib['LogicalOp'],
+            'physicalOp': root.attrib['PhysicalOp'],
             'children': children,
             'columns': tables,
             'filters': filters
