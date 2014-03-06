@@ -1,10 +1,8 @@
 import json
 import dataset
-import unicodecsv as csv
 import sqlalchemy as sa
 import parse_xml
 import utils
-import sys
 
 EXAMPLE = [{'query': '''
 SELECT  top 1   p.objID, p.run,
@@ -15,9 +13,10 @@ p.rerun, p.camcol, p.field, p.obj,
    WHERE n.objID=p.objID
 '''}]
 
+
 def explain_sqlshare(config, database, quiet):
     db = dataset.connect(database)
-    
+
     errors = []
     table = db['sqlshare_logs']
     queries = list(db.query('SELECT * FROM sqlshare_logs LIMIT 200'))
@@ -27,14 +26,14 @@ def explain_sqlshare(config, database, quiet):
     op_counts = []
     for i, query in enumerate(queries):
         print "Explain query", i
-        op_count = [0,]
+        op_count = [0]
         if query['plan'][0] != '<':
             errors.append(query['plan'])
             continue
 
         xml_string = "".join([x for x in query['plan']])
         tree = parse_xml.clean(xml_string)
-        
+
         # print operators
         parse_xml.get_op_count(tree.getroot(), op_count)
         #print op_count[0]
@@ -84,9 +83,10 @@ def explain_sqlshare(config, database, quiet):
     print "Error: {0} \%".format(len(errors)*100.0/len(queries))
     print op_counts
 
+
 def explain(config, database, quiet):
     """Explain queries and store the results in database
-    """    
+    """
     connection_string = 'mssql+pymssql://%s:%s@%s:%s/%s?charset=UTF-8' % (
                         config['user'],
                         config['password'],
@@ -123,7 +123,7 @@ def explain(config, database, quiet):
 
             xml_string = "".join([x for x in res])
             tree = parse_xml.clean(xml_string)
-            
+
             # print operators
             parse_xml.print_rel_op_tags(tree.getroot())
 
@@ -160,4 +160,3 @@ def explain(config, database, quiet):
         connection.execute('set noexec off')
 
         print "Errors", errors
-        print "Error: %s %" %(len(errors)*1.0/len(queries))
