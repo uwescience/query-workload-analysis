@@ -37,10 +37,7 @@ def get_hash(tree):
     return h
 
 
-def find_recurring(db):
-    print "Find recurring subtrees in distinct queries:"
-    queries = db.query('SELECT *, COUNT(*) c FROM logs_dr5_explained GROUP BY query ORDER BY id ASC')
-
+def find_recurring(queries, estimated_cost):
     seen = {}
 
     # has to be list (mutable) so that we can modify it in sub-function
@@ -62,16 +59,12 @@ def find_recurring(db):
         plan = json.loads(query['plan'])
         check_tree(plan)
 
-    cost = get_cost(db, 'estimated_cost')
-
-    print "Saved cost", cost_saved, str(cost_saved[0] / cost * 100) + "%"
-    print "Remaining cost", cost - cost_saved[0]
+    print "Saved cost", cost_saved, str(cost_saved[0] / estimated_cost * 100) + "%"
+    print "Remaining cost", estimated_cost - cost_saved[0]
     print "Cached rows:", rows_cached[0]
 
 
-def used_tables(db):
-    queries = db.query('SELECT *, COUNT(*) c FROM logs_dr5_explained GROUP BY query ORDER BY id ASC')
-
+def used_tables(queries):
     tables = Counter()
 
     def count_tables(plan):
@@ -84,13 +77,10 @@ def used_tables(db):
         count_tables(plan)
 
     print "Tables used:"
-    for table, count in sorted(tables.iteritems(),
-                               key=lambda t: t[1], reverse=True):
-        print "  {}: {}".format(table, count)
+    print tabulate(sorted(tables.iteritems(), key=lambda t: t[1], reverse=True), headers=["table", "count"])
 
 
-def used_logical_operators(db):
-    queries = db.query('SELECT *, COUNT(*) c FROM logs_dr5_explained GROUP BY query ORDER BY id ASC')
+def used_logical_operators(queries):
 
     ops = Counter()
 
@@ -168,11 +158,18 @@ def analyze_sdss(db, show_plots):
     print "(Average cost assumed per query)"
 
     print
-    find_recurring(db)
+    print "Find recurring subtrees in distinct queries:"
+    queries = db.query('SELECT *, COUNT(*) c FROM logs_dr5_explained GROUP BY query ORDER BY id ASC')
+    estimated_cost = get_cost(db, 'estimated_cost')
+    find_recurring(queries, estimated_cost)
+
     print
-    used_tables(db)
+    queries = db.query('SELECT *, COUNT(*) c FROM logs_dr5_explained GROUP BY query ORDER BY id ASC')
+    used_tables(queries)
+
     print
-    used_logical_operators(db)
+    queries = db.query('SELECT *, COUNT(*) c FROM logs_dr5_explained GROUP BY query ORDER BY id ASC')
+    used_logical_operators(queries)
 
     if show_plots:
         import numpy as np
@@ -218,8 +215,10 @@ def analyze_sdss(db, show_plots):
 
         plt.show()
 
+
 def analyze_sqlshare(db):
     pass
+
 
 def analyze(database, show_plots, sdss):
     """Analyze the query log from the database
