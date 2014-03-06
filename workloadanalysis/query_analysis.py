@@ -191,6 +191,8 @@ def analyze_sdss(db, show_plots):
 
         plt.show()
 
+def analyze_sqlshare(db):
+    pass
 
 def analyze(database, show_plots, sdss):
     """Analyze the query log from the database
@@ -200,4 +202,4 @@ def analyze(database, show_plots, sdss):
     if sdss:
         analyze_sdss(db, show_plots)
     else:
-        raise NotImplementedError
+        analyze_sqlshare(db)

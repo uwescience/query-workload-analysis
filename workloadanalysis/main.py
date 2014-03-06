@@ -1,7 +1,7 @@
 """Query workload analysis.
 
 Usage:
-  qwla (sdss|sqlshare) consume INPUT... [-d DATABASE]
+  qwla (sdss|sqlshare) consume INPUT... [-d DATABASE] [-v]
   qwla (sdss|sqlshare) summarize [-d DATABASE]
   qwla (sdss|sqlshare) explain CONFIG -q [-d DATABASE]
   qwla (sdss|sqlshare) analyze [--plots] [-d DATABASE]
@@ -14,6 +14,7 @@ Options:
   CONFIG         How to connect to SQLServer
   --plots        Show plots
   -q             Don't print results to stdout
+  -v             (For SQLShare only) if the input being consumed is a view
   -h --help      Show this screen.
   --version      Show version.
 
@@ -34,7 +35,7 @@ def main():
           or 'sqlite:///test.sqlite')
 
     if arguments['consume']:
-        consume_logs.consume(db, arguments['INPUT'], arguments['sdss'])
+        consume_logs.consume(db, arguments['INPUT'], arguments['sdss'], arguments['-v'])
 
     if arguments['summarize']:
         summary.summarize(db, arguments['sdss'])
@@ -45,7 +46,10 @@ def main():
             for line in f:
                 key, val = line.split('=')
                 config[key.strip()] = val.strip()
-        explain_queries.explain(config, db, arguments['-q'], arguments['sdss'])
+        if arguments['sdss']:
+          explain_queries.explain(config, db, arguments['-q'], arguments['sdss'])
+        else:
+          explain_queries.explain_sqlshare(config, db, arguments['-q'])
 
     if arguments['analyze']:
         query_analysis.analyze(db, arguments['--plots'], arguments['sdss'])

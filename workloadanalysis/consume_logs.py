@@ -34,7 +34,7 @@ def pretty_query(query):
 def consume_sdss(db, f):
     table = db['logs']
     rows = []
-
+    print 'here'
     reader = csv.reader(csv_fixer(f), encoding='latin-1')
 
     for row in reader:
@@ -68,40 +68,62 @@ def consume_sdss(db, f):
 
     table.insert_many(rows, types=TYPES)
 
-def consume_sqlshare(db,f):
-    table = db['logs']
-    rows = []
-
-    reader = csv.reader(f, delimiter='\t',dialect=csv.excel)
-    reader.next()
-
-    for row in reader:
+def consume_sqlshare(db,f,isview):
+    table = db['sqlshare_logs']
+    data = {}
+    count = 1
+    f.readline()
+    id = 250000
+    fail_count = 0
+    for line in f:
+        print 'Processing Query: ', count
+        row = line.split('|')
+        count +=1
         try:
-            data = {
-                'id': int(row[0]),
-                'owner': row[1],
-                'time_start': row[2],
-                'time_end': row[3],
-                'status': row[4],
-                'query': pretty_query(row[5]),
-                'length': int(row[6]),
-                'runtime': int(row[7]) 
-            }
+            if isview:
+                data = {
+                    'id': id,
+                    'time_start': 'NA',
+                    'time_end':'NA',
+                    'status': 'NA',
+                    'view': row[0],
+                    'query': pretty_query(row[1]),
+                    'owner': row[0].split(']')[0][1:],
+                    'length': len(row[3]),
+                    'isView': 'y',
+                    'plan': row[4],
+                    'runtime': -1
+                }
+                id+=1
+            else:
+                data = {
+                    'id': int(row[0]),
+                    'owner': row[1],
+                    'time_start': row[2],
+                    'time_end': row[3],
+                    'status': row[4],
+                    'query': pretty_query(row[5]),
+                    'length': int(row[6]),
+                    'runtime': int(row[7]),
+                    'plan': row[8],
+                    'isView': 'n',
+                    'view':'NA'
+                }
+            table.insert(data, types= TYPES)
         except Exception as e:
-            print row, e
-            return
-        rows.append(data)
+            print 'Exception...'
+            fail_count += 1
+    print fail_count
 
-    table.insert_many(rows, types=TYPES)
-
-def consume(database, files, sdss):
+def consume(database, files, sdss, isview):
     """Import logs into database
     """
     db = dataset.connect(database)
+    db.text_factory = str
     for i, logfile in enumerate(files):
-        with open(logfile, 'rb') as f:
+        with open(logfile, 'rU') as f:
             if sdss:
                 consume_sdss(db, f)
             else:
-                consume_sqlshare(db,f)
+                consume_sqlshare(db,f, isview)
         print "Imported", i + 1, "of", len(files)

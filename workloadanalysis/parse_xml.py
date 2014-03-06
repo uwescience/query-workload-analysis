@@ -34,6 +34,12 @@ def print_rel_op_tags(root, depth=0):
     for child in root:
         print_rel_op_tags(child, depth)
 
+def get_op_count(root, count):
+    """Prints the relational operators in a hierarchical fashion"""
+    if root.tag == 'RelOp' or root.tag == 'LogicalOp':
+        count[0] += 1
+    for child in root:
+        get_op_count(child, count)
 
 def get_query_plans(tree, cost=False, show_filters=False):
     """Returns a list of the query plans in the given XML tree
