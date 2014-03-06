@@ -7,6 +7,14 @@ import dataset
 from utils import format_tabulate as ft
 
 
+def get_logical_operators(query_plan):
+    "get a list of all logical operators"
+    tables = [query_plan.get('operator')]
+    for child in query_plan['children']:
+        tables += get_logical_operators(child)
+    return tables
+
+
 def get_tables(query_plan):
     tables = query_plan.get('columns', {}).keys()
     for child in query_plan['children']:
@@ -39,15 +47,15 @@ def find_recurring(db):
     cost_saved = [0]
     rows_cached = [0]
 
-    def check_tree(tree):
-        """Checks the tree for recurring subexpressions"""
-        h = get_hash(tree)
+    def check_tree(plan):
+        """Checks the plan for recurring subexpressions"""
+        h = get_hash(plan)
         if h in seen:
-            cost_saved[0] += tree['total']
+            cost_saved[0] += plan['total']
         else:
-            seen[h] = tree
-            rows_cached[0] += tree['numRows']
-            for child in tree['children']:
+            seen[h] = plan
+            rows_cached[0] += plan['numRows']
+            for child in plan['children']:
                 check_tree(child)
 
     for query in queries:
@@ -66,9 +74,9 @@ def used_tables(db):
 
     tables = Counter()
 
-    def count_tables(tree):
+    def count_tables(plan):
         """Count the tables used in query"""
-        for table in get_tables(tree):
+        for table in get_tables(plan):
             tables[table] += 1
 
     for query in queries:
@@ -79,6 +87,23 @@ def used_tables(db):
     for table, count in sorted(tables.iteritems(),
                                key=lambda t: t[1], reverse=True):
         print "  {}: {}".format(table, count)
+
+
+def used_logical_operators(db):
+    queries = db.query('SELECT *, COUNT(*) c FROM logs_dr5_explained GROUP BY query ORDER BY id ASC')
+
+    ops = Counter()
+
+    def count_ops(plan):
+        """Count the tables used in query"""
+        for op in get_logical_operators(plan):
+            ops[op] += 1
+
+    for query in queries:
+        plan = json.loads(query['plan'])
+        count_ops(plan)
+
+    print tabulate(sorted(ops.iteritems(), key=lambda t: t[1], reverse=True), headers=["logical op", "count"])
 
 
 def print_stats(db):
@@ -146,6 +171,8 @@ def analyze_sdss(db, show_plots):
     find_recurring(db)
     print
     used_tables(db)
+    print
+    used_logical_operators(db)
 
     if show_plots:
         import numpy as np
