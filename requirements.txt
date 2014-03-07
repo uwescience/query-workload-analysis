@@ -3,5 +3,6 @@ tabulate
 pymssql
 docopt
 lxml
+sqlparse
 unicodecsv
 prettyplotlib
