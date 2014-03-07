@@ -44,15 +44,15 @@ def find_recurring(queries, estimated_cost):
     cost_saved = [0]
     rows_cached = [0]
 
-    def check_tree(plan):
+    def check_tree(tree):
         """Checks the plan for recurring subexpressions"""
-        h = get_hash(plan)
+        h = get_hash(tree)
         if h in seen:
-            cost_saved[0] += plan['total']
+            cost_saved[0] += tree['total']
         else:
-            seen[h] = plan
-            rows_cached[0] += plan['numRows']
-            for child in plan['children']:
+            seen[h] = tree
+            rows_cached[0] += tree['numRows']
+            for child in tree['children']:
                 check_tree(child)
 
     for query in queries:
@@ -94,6 +94,22 @@ def used_logical_operators(queries):
         count_ops(plan)
 
     print tabulate(sorted(ops.iteritems(), key=lambda t: t[1], reverse=True), headers=["logical op", "count"])
+
+
+def explicit_implicit_joins(queries):
+    explicit_join = 0
+    implicit_join = 0
+    for query in queries:
+        plan = json.loads(query['plan'])
+        log_ops = get_logical_operators(plan)
+        if 'Inner Join' in log_ops and 'join' not in query['query'].lower():
+            implicit_join += 1
+        if 'join' in query['query'].lower():
+            explicit_join += 1
+        if 'join' in query['query'].lower() and 'Inner Join' not in log_ops:
+            print "Weird", query
+    print 'Implicit join:', implicit_join
+    print 'Explicit join:', explicit_join
 
 
 def print_stats(db):
@@ -170,6 +186,10 @@ def analyze_sdss(db, show_plots):
     print
     queries = db.query('SELECT *, COUNT(*) c FROM logs_dr5_explained GROUP BY query ORDER BY id ASC')
     used_logical_operators(queries)
+
+    print
+    queries = db.query('SELECT *, COUNT(*) c FROM logs_dr5_explained GROUP BY query ORDER BY id ASC')
+    explicit_implicit_joins(queries)
 
     if show_plots:
         import numpy as np
