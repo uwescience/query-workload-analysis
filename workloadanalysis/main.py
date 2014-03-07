@@ -13,7 +13,7 @@ Options:
   -d [DATABASE]  The database to read from or write into
   CONFIG         How to connect to SQLServer
   --plots        Show plots
-  -q             Don't print results to stdout
+  -q             Don't print results
   -v             (For SQLShare only) if the input being consumed is a view
   -h --help      Show this screen.
   --version      Show version.
@@ -35,7 +35,8 @@ def main():
           or 'sqlite:///test.sqlite')
 
     if arguments['consume']:
-        consume_logs.consume(db, arguments['INPUT'], arguments['sdss'], arguments['-v'])
+        consume_logs.consume(
+            db, arguments['INPUT'], arguments['sdss'], arguments['-v'])
 
     if arguments['summarize']:
         summary.summarize(db, arguments['sdss'])
@@ -47,9 +48,11 @@ def main():
                 key, val = line.split('=')
                 config[key.strip()] = val.strip()
         if arguments['sdss']:
-          explain_queries.explain(config, db, arguments['-q'])
+            explain_queries.explain_sdss(config, db,
+                                         arguments['-q'])
         else:
-          explain_queries.explain_sqlshare(config, db, arguments['-q'])
+            explain_queries.explain_sqlshare(config, db,
+                                             arguments['-q'])
 
     if arguments['analyze']:
         query_analysis.analyze(db, arguments['--plots'], arguments['sdss'])
