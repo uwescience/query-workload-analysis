@@ -102,11 +102,12 @@ def explicit_implicit_joins(queries):
     for query in queries:
         plan = json.loads(query['plan'])
         log_ops = get_logical_operators(plan)
-        if 'Inner Join' in log_ops and 'join' not in query['query'].lower():
+        has_join = len([x for x in log_ops if 'join' in x.lower()])
+        if has_join and 'join' not in query['query'].lower():
             implicit_join += 1
         if 'join' in query['query'].lower():
             explicit_join += 1
-        if 'join' in query['query'].lower() and 'Inner Join' not in log_ops:
+        if 'join' in query['query'].lower() and not has_join:
             print "Weird", query
     print 'Implicit join:', implicit_join
     print 'Explicit join:', explicit_join
