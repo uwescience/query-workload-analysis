@@ -3,6 +3,8 @@ import hashlib
 from collections import Counter
 from tabulate import tabulate
 import dataset
+import bz2
+import sqltokens
 
 from utils import format_tabulate as ft
 
@@ -102,12 +104,12 @@ def explicit_implicit_joins(queries):
     for query in queries:
         plan = json.loads(query['plan'])
         log_ops = get_logical_operators(plan)
-        if 'Inner Join' in log_ops and 'join' not in query['query'].lower():
+        has_join = len([x for x in log_ops if 'join' in x.lower()])
+        if has_join and 'join' not in query['query'].lower():
             implicit_join += 1
         if 'join' in query['query'].lower():
             explicit_join += 1
-        if 'join' in query['query'].lower() and 'Inner Join' not in log_ops:
-            print "Weird", query
+        
     print 'Implicit join:', implicit_join
     print 'Explicit join:', explicit_join
 
@@ -237,7 +239,111 @@ def analyze_sdss(db, show_plots):
 
 
 def analyze_sqlshare(db):
-    pass
+    queries = list(db.query('SELECT * from sqlshare_logs where has_plan = 1'))
+    explicit_implicit_joins(queries)
+    print 'Total queries with plan: ', len(queries)
+    lengths = [] #
+    compressed_lengths = [] #
+    ops = [] #
+    distinct_ops = [] #
+    expanded_lengths = [] #
+    expanded_ops = []  #
+    expanded_distinct_ops = [] #
+    compressed_expanded_lengths = [] #
+    str_ops = [] #
+    distinct_str_ops = [] #
+    expanded_str_ops = [] #
+    expanded_distinct_str_ops = [] #
+
+    for q in queries:
+        length = len(q['query'])
+        lengths.append(length)
+        compressed_lengths.append(len(bz2.compress(q['query'])))
+        referenced_views = [x for x in q['ref_views'].split(',') if x != '']
+        
+        q_ex_ops = q['expanded_plan_ops'].split(',')
+        expanded_ops.append(len(q_ex_ops))
+        expanded_distinct_ops.append(len(set(q_ex_ops)))
+
+        q_ops = q_ex_ops
+        expanded_query = q['query']
+        for ref_view in referenced_views:
+            view = list(db.query('SELECT * from sqlshare_logs where id = {}'.format(ref_view)))
+            expanded_query = expanded_query.replace(view[0]['view'], '(' + view[0]['query'] + ')')
+            if view[0]['expanded_plan_ops']:
+                for op in view[0]['expanded_plan_ops'].split(','):
+                    if op in q_ops:
+                        q_ops.remove(op)
+            else:
+                print 'No ops in view: ', view[0]['view'] 
+
+        expanded_lengths.append(len(expanded_query))
+        compressed_expanded_lengths.append(len(bz2.compress(expanded_query)))
+        ops.append(len(q_ops))
+        distinct_ops.append(len(set(q_ops)))
+
+        if '--' in q['query']:
+            str_ops.append(-1)
+            distinct_str_ops.append(-1)
+            expanded_str_ops.append(-1)
+            expanded_distinct_str_ops.append(-1)
+        else:
+            tokens = sqltokens.get_tokens(q['query'])
+            str_ops.append(len(tokens))
+            distinct_str_ops.append(len(set(tokens)))
+            ex_tokens = sqltokens.get_tokens(expanded_query)
+            expanded_str_ops.append(len(ex_tokens))
+            expanded_distinct_str_ops.append(len(set(ex_tokens)))
+
+    print 'lengths = ', lengths
+    print 'compressed_lengths = ', compressed_lengths
+    print 'expanded_lengths = ', expanded_lengths
+    print 'compressed_expanded_lengths = ', compressed_expanded_lengths
+
+    print 'ops = ', ops
+    print 'distinct_ops = ', distinct_ops
+    print 'expanded_ops = ', expanded_ops
+    print 'expanded_distinct_ops = ', expanded_distinct_ops
+
+    print 'str_ops = ', str_ops
+    print 'distinct_str_ops = ', distinct_str_ops
+    print 'expanded_str_ops = ', expanded_str_ops
+    print 'expanded_distinct_str_ops = ', expanded_distinct_str_ops
+
+    ####SDSS
+    exit()
+    
+    sdss_queries = db.query('SELECT query, COUNT(*) c FROM logs WHERE has_plan = 1 GROUP BY query ORDER BY c DESC')
+    explicit_implicit_joins(sdss_queries)
+    print 'Total queries with plan: ', len(sdss_queries)
+    lengths = [] #
+    compressed_lengths = [] #
+    ops = [] #
+    distinct_ops = [] #
+    str_ops = [] #
+    distinct_str_ops = [] #
+
+    for q in queries:
+        plan = json.loads(q['plan'])
+        log_ops = get_logical_operators(plan)
+        ops.append(len(log_ops))
+        distinct_ops.append(len(set(log_ops)))
+
+        tokens = sqltokens.get_tokens(q['query'])
+        str_ops.append(len(tokens))
+        distinct_str_ops.append(len(set(tokens)))
+
+        lengths.append(len(q['query']))
+        compressed_lengths.append(len(q['query']))
+
+    print 'length = ', lengths
+    print 'compressed_lengths = ', compressed_lengths
+    
+    print 'ops = ', ops
+    print 'distinct_ops = ', distinct_ops
+    
+    print 'str_ops = ', str_ops
+    print 'distinct_str_ops = ', distinct_str_ops
 
 
 def analyze(database, show_plots, sdss):

@@ -47,7 +47,7 @@ def main():
                 key, val = line.split('=')
                 config[key.strip()] = val.strip()
         if arguments['sdss']:
-          explain_queries.explain(config, db, arguments['-q'], arguments['sdss'])
+          explain_queries.explain(config, db, arguments['-q'])
         else:
           explain_queries.explain_sqlshare(config, db, arguments['-q'])
 

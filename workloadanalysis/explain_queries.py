@@ -2,6 +2,7 @@ import json
 import dataset
 import sqlalchemy as sa
 import parse_xml
+import query_analysis
 import utils
 
 EXAMPLE = [{'query': '''
@@ -13,34 +14,29 @@ p.rerun, p.camcol, p.field, p.obj,
    WHERE n.objID=p.objID
 '''}]
 
-
 def explain_sqlshare(config, database, quiet):
     db = dataset.connect(database)
 
     errors = []
     table = db['sqlshare_logs']
-    queries = list(db.query('SELECT * FROM sqlshare_logs LIMIT 200'))
-    views = list(db.query('SELECT * FROM sqlshare_logs WHERE isView = \'y\''))
-    #print views
-    #exit()
-    op_counts = []
+    queries = list(db.query('SELECT * FROM sqlshare_logs'))
+    views = list(db.query('SELECT * FROM sqlshare_logs WHERE isView = 1'))
     for i, query in enumerate(queries):
         print "Explain query", i
         op_count = [0]
+        #see if the plan is valid
         if query['plan'][0] != '<':
             errors.append(query['plan'])
             continue
 
         xml_string = "".join([x for x in query['plan']])
-        tree = parse_xml.clean(xml_string)
-
+        
         # print operators
-        parse_xml.get_op_count(tree.getroot(), op_count)
-        #print op_count[0]
-        query['expanded_op_count'] = op_count[0]
-        op_counts.append(op_count[0])
+        #parse_xml.get_physical_op_count(tree.getroot(), op_count)
+         
         # get the simplified query plan as dictionary
         try:
+            tree = parse_xml.clean(xml_string)
             query_plans = parse_xml.get_query_plans(
                 tree, cost=True, show_filters=True)
             if len(query_plans) == 0:
@@ -77,11 +73,19 @@ def explain_sqlshare(config, database, quiet):
             if q['view'] in query['query']:
                 ref_views.append(str(q['id']) + ',')
         query['ref_views'] = ''.join([x for x in ref_views])
+
+
+        ####Getting all the ops#####        
+        ops = query_analysis.get_logical_operators(query_plan)
+        if ops:
+            query['expanded_plan_ops'] = ','.join([x for x in ops])
+        else:
+            print 'no ops is view'
+        query['has_plan'] = True
         table.update(query, ['id'])
 
     print "Errors", errors
     print "Error: {0} \%".format(len(errors)*100.0/len(queries))
-    print op_counts
 
 
 def explain(config, database, quiet):
@@ -154,6 +158,8 @@ def explain(config, database, quiet):
                 simple_query_plan, cls=utils.SetEncoder)
 
             query['estimated_cost'] = query_plan['total']
+            query['has_plan'] = True
+
             print query
             table.update(query, ['id'])
         connection.execute('set showplan_xml off')
