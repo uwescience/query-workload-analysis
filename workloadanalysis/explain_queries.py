@@ -14,6 +14,7 @@ p.rerun, p.camcol, p.field, p.obj,
    WHERE n.objID=p.objID
 '''}]
 
+
 def explain_sqlshare(config, database, quiet):
     db = dataset.connect(database)
 
@@ -30,10 +31,10 @@ def explain_sqlshare(config, database, quiet):
             continue
 
         xml_string = "".join([x for x in query['plan']])
-        
+
         # print operators
         #parse_xml.get_physical_op_count(tree.getroot(), op_count)
-         
+
         # get the simplified query plan as dictionary
         try:
             tree = parse_xml.clean(xml_string)
@@ -75,7 +76,7 @@ def explain_sqlshare(config, database, quiet):
         query['ref_views'] = ''.join([x for x in ref_views])
 
 
-        ####Getting all the ops#####        
+        ####Getting all the ops#####
         ops = query_analysis.get_logical_operators(query_plan)
         if ops:
             query['expanded_plan_ops'] = ','.join([x for x in ops])
@@ -88,7 +89,7 @@ def explain_sqlshare(config, database, quiet):
     print "Error: {0} \%".format(len(errors)*100.0/len(queries))
 
 
-def explain(config, database, quiet):
+def explain_sdss(config, database, quiet):
     """Explain queries and store the results in database
     """
     connection_string = 'mssql+pymssql://%s:%s@%s:%s/%s?charset=UTF-8' % (
@@ -106,8 +107,7 @@ def explain(config, database, quiet):
 
         if database:
             db = dataset.connect(database)
-            queries = list(db.query(
-            'SELECT * FROM logs WHERE db = "BestDR5" AND error != "" GROUP BY query'))
+            queries = list(db.query('SELECT * FROM logs WHERE db = "BestDR5" AND error != "" GROUP BY query'))
         else:
             queries = EXAMPLE
 
@@ -127,9 +127,6 @@ def explain(config, database, quiet):
 
             xml_string = "".join([x for x in res])
             tree = parse_xml.clean(xml_string)
-
-            # print operators
-            parse_xml.print_rel_op_tags(tree.getroot())
 
             # get the simplified query plan as dictionary
             query_plans = parse_xml.get_query_plans(
@@ -160,7 +157,6 @@ def explain(config, database, quiet):
             query['estimated_cost'] = query_plan['total']
             query['has_plan'] = True
 
-            print query
             table.update(query, ['id'])
         connection.execute('set showplan_xml off')
         connection.execute('set noexec off')
