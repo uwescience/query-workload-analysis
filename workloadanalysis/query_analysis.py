@@ -5,12 +5,14 @@ from tabulate import tabulate
 import dataset
 import bz2
 import sqltokens
+import numpy as np
 
 from utils import format_tabulate as ft
 
 # visitors
-tables = lambda x: x.get('columns', {}).keys()
-logical_ops = lambda x: [x['operator']]
+visitor_tables = lambda x: x.get('columns', {}).keys()
+visitor_logical_ops = lambda x: [x['operator']]
+visitor_physical_ops = lambda x: [x['physicalOp']]
 
 
 def visit_operators(query_plan, visitor):
@@ -63,6 +65,7 @@ def find_recurring(queries, estimated_cost):
 
 
 def get_counts(queries, visitor, name):
+    '''Count something which requires visiting all operators'''
     c = Counter()
 
     def count(plan):
@@ -84,7 +87,7 @@ def explicit_implicit_joins(queries):
     implicit_join = 0
     for query in queries:
         plan = json.loads(query['plan'])
-        log_ops = visit_operators(plan, logical_ops)
+        log_ops = visit_operators(plan, visitor_logical_ops)
         has_join = len([x for x in log_ops if 'join' in x.lower()])
         if has_join and 'join' not in query['query'].lower():
             implicit_join += 1
@@ -156,26 +159,43 @@ def analyze_sdss(db, show_plots):
     print "Estimated cost, aggregate on plan:", get_aggregated_cost(db, 'estimated_cost', 'simple_plan')
     print "(Average cost assumed per query)"
 
+    expl_queries = '''
+        SELECT query, plan, COUNT(*) c
+        FROM logs_dr5_explained
+        GROUP BY query
+        ORDER BY id ASC'''
+
+    all_queries = '''
+        SELECT query, COUNT(*) c
+        FROM logs
+        GROUP BY query
+        ORDER BY id ASC'''
+
+    queries = list(db.query(expl_queries))
+
     print
     print "Find recurring subtrees in distinct queries:"
-    queries = db.query('SELECT *, COUNT(*) c FROM logs_dr5_explained GROUP BY query ORDER BY id ASC')
+    #queries = db.query(expl_queries)
     estimated_cost = get_cost(db, 'estimated_cost')
     find_recurring(queries, estimated_cost)
 
     print
-    queries = db.query('SELECT *, COUNT(*) c FROM logs_dr5_explained GROUP BY query ORDER BY id ASC')
-    get_counts(queries, tables, 'table')
+    #queries = db.query(expl_queries)
+    get_counts(queries, visitor_tables, 'table')
 
     print
-    queries = db.query('SELECT *, COUNT(*) c FROM logs_dr5_explained GROUP BY query ORDER BY id ASC')
-    get_counts(queries, logical_ops, 'logical op')
+    #queries = db.query(expl_queries)
+    get_counts(queries, visitor_logical_ops, 'logical op')
 
     print
-    queries = db.query('SELECT *, COUNT(*) c FROM logs_dr5_explained GROUP BY query ORDER BY id ASC')
+    #queries = db.query(expl_queries)
+    get_counts(queries, visitor_physical_ops, 'physical op')
+
+    print
+    #queries = db.query(expl_queries)
     explicit_implicit_joins(queries)
 
     if show_plots:
-        import numpy as np
         #import scipy.stats
         import matplotlib.pyplot as plt
         import prettyplotlib as ppl
@@ -191,7 +211,7 @@ def analyze_sdss(db, show_plots):
 
         colors = queries / np.max(queries)
 
-        fig, axes = plt.subplots(2)
+        fig, axes = plt.subplots(3)
 
         # Correlation
 
@@ -205,6 +225,8 @@ def analyze_sdss(db, show_plots):
         ax.set_xlabel('Estimated')
         ax.set_ylabel('Actual')
 
+        print "Finished correlation"
+
         # Cost histogram
 
         ax = axes[1]
@@ -215,6 +237,37 @@ def analyze_sdss(db, show_plots):
         ax.set_title("Correlation estimated and actual cost")
         ax.set_xlabel('Elapsed time')
         ax.set_ylabel('Count')
+
+        print "Finished cost"
+
+        # Length histogram
+
+        ax = axes[2]
+
+        queries = db.query(all_queries)
+        queries = [query['query'].encode('utf-8') for query in queries]
+        lengths = map(len, queries)
+        compressed_lengths = map(lambda x: len(bz2.compress(x)), queries)
+
+        minl = min(min(lengths), min(compressed_lengths))
+        maxl = max(max(lengths), max(compressed_lengths))
+        length_range = [minl, maxl]
+
+        bins = 10
+
+        #hist = np.histogram(lengths, bins=bins, range=length_range)
+        #print tabulate(hist)
+
+        #hist = np.histogram(compressed_lengths, bins=bins, range=length_range)
+        #print tabulate(hist)
+
+        ppl.hist(ax, [np.array(lengths), np.array(compressed_lengths)],
+                 bins=bins, range=length_range,
+                 grid='y', label=['uncompressed', 'compressed'])
+
+        ppl.legend(ax)
+
+        print "Finished length"
 
         plt.show()
 
@@ -306,7 +359,7 @@ def analyze_sqlshare(db):
 
     for q in queries:
         plan = json.loads(q['plan'])
-        log_ops = visit_operators(plan, logical_ops)
+        log_ops = visit_operators(plan, visitor_logical_ops)
         ops.append(len(log_ops))
         distinct_ops.append(len(set(log_ops)))
 
