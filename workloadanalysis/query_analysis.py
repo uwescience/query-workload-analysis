@@ -8,20 +8,16 @@ import sqltokens
 
 from utils import format_tabulate as ft
 
+# visitors
+tables = lambda x: x.get('columns', {}).keys()
+logical_ops = lambda x: [x['operator']]
 
-def get_logical_operators(query_plan):
-    "get a list of all logical operators"
-    tables = [query_plan.get('operator')]
+
+def visit_operators(query_plan, visitor):
+    l = visitor(query_plan)
     for child in query_plan['children']:
-        tables += get_logical_operators(child)
-    return tables
-
-
-def get_tables(query_plan):
-    tables = query_plan.get('columns', {}).keys()
-    for child in query_plan['children']:
-        tables += get_tables(child)
-    return tables
+        l += visit_operators(child, visitor)
+    return l
 
 
 def hash_dict(d):
@@ -66,36 +62,21 @@ def find_recurring(queries, estimated_cost):
     print "Cached rows:", rows_cached[0]
 
 
-def used_tables(queries):
-    tables = Counter()
+def get_counts(queries, visitor, name):
+    c = Counter()
 
-    def count_tables(plan):
-        """Count the tables used in query"""
-        for table in get_tables(plan):
-            tables[table] += 1
-
-    for query in queries:
-        plan = json.loads(query['plan'])
-        count_tables(plan)
-
-    print "Tables used:"
-    print tabulate(sorted(tables.iteritems(), key=lambda t: t[1], reverse=True), headers=["table", "count"])
-
-
-def used_logical_operators(queries):
-
-    ops = Counter()
-
-    def count_ops(plan):
-        """Count the tables used in query"""
-        for op in get_logical_operators(plan):
-            ops[op] += 1
+    def count(plan):
+        for o in visit_operators(plan, visitor):
+            c[o] += 1
 
     for query in queries:
         plan = json.loads(query['plan'])
-        count_ops(plan)
+        count(plan)
 
-    print tabulate(sorted(ops.iteritems(), key=lambda t: t[1], reverse=True), headers=["logical op", "count"])
+    print tabulate(sorted(
+        c.iteritems(),
+        key=lambda t: t[1], reverse=True),
+        headers=[name, "count"])
 
 
 def explicit_implicit_joins(queries):
@@ -103,13 +84,13 @@ def explicit_implicit_joins(queries):
     implicit_join = 0
     for query in queries:
         plan = json.loads(query['plan'])
-        log_ops = get_logical_operators(plan)
+        log_ops = visit_operators(plan, logical_ops)
         has_join = len([x for x in log_ops if 'join' in x.lower()])
         if has_join and 'join' not in query['query'].lower():
             implicit_join += 1
         if 'join' in query['query'].lower():
             explicit_join += 1
-        
+
     print 'Implicit join:', implicit_join
     print 'Explicit join:', explicit_join
 
@@ -183,11 +164,11 @@ def analyze_sdss(db, show_plots):
 
     print
     queries = db.query('SELECT *, COUNT(*) c FROM logs_dr5_explained GROUP BY query ORDER BY id ASC')
-    used_tables(queries)
+    get_counts(queries, tables, 'table')
 
     print
     queries = db.query('SELECT *, COUNT(*) c FROM logs_dr5_explained GROUP BY query ORDER BY id ASC')
-    used_logical_operators(queries)
+    get_counts(queries, logical_ops, 'logical op')
 
     print
     queries = db.query('SELECT *, COUNT(*) c FROM logs_dr5_explained GROUP BY query ORDER BY id ASC')
@@ -260,7 +241,7 @@ def analyze_sqlshare(db):
         lengths.append(length)
         compressed_lengths.append(len(bz2.compress(q['query'])))
         referenced_views = [x for x in q['ref_views'].split(',') if x != '']
-        
+
         q_ex_ops = q['expanded_plan_ops'].split(',')
         expanded_ops.append(len(q_ex_ops))
         expanded_distinct_ops.append(len(set(q_ex_ops)))
@@ -275,7 +256,7 @@ def analyze_sqlshare(db):
                     if op in q_ops:
                         q_ops.remove(op)
             else:
-                print 'No ops in view: ', view[0]['view'] 
+                print 'No ops in view: ', view[0]['view']
 
         expanded_lengths.append(len(expanded_query))
         compressed_expanded_lengths.append(len(bz2.compress(expanded_query)))
@@ -312,20 +293,20 @@ def analyze_sqlshare(db):
 
     ####SDSS
     exit()
-    
+
     sdss_queries = db.query('SELECT query, COUNT(*) c FROM logs WHERE has_plan = 1 GROUP BY query ORDER BY c DESC')
     explicit_implicit_joins(sdss_queries)
     print 'Total queries with plan: ', len(sdss_queries)
-    lengths = [] #
-    compressed_lengths = [] #
-    ops = [] #
-    distinct_ops = [] #
-    str_ops = [] #
-    distinct_str_ops = [] #
+    lengths = []  #
+    compressed_lengths = []  #
+    ops = []  #
+    distinct_ops = []  #
+    str_ops = []  #
+    distinct_str_ops = []  #
 
     for q in queries:
         plan = json.loads(q['plan'])
-        log_ops = get_logical_operators(plan)
+        log_ops = visit_operators(plan, logical_ops)
         ops.append(len(log_ops))
         distinct_ops.append(len(set(log_ops)))
 
@@ -338,10 +319,10 @@ def analyze_sqlshare(db):
 
     print 'length = ', lengths
     print 'compressed_lengths = ', compressed_lengths
-    
+
     print 'ops = ', ops
     print 'distinct_ops = ', distinct_ops
-    
+
     print 'str_ops = ', str_ops
     print 'distinct_str_ops = ', distinct_str_ops
 
