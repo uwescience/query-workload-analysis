@@ -34,7 +34,6 @@ def pretty_query(query):
 def consume_sdss(db, f):
     table = db['logs']
     rows = []
-    print 'here'
     reader = csv.reader(csv_fixer(f), encoding='latin-1')
 
     for row in reader:
@@ -51,6 +50,7 @@ def consume_sdss(db, f):
         assert len(row) == 21, len(row)
         try:
             data = {
+                'time_start': '%s-%s-%s %s:%s:%s' % (row[0],row[1],row[2],row[3],row[4],row[5]),
                 'client': row[9],
                 'server': row[11],
                 'db': row[12],
@@ -83,15 +83,15 @@ def consume_sqlshare(db, f, isview):
             if isview:
                 data = {
                     'id': id,
-                    'time_start': 'NA',
+                    'time_start': row[2],
                     'time_end': 'NA',
                     'status': 'NA',
                     'view': row[0],
                     'query': pretty_query(row[1]),
                     'owner': row[0].split(']')[0][1:],
-                    'length': len(row[3]),
+                    'length': len(row[4]),
                     'isView': True,
-                    'plan': row[4],
+                    'plan': row[5],
                     'runtime': -1
                 }
                 id += 1
