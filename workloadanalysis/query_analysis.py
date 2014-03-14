@@ -94,8 +94,8 @@ def explicit_implicit_joins(queries):
         if 'join' in query['query'].lower():
             explicit_join += 1
 
-    print 'Implicit join:', implicit_join
-    print 'Explicit join:', explicit_join
+    print '#Implicit join:', implicit_join
+    print '#Explicit join:', explicit_join
 
 
 def print_stats(db):
@@ -272,10 +272,14 @@ def analyze_sdss(db, show_plots):
         plt.show()
 
 
-def analyze_sqlshare(db):
+def analyze_sqlshare(db, write_to_file = False):
+    if write_to_file:
+        f = open('ProcessedQueries.csv', 'w')
+        f.write('Source|owner|Query|starttime|duration|length|compressed_length|expanded_length|compressed_expanded_lengths|ops|distinct_ops|expanded_ops|expanded_distinct_ops|keywords|distinct_keywords|expanded_keywords|expanded_distinct_keywords|Touch\n')
     queries = list(db.query('SELECT * from sqlshare_logs where has_plan = 1'))
+    views = list(db.query('SELECT * FROM sqlshare_logs WHERE isView = 1'))
     explicit_implicit_joins(queries)
-    print 'Total queries with plan: ', len(queries)
+    print '#Total queries with plan: ', len(queries)
     lengths = [] #
     compressed_lengths = [] #
     ops = [] #
@@ -288,6 +292,7 @@ def analyze_sqlshare(db):
     distinct_str_ops = [] #
     expanded_str_ops = [] #
     expanded_distinct_str_ops = [] #
+    touch = [] #
 
     for q in queries:
         length = len(q['query'])
@@ -301,15 +306,23 @@ def analyze_sqlshare(db):
 
         q_ops = q_ex_ops
         expanded_query = q['query']
+        while(True):
+            previousLength = len(expanded_query)
+            for view in views:
+                if view['view'] in q['query']:
+                    print view['query']
+                    expanded_query = expanded_query.replace(view['view'], '(' + view['query'] + ')')
+            if (len(expanded_query) == previousLength):
+                break
+                    
         for ref_view in referenced_views:
             view = list(db.query('SELECT * from sqlshare_logs where id = {}'.format(ref_view)))
-            expanded_query = expanded_query.replace(view[0]['view'], '(' + view[0]['query'] + ')')
             if view[0]['expanded_plan_ops']:
                 for op in view[0]['expanded_plan_ops'].split(','):
                     if op in q_ops:
                         q_ops.remove(op)
-            else:
-                print 'No ops in view: ', view[0]['view']
+            #else:
+                #print 'No ops in view: ', view[0]['view']
 
         expanded_lengths.append(len(expanded_query))
         compressed_expanded_lengths.append(len(bz2.compress(expanded_query)))
@@ -329,6 +342,23 @@ def analyze_sqlshare(db):
             expanded_str_ops.append(len(ex_tokens))
             expanded_distinct_str_ops.append(len(set(ex_tokens)))
 
+        plan = json.loads(q['plan'])
+        tables = visit_operators(plan, visitor_tables)
+        touch.append(len(tables))
+
+        #'Source|owner|Query|starttime|duration|length|compressed_length|expanded_length|compressed_expanded_lengths|
+        #ops|distinct_ops|expanded_ops|expanded_distinct_ops|keywords|distinct_keywords|expanded_keywords|expanded_distinct_keywords|Touch\n'
+        if write_to_file:
+            f.write('%s|%s|%s|%s|%s|%f|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d\n'%
+                ('sqlshare',q['owner'], q['query'], q['time_start'],q['runtime'],lengths[-1], compressed_lengths[-1], expanded_lengths[-1], compressed_expanded_lengths[-1],
+                    ops[-1],distinct_ops[-1],expanded_ops[-1],expanded_distinct_ops[-1],str_ops[-1],distinct_str_ops[-1],expanded_str_ops[-1],expanded_distinct_str_ops[-1],touch[-1]))
+
+    # hist = np.histogram(lengths, bins=10, range=[min(lengths), max(lengths)])
+    # print tabulate(hist)
+    # hist = np.histogram(compressed_lengths, bins=10, range=[min(compressed_lengths), max(compressed_lengths)])
+    # print tabulate(hist)
+    # exit()
+    
     print 'lengths = ', lengths
     print 'compressed_lengths = ', compressed_lengths
     print 'expanded_lengths = ', expanded_lengths
@@ -345,39 +375,50 @@ def analyze_sqlshare(db):
     print 'expanded_distinct_str_ops = ', expanded_distinct_str_ops
 
     ####SDSS
-    exit()
-
-    sdss_queries = db.query('SELECT query, COUNT(*) c FROM logs WHERE has_plan = 1 GROUP BY query ORDER BY c DESC')
+    
+    sdss_queries = list(db.query('SELECT query, plan FROM logs WHERE plan != ""'))
     explicit_implicit_joins(sdss_queries)
-    print 'Total queries with plan: ', len(sdss_queries)
+    print '#Total queries with plan: ', len(sdss_queries)
     lengths = []  #
     compressed_lengths = []  #
     ops = []  #
     distinct_ops = []  #
     str_ops = []  #
     distinct_str_ops = []  #
+    touch = [] #
 
-    for q in queries:
+    for q in sdss_queries:
         plan = json.loads(q['plan'])
         log_ops = visit_operators(plan, visitor_logical_ops)
+        tables = visit_operators(plan, visitor_tables)
         ops.append(len(log_ops))
+        touch.append(len(tables))
         distinct_ops.append(len(set(log_ops)))
 
-        tokens = sqltokens.get_tokens(q['query'])
+        tokens = sqltokens.get_tokens(q['query'].encode('ascii', 'ignore'))
         str_ops.append(len(tokens))
         distinct_str_ops.append(len(set(tokens)))
 
         lengths.append(len(q['query']))
-        compressed_lengths.append(len(q['query']))
+        compressed_lengths.append(len(q['query'].encode('ascii', 'ignore')))
 
-    print 'length = ', lengths
-    print 'compressed_lengths = ', compressed_lengths
+        #'Source|owner|Query|starttime|duration|length|compressed_length|expanded_length|compressed_expanded_lengths|
+        #ops|distinct_ops|expanded_ops|expanded_distinct_ops|keywords|distinct_keywords|expanded_keywords|expanded_distinct_keywords|Touch\n'
+        if write_to_file:
+            f.write('%s|%s|%s|%s|%s|%f|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d\n'%
+                ('sdss', q['client'], q['query'], q['time_start'], q['elapsed'], lengths[-1],compressed_lengths[-1],lengths[-1], compressed_lengths[-1], ops[-1], distinct_ops[-1], ops[-1],
+                distinct_ops[-1], str_ops[-1], distinct_str_ops[-1], str_ops[-1], distinct_str_ops[-1] ,touch[-1]))
 
-    print 'ops = ', ops
-    print 'distinct_ops = ', distinct_ops
+    f.close()
 
-    print 'str_ops = ', str_ops
-    print 'distinct_str_ops = ', distinct_str_ops
+    print 'sdss_length = ', lengths
+    print 'sdss_compressed_lengths = ', compressed_lengths
+
+    print 'sdss_ops = ', ops
+    print 'sdss_distinct_ops = ', distinct_ops
+
+    print 'sdss_str_ops = ', str_ops
+    print 'sdss_distinct_str_ops = ', distinct_str_ops
 
 
 def analyze(database, show_plots, sdss):
@@ -388,4 +429,4 @@ def analyze(database, show_plots, sdss):
     if sdss:
         analyze_sdss(db, show_plots)
     else:
-        analyze_sqlshare(db)
+        analyze_sqlshare(db, write_to_file = True)

@@ -61,6 +61,12 @@ def consume_sdss(db, f):
                 'error': bool(int(row[18])),
                 'error_msg': row[19]
             }
+            # print data['time_start']
+            # print data['client']
+            # print data['server']
+            # print data['db']
+            # print data['query']
+            # return
         except Exception as e:
             print row, e
             return
@@ -92,7 +98,8 @@ def consume_sqlshare(db, f, isview):
                     'length': len(row[4]),
                     'isView': True,
                     'plan': row[5],
-                    'runtime': -1
+                    'runtime': -1,
+                    'has_plan': False
                 }
                 id += 1
             else:
@@ -107,7 +114,8 @@ def consume_sqlshare(db, f, isview):
                     'runtime': int(row[7]),
                     'plan': row[8],
                     'isView': False,
-                    'view': 'NA'
+                    'view': 'NA',
+                    'has_plan': False
                 }
             table.insert(data, types=TYPES)
         except Exception:

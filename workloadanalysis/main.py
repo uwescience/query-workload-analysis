@@ -52,7 +52,7 @@ def main():
     if arguments['sdss']:
       explain_queries.explain_sdss(config, db, arguments['-q'])
     else:
-      if arguments['second']:
+      if arguments['--second']:
         explain_queries.explain_sqlshare(config, db, arguments['-q'], False)
       else:
         explain_queries.explain_sqlshare(config, db, arguments['-q'], True)

@@ -15,13 +15,42 @@ p.rerun, p.camcol, p.field, p.obj,
 '''}]
 
 
-def explain_sqlshare(config, database, quiet):
+def explain_sqlshare(config, database, quiet, first_pass):
     db = dataset.connect(database)
-
     errors = []
     table = db['sqlshare_logs']
-    queries = list(db.query('SELECT * FROM sqlshare_logs'))
+
+
+    if first_pass == False:
+        queries = list(db.query('SELECT * FROM sqlshare_logs Where has_plan = 1'))
+        views = list(db.query('SELECT * FROM sqlshare_logs WHERE isView = 1'))
+        for i, query in enumerate(queries):
+            print "Explain query pass 2", i
+
+            ####Getting all referenced views now#####
+            ref_views = []
+            for q in views:
+                if q['view'] in query['query']:
+                    ref_views.append(str(q['id']) + ',')
+            query['ref_views'] = ''.join([x for x in ref_views])
+
+            l = len(ref_views)
+            if l > 0:
+                print len(ref_views)
+            ####Getting all the ops#####
+            # visitors
+            visitor_logical_ops = lambda x: [x['operator']]
+            ops = query_analysis.visit_operators(json.loads(q['plan']), visitor_logical_ops)
+            if ops:
+                query['expanded_plan_ops'] = ','.join([x for x in ops])
+            else:
+                print 'no ops is view'
+            table.update(query, ['id'])
+        return
+        
+    queries = list(db.query('SELECT * FROM sqlshare_logs where has_plan = 0'))
     views = list(db.query('SELECT * FROM sqlshare_logs WHERE isView = 1'))
+
     for i, query in enumerate(queries):
         print "Explain query", i
         op_count = [0]
@@ -67,21 +96,6 @@ def explain_sqlshare(config, database, quiet):
             simple_query_plan, cls=utils.SetEncoder)
 
         query['estimated_cost'] = query_plan['total']
-
-        ####Getting all referenced views now#####
-        ref_views = []
-        for q in views:
-            if q['view'] in query['query']:
-                ref_views.append(str(q['id']) + ',')
-        query['ref_views'] = ''.join([x for x in ref_views])
-
-
-        ####Getting all the ops#####
-        ops = query_analysis.get_logical_operators(query_plan)
-        if ops:
-            query['expanded_plan_ops'] = ','.join([x for x in ops])
-        else:
-            print 'no ops is view'
         query['has_plan'] = True
         table.update(query, ['id'])
 
@@ -107,7 +121,7 @@ def explain_sdss(config, database, quiet):
 
         if database:
             db = dataset.connect(database)
-            queries = list(db.query('SELECT * FROM logs WHERE db = "BestDR5" AND error != "" GROUP BY query'))
+            queries = list(db.query('SELECT * FROM logs WHERE error != "" GROUP BY query'))
         else:
             queries = EXAMPLE
 
