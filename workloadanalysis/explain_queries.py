@@ -47,7 +47,7 @@ def explain_sqlshare(config, database, quiet, first_pass):
                 print 'no ops is view'
             table.update(query, ['id'])
         return
-        
+
     queries = list(db.query('SELECT * FROM sqlshare_logs where has_plan = 0'))
     views = list(db.query('SELECT * FROM sqlshare_logs WHERE isView = 1'))
 
@@ -121,7 +121,7 @@ def explain_sdss(config, database, quiet):
 
         if database:
             db = dataset.connect(database)
-            queries = list(db.query('SELECT * FROM logs WHERE error != "" GROUP BY query'))
+            queries = list(db.query('SELECT * FROM logs WHERE error != "" and has_plan = 0 GROUP BY query'))
         else:
             queries = EXAMPLE
 

@@ -274,7 +274,7 @@ def analyze_sdss(db, show_plots):
 
 def analyze_sqlshare(db, write_to_file = False):
     if write_to_file:
-        f = open('ProcessedQueries.csv', 'w')
+        f = open('ProcessedQueries_Sqlshare.csv', 'w')
         f.write('Source|owner|Query|starttime|duration|length|compressed_length|expanded_length|compressed_expanded_lengths|ops|distinct_ops|expanded_ops|expanded_distinct_ops|keywords|distinct_keywords|expanded_keywords|expanded_distinct_keywords|Touch\n')
     queries = list(db.query('SELECT * from sqlshare_logs where has_plan = 1'))
     views = list(db.query('SELECT * FROM sqlshare_logs WHERE isView = 1'))
@@ -310,7 +310,6 @@ def analyze_sqlshare(db, write_to_file = False):
             previousLength = len(expanded_query)
             for view in views:
                 if view['view'] in q['query']:
-                    print view['query']
                     expanded_query = expanded_query.replace(view['view'], '(' + view['query'] + ')')
             if (len(expanded_query) == previousLength):
                 break
@@ -353,12 +352,7 @@ def analyze_sqlshare(db, write_to_file = False):
                 ('sqlshare',q['owner'], q['query'], q['time_start'],q['runtime'],lengths[-1], compressed_lengths[-1], expanded_lengths[-1], compressed_expanded_lengths[-1],
                     ops[-1],distinct_ops[-1],expanded_ops[-1],expanded_distinct_ops[-1],str_ops[-1],distinct_str_ops[-1],expanded_str_ops[-1],expanded_distinct_str_ops[-1],touch[-1]))
 
-    # hist = np.histogram(lengths, bins=10, range=[min(lengths), max(lengths)])
-    # print tabulate(hist)
-    # hist = np.histogram(compressed_lengths, bins=10, range=[min(compressed_lengths), max(compressed_lengths)])
-    # print tabulate(hist)
-    # exit()
-    
+
     print 'lengths = ', lengths
     print 'compressed_lengths = ', compressed_lengths
     print 'expanded_lengths = ', expanded_lengths
@@ -373,52 +367,62 @@ def analyze_sqlshare(db, write_to_file = False):
     print 'distinct_str_ops = ', distinct_str_ops
     print 'expanded_str_ops = ', expanded_str_ops
     print 'expanded_distinct_str_ops = ', expanded_distinct_str_ops
+    print 'touch = ', touch
+    if write_to_file:
+        f.close()
 
     ####SDSS
     
-    sdss_queries = list(db.query('SELECT query, plan FROM logs WHERE plan != ""'))
+    sdss_queries = list(db.query('SELECT query, plan, client, time_start, elapsed FROM logs WHERE plan != "" group by query'))
     explicit_implicit_joins(sdss_queries)
     print '#Total queries with plan: ', len(sdss_queries)
-    lengths = []  #
-    compressed_lengths = []  #
-    ops = []  #
-    distinct_ops = []  #
-    str_ops = []  #
-    distinct_str_ops = []  #
-    touch = [] #
+    sdss_lengths = []  #
+    sdss_compressed_lengths = []  #
+    sdss_ops = []  #
+    sdss_distinct_ops = []  #
+    sdss_str_ops = []  #
+    sdss_distinct_str_ops = []  #
+    sdss_touch = [] #
+    if write_to_file:
+        f = open('ProcessedQueries_sdss.csv', 'w')
+        f.write('Source|owner|Query|starttime|duration|length|compressed_length|expanded_length|compressed_expanded_lengths|ops|distinct_ops|expanded_ops|expanded_distinct_ops|keywords|distinct_keywords|expanded_keywords|expanded_distinct_keywords|Touch\n')
 
     for q in sdss_queries:
         plan = json.loads(q['plan'])
         log_ops = visit_operators(plan, visitor_logical_ops)
         tables = visit_operators(plan, visitor_tables)
-        ops.append(len(log_ops))
-        touch.append(len(tables))
-        distinct_ops.append(len(set(log_ops)))
+        sdss_ops.append(len(log_ops))
+        sdss_touch.append(len(tables))
+        sdss_distinct_ops.append(len(set(log_ops)))
 
         tokens = sqltokens.get_tokens(q['query'].encode('ascii', 'ignore'))
-        str_ops.append(len(tokens))
-        distinct_str_ops.append(len(set(tokens)))
+        sdss_str_ops.append(len(tokens))
+        sdss_distinct_str_ops.append(len(set(tokens)))
 
-        lengths.append(len(q['query']))
-        compressed_lengths.append(len(q['query'].encode('ascii', 'ignore')))
+        sdss_lengths.append(len(q['query']))
+        sdss_compressed_lengths.append(len(bz2.compress(q['query'].encode('ascii', 'ignore'))))
 
         #'Source|owner|Query|starttime|duration|length|compressed_length|expanded_length|compressed_expanded_lengths|
         #ops|distinct_ops|expanded_ops|expanded_distinct_ops|keywords|distinct_keywords|expanded_keywords|expanded_distinct_keywords|Touch\n'
         if write_to_file:
             f.write('%s|%s|%s|%s|%s|%f|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d\n'%
-                ('sdss', q['client'], q['query'], q['time_start'], q['elapsed'], lengths[-1],compressed_lengths[-1],lengths[-1], compressed_lengths[-1], ops[-1], distinct_ops[-1], ops[-1],
-                distinct_ops[-1], str_ops[-1], distinct_str_ops[-1], str_ops[-1], distinct_str_ops[-1] ,touch[-1]))
+                ('sdss', q['client'].encode('ascii', 'ignore'), q['query'].encode('ascii', 'ignore'), q['time_start'].encode('ascii', 'ignore'), q['elapsed'], 
+                    sdss_lengths[-1],sdss_compressed_lengths[-1],sdss_lengths[-1], sdss_compressed_lengths[-1], 
+                    sdss_ops[-1], sdss_distinct_ops[-1], sdss_ops[-1], sdss_distinct_ops[-1], sdss_str_ops[-1], 
+                    sdss_distinct_str_ops[-1], sdss_str_ops[-1], sdss_distinct_str_ops[-1], sdss_touch[-1]))
 
-    f.close()
+    if write_to_file:
+        f.close()
 
-    print 'sdss_length = ', lengths
-    print 'sdss_compressed_lengths = ', compressed_lengths
+    print 'sdss_lengths = ', sdss_lengths
+    print 'sdss_compressed_lengths = ', sdss_compressed_lengths
 
-    print 'sdss_ops = ', ops
-    print 'sdss_distinct_ops = ', distinct_ops
+    print 'sdss_ops = ', sdss_ops
+    print 'sdss_distinct_ops = ', sdss_distinct_ops
 
-    print 'sdss_str_ops = ', str_ops
-    print 'sdss_distinct_str_ops = ', distinct_str_ops
+    print 'sdss_str_ops = ', sdss_str_ops
+    print 'sdss_distinct_str_ops = ', sdss_distinct_str_ops
+    print 'sdss_touch = ', sdss_touch
 
 
 def analyze(database, show_plots, sdss):
@@ -429,4 +433,4 @@ def analyze(database, show_plots, sdss):
     if sdss:
         analyze_sdss(db, show_plots)
     else:
-        analyze_sqlshare(db, write_to_file = True)
+        analyze_sqlshare(db, write_to_file = False)

@@ -61,12 +61,6 @@ def consume_sdss(db, f):
                 'error': bool(int(row[18])),
                 'error_msg': row[19]
             }
-            # print data['time_start']
-            # print data['client']
-            # print data['server']
-            # print data['db']
-            # print data['query']
-            # return
         except Exception as e:
             print row, e
             return
