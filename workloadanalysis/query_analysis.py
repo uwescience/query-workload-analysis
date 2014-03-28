@@ -5,6 +5,8 @@ from tabulate import tabulate
 import dataset
 import bz2
 import sqltokens
+import csv
+import sys
 import numpy as np
 
 from utils import format_tabulate as ft
@@ -64,6 +66,18 @@ def find_recurring(queries, estimated_cost):
     print "Cached rows:", rows_cached[0]
 
 
+def print_table(data, headers):
+    print tabulate(data, headers)
+
+    # print csv which we can process easily
+    return
+    print
+    writer = csv.writer(sys.stdout)
+    writer.writerow(headers)
+    for row in data:
+        writer.writerow(row)
+
+
 def get_counts(queries, visitors, names):
     '''Count something which requires visiting all operators'''
 
@@ -73,8 +87,7 @@ def get_counts(queries, visitors, names):
 
     def count(plan):
         for i, visitor in enumerate(visitors):
-            for o in visit_operators(plan, visitor):
-                c[i][o] += 1
+            c[i].update(visit_operators(plan, visitor))
 
     for query in queries:
         plan = json.loads(query['plan'])
@@ -82,7 +95,7 @@ def get_counts(queries, visitors, names):
 
     for r, name in zip(c, names):
         print
-        print tabulate(sorted(
+        print_table(sorted(
             r.iteritems(),
             key=lambda t: t[1], reverse=True),
             headers=[name, "count"])
@@ -117,7 +130,7 @@ def print_stats(db):
     print
     print "Error messages:"
     result = db.query('SELECT COUNT(*) c, error_msg FROM logs where error GROUP BY error_msg ORDER BY c DESC')
-    print tabulate(ft(result), headers=['count', 'error msg'])
+    print_table(ft(result), headers=['count', 'error msg'])
 
 
 def get_aggregated_cost(db, cost, query):
@@ -166,7 +179,7 @@ def analyze_sdss(db, show_plots):
     print "(Average cost assumed per query)"
 
     expl_queries = '''
-        SELECT query, plan, COUNT(*) c
+        SELECT query, plan, time_start, elapsed, COUNT(*) c
         FROM logs_dr5_explained
         GROUP BY query
         ORDER BY id ASC'''
@@ -177,22 +190,74 @@ def analyze_sdss(db, show_plots):
         GROUP BY query
         ORDER BY id ASC'''
 
-    queries = list(db.query(expl_queries))
-
     print
     print "Find recurring subtrees in distinct queries:"
-    #queries = db.query(expl_queries)
+    queries = db.query(expl_queries)
     estimated_cost = get_cost(db, 'estimated_cost')
     find_recurring(queries, estimated_cost)
 
     print
-    #queries = db.query(expl_queries)
+    queries = db.query(expl_queries)
     get_counts(queries,
                [visitor_tables, visitor_logical_ops, visitor_physical_ops],
                ['table', 'logical op', 'physical op'])
 
+    print
+    queries = db.query(expl_queries)
+    explicit_implicit_joins(queries)
+
+    queries = db.query(expl_queries)
+
+    # counters for how often we have a certain count in a query
+    lengths = Counter()
+    compressed_lengths = Counter()
+    ops = Counter()
+    distinct_ops = Counter()
+    str_ops = Counter()
+    distinct_str_ops = Counter()
+    touch = Counter()
+
+    which_str_ops = Counter()
+
+    for q in queries:
+        plan = json.loads(q['plan'])
+        log_ops = visit_operators(plan, visitor_logical_ops)
+        tables = visit_operators(plan, visitor_tables)
+        ops[len(log_ops)] += 1
+        touch[len(tables)] += 1
+        distinct_ops[len(set(log_ops))] += 1
+
+        query = q['query']
+
+        lengths[len(query)] += 1
+        compressed_lengths[len(bz2.compress(query))] += 1
+
+        # tokenization is horribly slow and does not work for sdss
+        continue
+
+        tokens = sqltokens.get_tokens(query)
+        str_ops[len(tokens)] += 1
+        distinct_str_ops[len(set(tokens))] += 1
+
+        which_str_ops.update(tokens)
+
+    print
+    print_table(sorted(
+        which_str_ops.iteritems(),
+        key=lambda t: t[1], reverse=True),
+        headers=["string ops", "count"])
+
+    for name, values in zip(
+        ['lengths', 'compressed lengths', 'ops', 'distinct ops', 'str ops', 'distinct str ops', 'touch'],
+        [lengths, compressed_lengths, ops, distinct_ops, str_ops, distinct_str_ops, touch]):
+        print
+        print_table(sorted(
+            values.iteritems(),
+            key=lambda t: t[0]),
+            headers=[name, "counts"])
+
     if show_plots:
-        #import scipy.stats
+        # import scipy.stats
         import matplotlib.pyplot as plt
         import prettyplotlib as ppl
         print
@@ -366,59 +431,6 @@ def analyze_sqlshare(db, write_to_file = False):
     print 'touch = ', touch
     if write_to_file:
         f.close()
-
-    ####SDSS
-    
-    sdss_queries = list(db.query('SELECT query, plan, client, time_start, elapsed FROM logs WHERE plan != "" group by query'))
-    explicit_implicit_joins(sdss_queries)
-    print '#Total queries with plan: ', len(sdss_queries)
-    sdss_lengths = []  #
-    sdss_compressed_lengths = []  #
-    sdss_ops = []  #
-    sdss_distinct_ops = []  #
-    sdss_str_ops = []  #
-    sdss_distinct_str_ops = []  #
-    sdss_touch = [] #
-    if write_to_file:
-        f = open('ProcessedQueries_sdss.csv', 'w')
-        f.write('Source|owner|Query|starttime|duration|length|compressed_length|expanded_length|compressed_expanded_lengths|ops|distinct_ops|expanded_ops|expanded_distinct_ops|keywords|distinct_keywords|expanded_keywords|expanded_distinct_keywords|Touch\n')
-
-    for q in sdss_queries:
-        plan = json.loads(q['plan'])
-        log_ops = visit_operators(plan, visitor_logical_ops)
-        tables = visit_operators(plan, visitor_tables)
-        sdss_ops.append(len(log_ops))
-        sdss_touch.append(len(tables))
-        sdss_distinct_ops.append(len(set(log_ops)))
-
-        tokens = sqltokens.get_tokens(q['query'].encode('ascii', 'ignore'))
-        sdss_str_ops.append(len(tokens))
-        sdss_distinct_str_ops.append(len(set(tokens)))
-
-        sdss_lengths.append(len(q['query']))
-        sdss_compressed_lengths.append(len(bz2.compress(q['query'].encode('ascii', 'ignore'))))
-
-        #'Source|owner|Query|starttime|duration|length|compressed_length|expanded_length|compressed_expanded_lengths|
-        #ops|distinct_ops|expanded_ops|expanded_distinct_ops|keywords|distinct_keywords|expanded_keywords|expanded_distinct_keywords|Touch\n'
-        if write_to_file:
-            f.write('%s|%s|%s|%s|%s|%f|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d\n'%
-                ('sdss', q['client'].encode('ascii', 'ignore'), q['query'].encode('ascii', 'ignore'), q['time_start'].encode('ascii', 'ignore'), q['elapsed'], 
-                    sdss_lengths[-1],sdss_compressed_lengths[-1],sdss_lengths[-1], sdss_compressed_lengths[-1], 
-                    sdss_ops[-1], sdss_distinct_ops[-1], sdss_ops[-1], sdss_distinct_ops[-1], sdss_str_ops[-1], 
-                    sdss_distinct_str_ops[-1], sdss_str_ops[-1], sdss_distinct_str_ops[-1], sdss_touch[-1]))
-
-    if write_to_file:
-        f.close()
-
-    print 'sdss_lengths = ', sdss_lengths
-    print 'sdss_compressed_lengths = ', sdss_compressed_lengths
-
-    print 'sdss_ops = ', sdss_ops
-    print 'sdss_distinct_ops = ', sdss_distinct_ops
-
-    print 'sdss_str_ops = ', sdss_str_ops
-    print 'sdss_distinct_str_ops = ', sdss_distinct_str_ops
-    print 'sdss_touch = ', sdss_touch
 
 
 def analyze(database, show_plots, sdss):
