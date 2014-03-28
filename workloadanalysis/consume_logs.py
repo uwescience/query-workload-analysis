@@ -51,15 +51,14 @@ def consume_sdss(db, f):
         try:
             data = {
                 'time_start': '%s-%s-%s %s:%s:%s' % (row[0],row[1],row[2],row[3],row[4],row[5]),
-                'client': row[9],
-                'server': row[11],
                 'db': row[12],
                 'access': row[13],
                 'elapsed': float(row[14]),
                 'rows': int(row[16]),
                 'query': pretty_query(row[17]),
                 'error': bool(int(row[18])),
-                'error_msg': row[19]
+                'error_msg': row[19],
+                'has_plan': False
             }
         except Exception as e:
             print row, e
