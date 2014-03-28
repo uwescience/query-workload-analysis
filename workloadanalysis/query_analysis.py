@@ -64,22 +64,28 @@ def find_recurring(queries, estimated_cost):
     print "Cached rows:", rows_cached[0]
 
 
-def get_counts(queries, visitor, name):
+def get_counts(queries, visitors, names):
     '''Count something which requires visiting all operators'''
-    c = Counter()
+
+    assert len(visitors) == len(names)
+
+    c = [Counter() for _ in visitors]
 
     def count(plan):
-        for o in visit_operators(plan, visitor):
-            c[o] += 1
+        for i, visitor in enumerate(visitors):
+            for o in visit_operators(plan, visitor):
+                c[i][o] += 1
 
     for query in queries:
         plan = json.loads(query['plan'])
         count(plan)
 
-    print tabulate(sorted(
-        c.iteritems(),
-        key=lambda t: t[1], reverse=True),
-        headers=[name, "count"])
+    for r, name in zip(c, names):
+        print
+        print tabulate(sorted(
+            r.iteritems(),
+            key=lambda t: t[1], reverse=True),
+            headers=[name, "count"])
 
 
 def explicit_implicit_joins(queries):
@@ -154,9 +160,9 @@ def analyze_sdss(db, show_plots):
     print "Cost of 1, aggregate on query:", get_aggregated_cost(db, '1', 'query')
     print "Actual cost, aggregate on query:", get_aggregated_cost(db, 'elapsed', 'query')
     print "Estimated cost, aggregate on query:", get_aggregated_cost(db, 'estimated_cost', 'query')
-    print "Cost of 1, aggregate on plan:", get_aggregated_cost(db, '1', 'simple_plan')
-    print "Actual cost, aggregate on plan:", get_aggregated_cost(db, 'elapsed', 'simple_plan')
-    print "Estimated cost, aggregate on plan:", get_aggregated_cost(db, 'estimated_cost', 'simple_plan')
+    print "Cost of 1, aggregate on plan:", get_aggregated_cost(db, '1', 'plan')
+    print "Actual cost, aggregate on plan:", get_aggregated_cost(db, 'elapsed', 'plan')
+    print "Estimated cost, aggregate on plan:", get_aggregated_cost(db, 'estimated_cost', 'plan')
     print "(Average cost assumed per query)"
 
     expl_queries = '''
@@ -181,19 +187,9 @@ def analyze_sdss(db, show_plots):
 
     print
     #queries = db.query(expl_queries)
-    get_counts(queries, visitor_tables, 'table')
-
-    print
-    #queries = db.query(expl_queries)
-    get_counts(queries, visitor_logical_ops, 'logical op')
-
-    print
-    #queries = db.query(expl_queries)
-    get_counts(queries, visitor_physical_ops, 'physical op')
-
-    print
-    #queries = db.query(expl_queries)
-    explicit_implicit_joins(queries)
+    get_counts(queries,
+               [visitor_tables, visitor_logical_ops, visitor_physical_ops],
+               ['table', 'logical op', 'physical op'])
 
     if show_plots:
         #import scipy.stats
@@ -433,4 +429,4 @@ def analyze(database, show_plots, sdss):
     if sdss:
         analyze_sdss(db, show_plots)
     else:
-        analyze_sqlshare(db, write_to_file = False)
+        analyze_sqlshare(db, write_to_file=False)

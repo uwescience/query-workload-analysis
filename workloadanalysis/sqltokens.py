@@ -1,5 +1,6 @@
 import sqlparse
 
+
 def get_tokens(q):
     q = q.replace('[','"').replace(']','"').lower().replace('union all',';').strip()
     if q[0] == '(':
