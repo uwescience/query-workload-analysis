@@ -20,14 +20,13 @@ def explain_sqlshare(config, database, quiet, first_pass):
     errors = []
     table = db['sqlshare_logs']
 
-
-    if first_pass == False:
+    if not first_pass:
         queries = list(db.query('SELECT * FROM sqlshare_logs Where has_plan = 1'))
         views = list(db.query('SELECT * FROM sqlshare_logs WHERE isView = 1'))
         for i, query in enumerate(queries):
             print "Explain query pass 2", i
 
-            ####Getting all referenced views now#####
+            # Getting all referenced views now
             ref_views = []
             for q in views:
                 if q['view'] in query['query']:
@@ -37,7 +36,7 @@ def explain_sqlshare(config, database, quiet, first_pass):
             l = len(ref_views)
             if l > 0:
                 print len(ref_views)
-            ####Getting all the ops#####
+            # Getting all the ops
             # visitors
             visitor_logical_ops = lambda x: [x['operator']]
             ops = query_analysis.visit_operators(json.loads(q['plan']), visitor_logical_ops)
@@ -121,7 +120,7 @@ def explain_sdss(config, database, quiet):
 
         if database:
             db = dataset.connect(database)
-            queries = list(db.query('SELECT * FROM logs WHERE error != "" and has_plan = 0 GROUP BY query'))
+            queries = db.query('SELECT * FROM logs WHERE error != "" and has_plan = 0 GROUP BY query')
         else:
             queries = EXAMPLE
 
@@ -160,13 +159,13 @@ def explain_sdss(config, database, quiet):
             query['plan'] = json.dumps(query_plan, cls=utils.SetEncoder)
 
             # indent tree and export as xml file
-            parse_xml.indent(tree.getroot())
-            #tree.write('clean_{}.xml'.format(i))
+            # parse_xml.indent(tree.getroot())
+            # tree.write('clean_{}.xml'.format(i))
 
-            simple_query_plan = parse_xml.get_query_plans(
-                tree, cost=False, show_filters=False)[0]
-            query['simple_plan'] = json.dumps(
-                simple_query_plan, cls=utils.SetEncoder)
+            # simple_query_plan = parse_xml.get_query_plans(
+            #     tree, cost=False, show_filters=False)[0]
+            # query['simple_plan'] = json.dumps(
+            #     simple_query_plan, cls=utils.SetEncoder)
 
             query['estimated_cost'] = query_plan['total']
             query['has_plan'] = True
