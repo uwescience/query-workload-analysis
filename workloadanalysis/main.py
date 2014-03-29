@@ -32,7 +32,7 @@ import summary
 def main():
     arguments = docopt(__doc__, version='SDSS Tools 0.0.1')
 
-    db = (('DATABASE' in arguments and arguments['DATABASE'])
+    db = (('-d' in arguments and arguments['-d'])
           or 'sqlite:///test.sqlite')
 
     if arguments['consume']:

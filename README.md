@@ -21,7 +21,7 @@ brew install freetds freetype
 Ubuntu
 
 ```bash
-sudo apt-get install freetds-dev
+sudo apt-get install freetds-dev libfreetype6-dev
 ```
 
 ### Then install the tools
