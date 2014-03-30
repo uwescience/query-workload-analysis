@@ -17,7 +17,7 @@ def csv_fixer(infile):
         if pre is None:
             pre = line
             continue
-        if len(line) < 5:
+        if len(line) < 10:
             pre = pre + " " + line
             continue
         if line[0] == '2' and line[1] == '0' and (line[2] == '0' or line[2] == '1') and line[4] == ',':
@@ -35,7 +35,7 @@ def pretty_query(query):
 def consume_sdss(db, f):
     table = db['logs']
     rows = []
-    reader = csv.reader(csv_fixer(f), encoding='latin-1')
+    reader = csv.reader(csv_fixer(f), encoding='latin-1', quotechar='"')
 
     for row in reader:
         # ignore header, if present
@@ -51,19 +51,25 @@ def consume_sdss(db, f):
         assert len(row) == 21, len(row)
         dateparts = [row[0], row[1], row[2], row[3], row[4], row[5]]
         dateparts = map(int, dateparts)
-        data = {
-            'time_start': datetime(*dateparts),
-            'seq': row[6],
-            'db': row[12],
-            'access': row[13],
-            'elapsed': float(row[14]),
-            'rows': int(row[16]),
-            'query': pretty_query(row[17]),
-            'error': bool(int(row[18])),
-            'error_msg': row[19],
-            'has_plan': False
-        }
-        rows.append(data)
+        try:
+            data = {
+                'time_start': datetime(*dateparts),
+                'seq': row[6],
+                'db': row[12],
+                'access': row[13],
+                'elapsed': float(row[14]),
+                'rows': int(row[16]),
+                'query': pretty_query(row[17]),
+                'error': bool(int(row[18])),
+                'error_msg': row[19],
+                'has_plan': False
+            }
+        except Exception as e:
+            print "==> Skipping line with error"
+            print e
+            print row
+        else:
+            rows.append(data)
 
     table.insert_many(rows)
 
@@ -128,4 +134,4 @@ def consume(database, files, sdss, isview):
                 consume_sdss(db, f)
             else:
                 consume_sqlshare(db, f, isview)
-        print "Imported", i + 1, "of", len(files)
+        print "Imported", i + 1, "of", len(files), "({})".format(f.name)
