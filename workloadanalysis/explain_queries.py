@@ -102,7 +102,7 @@ def explain_sqlshare(config, database, quiet, first_pass):
     print "Error: {0} \%".format(len(errors)*100.0/len(queries))
 
 
-def explain_sdss(config, database, quiet):
+def explain_sdss(config, database, quiet, segments):
     """Explain queries and store the results in database
     """
     connection_string = 'mssql+pymssql://%s:%s@%s:%s/%s?charset=UTF-8' % (
@@ -118,14 +118,16 @@ def explain_sdss(config, database, quiet):
         connection.execute('set showplan_xml on')
         connection.execute('set noexec on')
 
+        query = 'SELECT * from (SELECT * FROM logs WHERE error != "" and has_plan = 0 GROUP BY query) WHERE id % {} = {}'.format(segments[1], segments[0])
+
         if database:
-            db = dataset.connect(database)
-            queries = db.query('SELECT * FROM logs WHERE error != "" and has_plan = 0 GROUP BY query')
+            datasetdb = dataset.connect(database)
+            queries = datasetdb.query(query)
         else:
             queries = EXAMPLE
 
         errors = []
-        table = db['logs']
+        table = datasetdb['logs']
 
         for i, query in enumerate(queries):
             print "Explain query", i
@@ -135,7 +137,7 @@ def explain_sdss(config, database, quiet):
             except Exception as e:
                 errors.append(str(e))
                 print str(e)
-                print 'execute error'
+                print '==> execute error'
                 continue
 
             xml_string = "".join([x for x in res])
@@ -146,11 +148,11 @@ def explain_sdss(config, database, quiet):
                 tree, cost=True, show_filters=True)
             if len(query_plans) == 0:
                 errors.append("No query plan found")
-                print 'no query_plan'
+                print '==> no query_plan'
                 continue
             if len(query_plans) > 1:
                 errors.append("Found two query plans")
-                print 'multiple query_plan'
+                print '==> multiple query_plan'
                 continue
 
             query_plan = query_plans[0]
