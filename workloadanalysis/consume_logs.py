@@ -1,7 +1,8 @@
+from datetime import datetime
+
 import unicodecsv as csv
 import dataset
-
-TYPES = {}
+import sqlalchemy as sa
 
 
 def csv_fixer(infile):
@@ -48,25 +49,23 @@ def consume_sdss(db, f):
             new_row += row[-3:]
             row = new_row
         assert len(row) == 21, len(row)
-        try:
-            data = {
-                'time_start': '%s-%s-%s %s:%s:%s' % (row[0],row[1],row[2],row[3],row[4],row[5]),
-                'seq': row[6],
-                'db': row[12],
-                'access': row[13],
-                'elapsed': float(row[14]),
-                'rows': int(row[16]),
-                'query': pretty_query(row[17]),
-                'error': bool(int(row[18])),
-                'error_msg': row[19],
-                'has_plan': False
-            }
-        except Exception as e:
-            print row, e
-            return
+        dateparts = [row[0], row[1], row[2], row[3], row[4], row[5]]
+        dateparts = map(int, dateparts)
+        data = {
+            'time_start': datetime(*dateparts),
+            'seq': row[6],
+            'db': row[12],
+            'access': row[13],
+            'elapsed': float(row[14]),
+            'rows': int(row[16]),
+            'query': pretty_query(row[17]),
+            'error': bool(int(row[18])),
+            'error_msg': row[19],
+            'has_plan': False
+        }
         rows.append(data)
 
-    table.insert_many(rows, types=TYPES)
+    table.insert_many(rows)
 
 
 def consume_sqlshare(db, f, isview):
@@ -111,7 +110,7 @@ def consume_sqlshare(db, f, isview):
                     'view': 'NA',
                     'has_plan': False
                 }
-            table.insert(data, types=TYPES)
+            table.insert(data)
         except Exception:
             print 'Exception...'
             fail_count += 1
