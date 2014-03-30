@@ -31,6 +31,8 @@ pip install -r requirements.txt
 pip install -e .  # or `python setup.py develop` if you are a developer
 ```
 
+If you want to use postgres instead of sqlite, you will need to install a driver (such as `psycopg2`).
+
 Create a copy of the config file and set the password.
 
 ```bash
