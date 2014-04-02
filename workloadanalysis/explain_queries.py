@@ -17,7 +17,7 @@ p.rerun, p.camcol, p.field, p.obj,
 '''}]
 
 
-def explain_sqlshare(config, database, quiet, first_pass):
+def explain_sqlshare(config, database, quiet, first_pass, dry=False):
     db = dataset.connect(database)
     errors = []
     table = db['sqlshare_logs']
@@ -98,13 +98,14 @@ def explain_sqlshare(config, database, quiet, first_pass):
 
         query['estimated_cost'] = query_plan['total']
         query['has_plan'] = True
-        table.update(query, ['id'])
+        if not dry:
+            table.update(query, ['id'])
 
     print "Errors", errors
     print "Error: {0} \%".format(len(errors)*100.0/len(queries))
 
 
-def explain_sdss(config, database, quiet=False, segments=[0, 1]):
+def explain_sdss(config, database, quiet=False, segments=[0, 1], dry=False):
     """Explain queries and store the results in database
     """
     connection_string = 'mssql+pymssql://%s:%s@%s:%s/%s?charset=UTF-8' % (
@@ -188,7 +189,7 @@ def explain_sdss(config, database, quiet=False, segments=[0, 1]):
             query['estimated_cost'] = query_plan['total']
             query['has_plan'] = True
 
-            if table:
+            if table and not dry:
                 table.update(query, ['id'])
         connection.execute('set showplan_xml off')
         connection.execute('set noexec off')

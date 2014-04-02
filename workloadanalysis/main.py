@@ -3,7 +3,7 @@
 Usage:
     qwla (sdss|sqlshare) consume INPUT... [-d DATABASE] [-v]
     qwla (sdss|sqlshare) summarize [-d DATABASE]
-    qwla (sdss|sqlshare) explain CONFIG [-q] [-d DATABASE] [--second] [-s SEGMENT NUMBER]
+    qwla (sdss|sqlshare) explain CONFIG [-q] [-d DATABASE] [--dry] [--second] [-s SEGMENT NUMBER]
     qwla (sdss|sqlshare) analyze [--plots] [-d DATABASE]
     qwla (-h | --help)
     qwla --version
@@ -15,6 +15,7 @@ Options:
     SEGMENT        A segment of the data to explain (only SDSS). Used to parallelize.
                    Explain if `id modulo NUMBER == SEGMENT.`
     NUMBER         Number of segments.
+    --dry          Dry run, does not write anything
     --plots        Show plots
     -q             Don't print results
     --second       (For SQLShare only) for second pass of explain
@@ -58,14 +59,15 @@ def main():
             segments = [int(arguments['SEGMENT']), int(arguments['NUMBER'])]
 
         if arguments['sdss']:
-            explain_queries.explain_sdss(config, db, arguments['-q'], segments)
+            explain_queries.explain_sdss(
+                config, db, arguments['-q'], segments, arguments['--dry'])
         else:
             if arguments['--second']:
                 explain_queries.explain_sqlshare(
-                    config, db, arguments['-q'], False)
+                    config, db, arguments['-q'], False, arguments['--dry'])
             else:
                 explain_queries.explain_sqlshare(
-                    config, db, arguments['-q'], True)
+                    config, db, arguments['-q'], True, arguments['--dry'])
 
     if arguments['analyze']:
         query_analysis.analyze(db, arguments['--plots'], arguments['sdss'])
