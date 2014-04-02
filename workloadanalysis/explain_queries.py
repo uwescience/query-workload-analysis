@@ -105,7 +105,7 @@ def explain_sqlshare(config, database, quiet, first_pass, dry=False):
     print "Error: {0} \%".format(len(errors)*100.0/len(queries))
 
 
-def explain_sdss(config, database, quiet=False, segments=[0, 1], dry=False):
+def explain_sdss(config, database, quiet=False, segments=[0, 1], dry=False, offset=0):
     """Explain queries and store the results in database
     """
     connection_string = 'mssql+pymssql://%s:%s@%s:%s/%s?charset=UTF-8' % (
@@ -117,6 +117,9 @@ def explain_sdss(config, database, quiet=False, segments=[0, 1], dry=False):
 
     db = sa.create_engine(connection_string, echo=(not quiet))
 
+    if not offset:
+        offset = 0
+
     with db.connect() as connection:
         connection.execute('set showplan_xml on')
         connection.execute('set noexec on')
@@ -125,11 +128,11 @@ def explain_sdss(config, database, quiet=False, segments=[0, 1], dry=False):
         table = None
 
         """
-        CREATE [MATERIALIZED] VIEW distinctlogs AS SELECT min(id) id, query FROM logs WHERE not error GROUP BY query;
-        CREATE TABLE distinctlogs AS SELECT min(id) id, query FROM logs WHERE not error GROUP BY query;
+        CREATE [MATERIALIZED] VIEW distinctlogs AS SELECT min(id) id, query, has_plan FROM logs WHERE not error GROUP BY query;
+        CREATE TABLE distinctlogs AS SELECT min(id) id, query, has_plan FROM logs WHERE not error GROUP BY query;
         """
 
-        query = "SELECT * from distinctlogs WHERE id %% {} = {}".format(segments[1], segments[0])
+        query = "SELECT * from distinctlogs WHERE id %% {} = {} OFFSET {}".format(segments[1], segments[0], offset)
 
         if database:
             datasetdb = dataset.connect(database)
@@ -144,6 +147,11 @@ def explain_sdss(config, database, quiet=False, segments=[0, 1], dry=False):
         for i, query in enumerate(queries):
             print "Explain query", i
             query = dict(query)
+
+            if query['has_plan']:
+                print "==> skipping because we already have a plan"
+                continue
+
             try:
                 res = connection.execute(query['query'].replace('[','"').replace(']','"')).fetchall()[0]
             except Exception as e:

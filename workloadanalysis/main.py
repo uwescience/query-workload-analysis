@@ -3,7 +3,7 @@
 Usage:
     qwla (sdss|sqlshare) consume INPUT... [-d DATABASE] [-v]
     qwla (sdss|sqlshare) summarize [-d DATABASE]
-    qwla (sdss|sqlshare) explain CONFIG [-q] [-d DATABASE] [--dry] [--second] [-s SEGMENT NUMBER]
+    qwla (sdss|sqlshare) explain CONFIG [-q] [-d DATABASE] [--dry] [--second] [-s SEGMENT NUMBER] [-o OFFSET]
     qwla (sdss|sqlshare) analyze [--plots] [-d DATABASE]
     qwla (-h | --help)
     qwla --version
@@ -12,9 +12,10 @@ Options:
     INPUT...       Log files to be read into database
     -d [DATABASE]  The database to read from or write into
     CONFIG         How to connect to SQLServer
-    SEGMENT        A segment of the data to explain (only SDSS). Used to parallelize.
-                   Explain if `id modulo NUMBER == SEGMENT.`
-    NUMBER         Number of segments.
+    SEGMENT        A segment of the data to explain (only SDSS). Used to parallelize
+                   Explain if `id modulo NUMBER == SEGMENT`
+    NUMBER         Number of segments
+    OFFSET         Offset
     --dry          Dry run, does not write anything
     --plots        Show plots
     -q             Don't print results
@@ -60,7 +61,7 @@ def main():
 
         if arguments['sdss']:
             explain_queries.explain_sdss(
-                config, db, arguments['-q'], segments, arguments['--dry'])
+                config, db, arguments['-q'], segments, arguments['--dry'], arguments['-o'])
         else:
             if arguments['--second']:
                 explain_queries.explain_sqlshare(
