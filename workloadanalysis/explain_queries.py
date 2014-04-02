@@ -1,4 +1,6 @@
 import json
+import sys
+
 import dataset
 import sqlalchemy as sa
 import parse_xml
@@ -102,7 +104,7 @@ def explain_sqlshare(config, database, quiet, first_pass):
     print "Error: {0} \%".format(len(errors)*100.0/len(queries))
 
 
-def explain_sdss(config, database, quiet, segments):
+def explain_sdss(config, database, quiet=False, segments=[0, 1]):
     """Explain queries and store the results in database
     """
     connection_string = 'mssql+pymssql://%s:%s@%s:%s/%s?charset=UTF-8' % (
@@ -118,6 +120,9 @@ def explain_sdss(config, database, quiet, segments):
         connection.execute('set showplan_xml on')
         connection.execute('set noexec on')
 
+        datasetdb = None
+        table = None
+
         query = 'SELECT * from (SELECT * FROM logs WHERE error != "" and has_plan = 0 GROUP BY query) WHERE id % {} = {}'.format(segments[1], segments[0])
 
         if database:
@@ -127,7 +132,8 @@ def explain_sdss(config, database, quiet, segments):
             queries = EXAMPLE
 
         errors = []
-        table = datasetdb['logs']
+        if datasetdb:
+            table = datasetdb['logs']
 
         for i, query in enumerate(queries):
             print "Explain query", i
@@ -143,6 +149,14 @@ def explain_sdss(config, database, quiet, segments):
             xml_string = "".join([x for x in res])
             tree = parse_xml.clean(xml_string)
 
+            if not quiet:
+                print "==> query:", query['query']
+            print
+
+            # indent tree and export as xml file
+            parse_xml.indent(tree.getroot())
+            tree.write(sys.stdout)
+
             # get the simplified query plan as dictionary
             query_plans = parse_xml.get_query_plans(
                 tree, cost=True, show_filters=True)
@@ -156,13 +170,10 @@ def explain_sdss(config, database, quiet, segments):
                 continue
 
             query_plan = query_plans[0]
+
             if not quiet:
                 print utils.json_pretty(query_plan)
             query['plan'] = json.dumps(query_plan, cls=utils.SetEncoder)
-
-            # indent tree and export as xml file
-            # parse_xml.indent(tree.getroot())
-            # tree.write('clean_{}.xml'.format(i))
 
             # simple_query_plan = parse_xml.get_query_plans(
             #     tree, cost=False, show_filters=False)[0]
@@ -172,8 +183,17 @@ def explain_sdss(config, database, quiet, segments):
             query['estimated_cost'] = query_plan['total']
             query['has_plan'] = True
 
-            table.update(query, ['id'])
+            if table:
+                table.update(query, ['id'])
         connection.execute('set showplan_xml off')
         connection.execute('set noexec off')
 
         print "Errors", errors
+
+if __name__ == '__main__':
+    config = {}
+    with open(sys.argv[1]) as f:
+        for line in f:
+            key, val = line.split('=')
+            config[key.strip()] = val.strip()
+    explain_sdss(config, None, quiet=False)

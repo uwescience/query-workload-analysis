@@ -83,6 +83,8 @@ def operator_tree(root, cost, show_filters, parameters):
         # add column references
         refs = root.xpath('.//ColumnReference')
         not_ref = root.xpath('.//RelOp//ColumnReference')
+        not_ref += root.xpath('.//Predicate//ColumnReference')
+        not_ref += root.xpath('.//SeekPredicates//ColumnReference')
         for ref in set(refs) - set(not_ref):
             if 'Table' in ref.attrib:
                 name = ref.attrib['Table'].strip('[').strip(']')
@@ -102,48 +104,130 @@ def operator_tree(root, cost, show_filters, parameters):
             if show_filters:
                 filters.append({tbl: [x.attrib['ConstValue'] for x in consts]})
 
-        # if the rel op is top, use the (constant) expression as filter
-        if root.attrib['LogicalOp'] == "Top":
-            for x in root.xpath('Top/TopExpression//Const'):
-                filters.append(x.attrib['ConstValue'].strip("(").strip(")"))
+        if show_filters:
+            # if the rel op is top, use the (constant) expression as filter
+            if root.attrib['LogicalOp'] == "Top":
+                for x in root.xpath('Top/TopExpression//Const'):
+                    filters.append(x.attrib['ConstValue'].strip("(").strip(")"))
 
-        # set row count as filter for top sort
-        if root.attrib['LogicalOp'] == "TopN Sort":
-            filters.append(root.xpath('TopSort')[0].attrib['Rows'])
+            # set row count as filter for top sort
+            if root.attrib['LogicalOp'] == "TopN Sort":
+                filters.append(root.xpath('TopSort')[0].attrib['Rows'])
 
-        # extract scalar strings (where clause expression) from predicates
-        predicates = root.xpath('.//Predicate')
-        not_predicates = root.xpath('.//RelOp//Predicate')
-        if not (set(predicates) - set(not_predicates)):
+            # extract scalar strings (where clause expression) from predicates
             predicates = root.xpath('.//SeekPredicates')
             not_predicates = root.xpath('.//RelOp//SeekPredicates')
-        if not (set(predicates) - set(not_predicates)):
-            predicates = root.xpath('.//DefinedValue')
-            not_predicates = root.xpath('.//RelOp//DefinedValue')
 
-        for pred in set(predicates) - set(not_predicates):
-            sos = pred.xpath('ScalarOperator')
-            nosos = []
-            if not sos:
-                sos = pred.xpath('.//ScalarOperator')
-                nosos = pred.xpath('.//RelOp//ScalarOperator')
-            for so in set(sos) - set(nosos):
-                if show_filters:
-                    if 'ScalarString' not in so.attrib:
-                        continue
-                    scalarString = so.attrib['ScalarString']
-                    # replace all parameters with concrete values
-                    for p in parameters:
-                        scalarString = scalarString.replace(p[0], p[1])
-                    filters.append(scalarString)
+            predicates += root.xpath('.//Predicate')
+            not_predicates += root.xpath('.//RelOp//Predicate')
+
+            if root.attrib['LogicalOp'] == "Compute Scalar":
+                predicates += root.xpath('.//DefinedValue')
+                not_predicates += root.xpath('.//RelOp//DefinedValue')
+
+            for pred in set(predicates) - set(not_predicates):
+                s = ''
+
+                sos = pred.xpath('./ScalarOperator')
+                nosos = pred.xpath('./ScalarOperator//ScalarOperator')
+
+                sos = list(set(sos) - set(nosos))
+
+                if len(sos) == 1:
+                    so = sos[0]
+                    if 'ScalarString' in so.attrib:
+                        s = so.attrib['ScalarString']
+
+                if not s:
+                    # objects to compare
+                    objects = []
+
+                    #refs = pred.xpath('.//RangeColumns//ColumnReference')
+                    #refs += pred.xpath('.//ScalarOperator//ColumnReference')
+                    refs = pred.xpath('.//ColumnReference')
+                    #not_ref = pred.xpath('.//RelOp//ColumnReference')
+
+                    for ref in refs:
+                        objects.append('.'.join(sorted(list(ref.attrib.itervalues()))))
+
+                    consts = pred.xpath('.//Const')
+                    for const in consts:
+                        objects.append(const.attrib['ConstValue'].strip("(").strip(")"))
+
+                    # operation
+                    operator = None
+                    op = pred.xpath('.//Compare')
+                    if op:
+                        operator = op[0].attrib['CompareOp']
+                    op = pred.xpath('.//Prefix')
+                    if op:
+                        operator = op[0].attrib['ScanType']
+
+                    available = {
+                        'EQ': '=',
+                        'GT': '>',
+                        'LT': '<',
+                        'GE': '>=',
+                        'LE': '<=',
+                        'NE': '<>'
+                    }
+
+                    if operator in available:
+                        operator = available[operator]
+                    else:
+                        operator = ' {} '.format(operator)
+
+                    if operator:
+                        s = operator.join(objects)
+                    else:
+                        assert(len(objects) == 1)
+                        s = objects[0]
+
+                for p in parameters:
+                    s = s.replace(p[0], p[1])
+
+                s = s.replace('[', '').replace(']', '').replace("'", '')
+
+                filters.append(s)
+
+            # predicates = root.xpath('.//Predicate')
+            # not_predicates = root.xpath('.//RelOp//Predicate')
+            # if not (set(predicates) - set(not_predicates)):
+            #     predicates = root.xpath('.//DefinedValue')
+            #     not_predicates = root.xpath('.//RelOp//DefinedValue')
+
+            # for pred in set(predicates) - set(not_predicates):
+            #     sos = pred.xpath('ScalarOperator')
+            #     nosos = []
+            #     if not sos:
+            #         sos = pred.xpath('.//ScalarOperator')
+            #         nosos = pred.xpath('.//RelOp//ScalarOperator')
+            #     for so in set(sos) - set(nosos):
+            #         if 'ScalarString' not in so.attrib:
+            #             continue
+            #         scalarString = so.attrib['ScalarString']
+            #         # replace all parameters with concrete values
+            #         for p in parameters:
+            #             scalarString = scalarString.replace(p[0], p[1])
+            #         filters.append(scalarString)
+
+            #     refs = root.xpath('.//RangeColumns//ColumnReference')
+            #     not_ref = root.xpath('.//RelOp//ColumnReference')
+            #     print not_ref
+            #     for so in set(refs) - set(not_ref):
+            #         for ref in refs:
+            #             print ref.attrib
+            #             filters.append(ref.attrib['Schema'] + ref.attrib['Table'] + ref.attrib['Column'])
 
         ret = {
             'operator': root.attrib['LogicalOp'],
             'physicalOp': root.attrib['PhysicalOp'],
             'children': children,
-            'columns': tables,
-            'filters': filters
+            'columns': tables
         }
+
+        if show_filters:
+            ret['filters'] = filters
 
         if cost:
             ret.update({
