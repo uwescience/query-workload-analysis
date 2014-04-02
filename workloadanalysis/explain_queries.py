@@ -154,8 +154,9 @@ def explain_sdss(config, database, quiet=False, segments=[0, 1]):
             print
 
             # indent tree and export as xml file
-            parse_xml.indent(tree.getroot())
-            tree.write(sys.stdout)
+            # parse_xml.indent(tree.getroot())
+            # tree.write(sys.stdout)
+            # tree.write('clean_{}.xml'.format(i))
 
             # get the simplified query plan as dictionary
             query_plans = parse_xml.get_query_plans(

@@ -142,10 +142,7 @@ def operator_tree(root, cost, show_filters, parameters):
                     # objects to compare
                     objects = []
 
-                    #refs = pred.xpath('.//RangeColumns//ColumnReference')
-                    #refs += pred.xpath('.//ScalarOperator//ColumnReference')
                     refs = pred.xpath('.//ColumnReference')
-                    #not_ref = pred.xpath('.//RelOp//ColumnReference')
 
                     for ref in refs:
                         objects.append('.'.join(sorted(list(ref.attrib.itervalues()))))
@@ -189,35 +186,6 @@ def operator_tree(root, cost, show_filters, parameters):
                 s = s.replace('[', '').replace(']', '').replace("'", '')
 
                 filters.append(s)
-
-            # predicates = root.xpath('.//Predicate')
-            # not_predicates = root.xpath('.//RelOp//Predicate')
-            # if not (set(predicates) - set(not_predicates)):
-            #     predicates = root.xpath('.//DefinedValue')
-            #     not_predicates = root.xpath('.//RelOp//DefinedValue')
-
-            # for pred in set(predicates) - set(not_predicates):
-            #     sos = pred.xpath('ScalarOperator')
-            #     nosos = []
-            #     if not sos:
-            #         sos = pred.xpath('.//ScalarOperator')
-            #         nosos = pred.xpath('.//RelOp//ScalarOperator')
-            #     for so in set(sos) - set(nosos):
-            #         if 'ScalarString' not in so.attrib:
-            #             continue
-            #         scalarString = so.attrib['ScalarString']
-            #         # replace all parameters with concrete values
-            #         for p in parameters:
-            #             scalarString = scalarString.replace(p[0], p[1])
-            #         filters.append(scalarString)
-
-            #     refs = root.xpath('.//RangeColumns//ColumnReference')
-            #     not_ref = root.xpath('.//RelOp//ColumnReference')
-            #     print not_ref
-            #     for so in set(refs) - set(not_ref):
-            #         for ref in refs:
-            #             print ref.attrib
-            #             filters.append(ref.attrib['Schema'] + ref.attrib['Table'] + ref.attrib['Column'])
 
         ret = {
             'operator': root.attrib['LogicalOp'],
