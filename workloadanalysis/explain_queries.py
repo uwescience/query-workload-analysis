@@ -128,7 +128,7 @@ def explain_sdss(config, database, quiet=False, segments=[0, 1], dry=False):
         CREATE [MATERIALIZED] VIEW distinctlogs AS SELECT min(id) id, query FROM logs WHERE not error GROUP BY query;
         """
 
-        query = "SELECT * from distinctlogs WHERE id % {} = {}".format(segments[1], segments[0])
+        query = "SELECT * from distinctlogs WHERE id %% {} = {}".format(segments[1], segments[0])
 
         if database:
             datasetdb = dataset.connect(database)
