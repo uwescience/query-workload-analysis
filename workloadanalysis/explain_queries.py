@@ -126,6 +126,7 @@ def explain_sdss(config, database, quiet=False, segments=[0, 1], dry=False):
 
         """
         CREATE [MATERIALIZED] VIEW distinctlogs AS SELECT min(id) id, query FROM logs WHERE not error GROUP BY query;
+        CREATE TABLE distinctlogs AS SELECT min(id) id, query FROM logs WHERE not error GROUP BY query;
         """
 
         query = "SELECT * from distinctlogs WHERE id %% {} = {}".format(segments[1], segments[0])
@@ -156,7 +157,7 @@ def explain_sdss(config, database, quiet=False, segments=[0, 1], dry=False):
 
             if not quiet:
                 print "==> query:", query['query']
-            print
+                print
 
             # indent tree and export as xml file
             # parse_xml.indent(tree.getroot())
