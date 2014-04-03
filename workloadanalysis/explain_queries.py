@@ -168,6 +168,8 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
                 errors.append(str(e))
                 print str(e)
                 print '==> execute error'
+                if 'closed automatically' in str(e):
+                    raise
                 continue
 
             xml_string = "".join([x for x in res])
