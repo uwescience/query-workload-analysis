@@ -1,5 +1,4 @@
 import json
-import hashlib
 from collections import Counter
 from tabulate import tabulate
 import dataset
@@ -7,7 +6,6 @@ import bz2
 import sqltokens
 import csv
 import sys
-import numpy as np
 
 from utils import format_tabulate as ft
 
@@ -143,7 +141,7 @@ def print_stats(db):
 
 
 def get_aggregated_cost(db, cost, query):
-    result = db.query('SELECT SUM(cost) AS cost FROM (SELECT {query}, COUNT(*) count, AVG({cost}) cost FROM {table} GROUP BY {query})'.format(cost=cost, query=query, table=EXPLAINED))
+    result = db.query('SELECT SUM(cost) AS cost FROM (SELECT {query}, COUNT(*) count, AVG({cost}) AS cost FROM {table} GROUP BY {query})'.format(cost=cost, query=query, table=EXPLAINED))
     return list(result)[0]['cost']
 
 
@@ -254,82 +252,6 @@ def analyze_sdss(db, show_plots):
             values.iteritems(),
             key=lambda t: t[0]),
             headers=[name, "counts"])
-
-    if show_plots:
-        # import scipy.stats
-        import matplotlib.pyplot as plt
-        import prettyplotlib as ppl
-        print
-
-        print "Correlation between estimated and actual cost"
-        costs = list(db.query('SELECT elapsed actual, estimated_cost estimated, query query FROM logs WHERE db = "BestDR5" AND plan != ""'))
-        actual = np.array([x['actual'] for x in costs], dtype=np.float)
-        estimated = np.array([x['estimated'] for x in costs], dtype=np.float)
-        queries = np.array([int(hashlib.md5(x['query']).hexdigest()[:10], 16) for x in costs], dtype=np.float)
-
-        cost_hist = list(db.query('SELECT elapsed, COUNT(*) c FROM logs_dr5_explained GROUP BY elapsed ORDER BY elapsed'))
-
-        colors = queries / np.max(queries)
-
-        fig, axes = plt.subplots(3)
-
-        # Correlation
-
-        ax = axes[0]
-
-        ppl.scatter(ax, estimated, actual, c=colors, s=60, alpha=0.6)
-
-        ax.set_title("Correlation estimated and actual cost")
-        ax.set_xlim(xmin=0)
-        ax.set_ylim(ymin=0)
-        ax.set_xlabel('Estimated')
-        ax.set_ylabel('Actual')
-
-        print "Finished correlation"
-
-        # Cost histogram
-
-        ax = axes[1]
-
-        val, weight = zip(*[(x['elapsed'], x['c']) for x in cost_hist])
-        ppl.hist(ax, np.array(val), bins=10, weights=weight, grid='y')
-
-        ax.set_title("Correlation estimated and actual cost")
-        ax.set_xlabel('Elapsed time')
-        ax.set_ylabel('Count')
-
-        print "Finished cost"
-
-        # Length histogram
-
-        ax = axes[2]
-
-        queries = db.query(distinct_queries)
-        queries = [query['query'].encode('utf-8') for query in queries]
-        lengths = map(len, queries)
-        compressed_lengths = map(lambda x: len(bz2.compress(x)), queries)
-
-        minl = min(min(lengths), min(compressed_lengths))
-        maxl = max(max(lengths), max(compressed_lengths))
-        length_range = [minl, maxl]
-
-        bins = 10
-
-        #hist = np.histogram(lengths, bins=bins, range=length_range)
-        #print tabulate(hist)
-
-        #hist = np.histogram(compressed_lengths, bins=bins, range=length_range)
-        #print tabulate(hist)
-
-        ppl.hist(ax, [np.array(lengths), np.array(compressed_lengths)],
-                 bins=bins, range=length_range,
-                 grid='y', label=['uncompressed', 'compressed'])
-
-        ppl.legend(ax)
-
-        print "Finished length"
-
-        plt.show()
 
 
 def analyze_sqlshare(db, write_to_file = False):
