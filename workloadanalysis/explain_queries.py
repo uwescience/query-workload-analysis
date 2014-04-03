@@ -151,6 +151,8 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
         errors = []
         if datasetdb:
             table = datasetdb['logs']
+        else:
+            dry = True
 
         for i, query in enumerate(queries):
             print "Explain query", i
@@ -208,13 +210,18 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
 
             batch.append(query)
 
-            if table and not dry:
-                if len(batch) > BATCH_SIZE:
-                    table.update_many(batch, ['id'])
-                    batch = []
+            if len(batch) > BATCH_SIZE and not dry:
+                datasetdb.begin()
+                for query in batch:
+                    table.update(query, ['id'])
+                datasetdb.commit()
+                batch = []
 
-        if table and not dry:
-            table.update_many(batch, ['id'])
+        if not dry:
+            datasetdb.begin()
+            for query in batch:
+                table.update(query, ['id'])
+            datasetdb.commit()
 
         connection.execute('set showplan_xml off')
         connection.execute('set noexec off')
