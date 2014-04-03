@@ -74,7 +74,7 @@ def find_recurring(queries, estimated_cost):
 
 
 def print_table(data, headers):
-    print tabulate(data, headers)
+    print tabulate(data, headers, tablefmt='latex')
 
     with open('results/' + '_'.join(headers).replace(' ', '_') + '.csv', 'w') as f:
         writer = csv.writer(f)
