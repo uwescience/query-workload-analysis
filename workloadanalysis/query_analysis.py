@@ -78,10 +78,11 @@ def print_table(data, headers):
 
     # print csv which we can process easily
     print
-    writer = csv.writer(sys.stdout)
-    writer.writerow(headers)
-    for row in data:
-        writer.writerow(row)
+    with open('_'.join(headers) + '.csv', 'w') as f:
+        writer = csv.writer(f)
+        writer.writerow(headers)
+        for row in data:
+            writer.writerow(row)
 
 
 def get_counts(queries, visitors, names):
