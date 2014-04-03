@@ -5,7 +5,6 @@ import dataset
 import bz2
 import sqltokens
 import csv
-import sys
 
 from utils import format_tabulate as ft
 
@@ -17,6 +16,7 @@ DISTINCT = 'distinctlogs'
 
 # the queries that have been explained
 EXPLAINED = 'explained'
+
 
 # visitors
 visitor_tables = lambda x: x.get('columns', {}).keys()
@@ -76,9 +76,7 @@ def find_recurring(queries, estimated_cost):
 def print_table(data, headers):
     print tabulate(data, headers)
 
-    # print csv which we can process easily
-    print
-    with open('results/' + '_'.join(headers) + '.csv', 'w') as f:
+    with open('results/' + '_'.join(headers).replace(' ', '_') + '.csv', 'w') as f:
         writer = csv.writer(f)
         writer.writerow(headers)
         for row in data:
