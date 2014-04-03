@@ -155,8 +155,9 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
             dry = True
 
         for i, query in enumerate(queries):
-            print "Explain query", i
+            print "Explain query", i,
             query = dict(query)
+            print query['id']
 
             if query['has_plan']:
                 print "==> skipping because we already have a plan"
