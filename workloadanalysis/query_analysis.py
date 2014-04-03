@@ -11,6 +11,15 @@ import numpy as np
 
 from utils import format_tabulate as ft
 
+# table with all queries from DR5
+ALL = 'logs'
+
+# table that contains distinct queries from ALL
+DISTINCT = 'distinctlogs'
+
+# the queries that have been explained
+EXPLAINED = 'explained'
+
 # visitors
 visitor_tables = lambda x: x.get('columns', {}).keys()
 visitor_logical_ops = lambda x: [x['operator']]
@@ -118,28 +127,28 @@ def explicit_implicit_joins(queries):
 
 
 def print_stats(db):
-    num_interesting_queries = list(db.query('SELECT COUNT(*) c FROM (SELECT DISTINCT query FROM logs WHERE db = "BestDR5")'))[0]['c']
+    num_interesting_queries = list(db.query('SELECT COUNT(*) c FROM {}'.format(DISTINCT)))[0]['c']
     print "Distinct queries in BestDR5:", num_interesting_queries
 
     print
     print "Top 10 queries:"
-    result = db.query('SELECT query, COUNT(*) c FROM logs WHERE db = "BestDR5" GROUP BY query ORDER BY c DESC LIMIT 10')
+    result = db.query('SELECT query, COUNT(*) AS c FROM {} GROUP BY query ORDER BY c DESC LIMIT 10'.format(ALL))
     for line in result:
         print '{:3}'.format(line['c']), line['query']
 
     print
     print "Error messages:"
-    result = db.query('SELECT COUNT(*) c, error_msg FROM logs where error GROUP BY error_msg ORDER BY c DESC')
+    result = db.query('SELECT COUNT(*) AS c, error_msg FROM {} where error GROUP BY error_msg ORDER BY c DESC'.format(ALL))
     print_table(ft(result), headers=['count', 'error msg'])
 
 
 def get_aggregated_cost(db, cost, query):
-    result = db.query('SELECT SUM(cost) cost FROM (SELECT {query}, COUNT(*) count, AVG({cost}) cost FROM logs_dr5_explained GROUP BY {query})'.format(cost=cost, query=query))
+    result = db.query('SELECT SUM(cost) AS cost FROM (SELECT {query}, COUNT(*) count, AVG({cost}) cost FROM {table} GROUP BY {query})'.format(cost=cost, query=query, table=EXPLAINED))
     return list(result)[0]['cost']
 
 
 def get_cost(db, cost):
-    result = db.query('SELECT SUM({cost}) cost FROM logs_dr5_explained'.format(cost=cost))
+    result = db.query('SELECT SUM({cost}) AS cost FROM {table}'.format(cost=cost, table=EXPLAINED))
     return list(result)[0]['cost']
 
 
@@ -149,19 +158,9 @@ def analyze_sdss(db, show_plots):
 
     print_stats(db)
 
-    # see whether we can analyze plans
-    if 'plan' not in db['logs'].columns:
-        "Run explain to see more!"
-        return
-
-    #db.query('DROP VIEW IF EXISTS logs_dr5_explained')
-    exists = list(db.query('SELECT count(*) c FROM sqlite_master WHERE name="logs_dr5_explained"'))[0]['c'] > 0
-    if not exists:
-        db.query('CREATE VIEW logs_dr5_explained AS SELECT * FROM logs WHERE db = "BestDR5" AND plan != ""')
-
     print
 
-    num_interesting_queries = list(db.query('SELECT COUNT(*) c FROM logs_dr5_explained'))[0]['c']
+    num_interesting_queries = list(db.query('SELECT COUNT(*) c FROM {}'.format(EXPLAINED)))[0]['c']
     print "Distinct queries with query plan:", num_interesting_queries
 
     print "Overall cost assuming 1 (aka number of queries):", get_cost(db, '1')
@@ -180,15 +179,15 @@ def analyze_sdss(db, show_plots):
 
     expl_queries = '''
         SELECT query, plan, time_start, elapsed, COUNT(*) c
-        FROM logs_dr5_explained
+        FROM {}
         GROUP BY query
-        ORDER BY id ASC'''
+        ORDER BY id ASC'''.format(EXPLAINED)
 
-    all_queries = '''
+    distinct_queries = '''
         SELECT query, COUNT(*) c
-        FROM logs
+        FROM {}
         GROUP BY query
-        ORDER BY id ASC'''
+        ORDER BY id ASC'''.format(DISTINCT)
 
     print
     print "Find recurring subtrees in distinct queries:"
@@ -305,7 +304,7 @@ def analyze_sdss(db, show_plots):
 
         ax = axes[2]
 
-        queries = db.query(all_queries)
+        queries = db.query(distinct_queries)
         queries = [query['query'].encode('utf-8') for query in queries]
         lengths = map(len, queries)
         compressed_lengths = map(lambda x: len(bz2.compress(x)), queries)

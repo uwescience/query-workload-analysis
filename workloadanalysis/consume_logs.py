@@ -33,7 +33,7 @@ def pretty_query(query):
 
 
 def consume_sdss(db, f):
-    table = db['logs']
+    table = db['everything']
     rows = []
     reader = csv.reader(csv_fixer(f), encoding='latin-1', quotechar='"')
 

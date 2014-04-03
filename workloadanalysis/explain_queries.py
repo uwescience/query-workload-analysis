@@ -135,11 +135,6 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
         datasetdb = None
         table = None
 
-        """
-        CREATE [MATERIALIZED] VIEW distinctlogs AS SELECT min(id) id, query, has_plan FROM logs WHERE not error GROUP BY query;
-        CREATE TABLE distinctlogs AS SELECT min(id) id, query, has_plan FROM logs WHERE not error GROUP BY query;
-        """
-
         query = "SELECT * from distinctlogs WHERE id %% {} = {} OFFSET {}".format(segments[1], segments[0], offset)
 
         if database:

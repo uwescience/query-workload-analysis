@@ -44,6 +44,19 @@ vim default.ini.local
 
 You should be able to run `qwla --help`.
 
+## Views/ copies
+
+To speed up analysis, a few vies should be created. Since postgres <9.3 does not support materialized views, we can also make copies.
+
+```
+CREATE TABLE logs AS SELECT * FROM everything WHERE db='BestDR5';
+
+CREATE TABLE distinctlogs AS SELECT min(id) id, query, bool_or(has_plan) FROM logs WHERE not error GROUP BY query;
+
+CREATE TABLE explained AS SELECT * FROM logs WHERE has_plan;
+```
+
+
 ## Trubleshooting
 
 If you get an error on a mac like `/usr/local/include/ft2build.h:56:10: fatal error: ‘freetype/config/ftheader.h’ file not found`, create a symlink to freetype: `ln -s /usr/local/opt/freetype/include/freetype2 /usr/local/include/freetype`.
