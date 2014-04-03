@@ -77,7 +77,6 @@ def print_table(data, headers):
     print tabulate(data, headers)
 
     # print csv which we can process easily
-    return
     print
     writer = csv.writer(sys.stdout)
     writer.writerow(headers)
@@ -150,7 +149,7 @@ def get_cost(db, cost):
     return list(result)[0]['cost']
 
 
-def analyze_sdss(db, show_plots):
+def analyze_sdss(db):
     print "Limited to DR5"
     print
 
@@ -179,10 +178,9 @@ def analyze_sdss(db, show_plots):
     """
 
     expl_queries = '''
-        SELECT query, plan, time_start, elapsed, COUNT(*) c
+        SELECT query, plan, time_start, elapsed
         FROM {}
-        GROUP BY query
-        ORDER BY id ASC'''.format(EXPLAINED)
+        ORDER BY time_start ASC'''.format(EXPLAINED)
 
     print
     print "Find recurring subtrees in distinct queries:"
@@ -292,7 +290,7 @@ def analyze_sqlshare(db, write_to_file = False):
                     expanded_query = expanded_query.replace(view['view'], '(' + view['query'] + ')')
             if (len(expanded_query) == previousLength):
                 break
-                    
+
         for ref_view in referenced_views:
             view = list(db.query('SELECT * from sqlshare_logs where id = {}'.format(ref_view)))
             if view[0]['expanded_plan_ops']:
@@ -351,12 +349,12 @@ def analyze_sqlshare(db, write_to_file = False):
         f.close()
 
 
-def analyze(database, show_plots, sdss):
+def analyze(database, sdss):
     """Analyze the query log from the database
     """
     db = dataset.connect(database)
 
     if sdss:
-        analyze_sdss(db, show_plots)
+        analyze_sdss(db)
     else:
         analyze_sqlshare(db, write_to_file=False)
