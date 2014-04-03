@@ -164,7 +164,9 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
                 continue
 
             try:
-                res = connection.execute(query['query'].replace('[','"').replace(']','"')).fetchall()[0]
+                qu = query['query'].replace('[','"').replace(']','"')
+                qu = qu.replace('SET PARSEONLY ON ', '')
+                res = connection.execute(qu).fetchall()[0]
             except Exception as e:
                 errors.append(str(e))
                 print str(e)
