@@ -17,6 +17,9 @@ p.rerun, p.camcol, p.field, p.obj,
 '''}]
 
 
+BATCH_SIZE = 25
+
+
 def explain_sqlshare(config, database, quiet, first_pass, dry=False):
     db = dataset.connect(database)
     errors = []
@@ -105,7 +108,7 @@ def explain_sqlshare(config, database, quiet, first_pass, dry=False):
     print "Error: {0} \%".format(len(errors)*100.0/len(queries))
 
 
-def explain_sdss(config, database, quiet=False, segments=[0, 1], dry=False, offset=0):
+def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset=0):
     """Explain queries and store the results in database
     """
     connection_string = 'mssql+pymssql://%s:%s@%s:%s/%s?charset=UTF-8' % (
@@ -119,6 +122,11 @@ def explain_sdss(config, database, quiet=False, segments=[0, 1], dry=False, offs
 
     if not offset:
         offset = 0
+
+    if not segments:
+        segments = [0, 1]
+
+    batch = []
 
     with db.connect() as connection:
         connection.execute('set showplan_xml on')
@@ -198,8 +206,16 @@ def explain_sdss(config, database, quiet=False, segments=[0, 1], dry=False, offs
             query['estimated_cost'] = query_plan['total']
             query['has_plan'] = True
 
+            batch.append(query)
+
             if table and not dry:
-                table.update(query, ['id'])
+                if len(batch) > BATCH_SIZE:
+                    table.update_many(batch, ['id'])
+                    batch = []
+
+        if table and not dry:
+            table.update_many(batch, ['id'])
+
         connection.execute('set showplan_xml off')
         connection.execute('set noexec off')
 
