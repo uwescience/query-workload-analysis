@@ -78,7 +78,7 @@ def print_table(data, headers):
 
     # print csv which we can process easily
     print
-    with open('_'.join(headers) + '.csv', 'w') as f:
+    with open('results/' + '_'.join(headers) + '.csv', 'w') as f:
         writer = csv.writer(f)
         writer.writerow(headers)
         for row in data:
@@ -238,10 +238,10 @@ def analyze_sdss(db):
     print_table(sorted(
         which_str_ops.iteritems(),
         key=lambda t: t[1], reverse=True),
-        headers=["string ops", "count"])
+        headers=["string op", "count"])
 
     for name, values in zip(
-        ['lengths', 'compressed lengths', 'ops', 'distinct ops', 'str ops', 'distinct str ops', 'touch'],
+        ['lengths', 'compressed lengths', 'ops', 'distinct ops', 'string ops', 'distinct string ops', 'touch'],
         [lengths, compressed_lengths, ops, distinct_ops, str_ops, distinct_str_ops, touch]):
         print
         print_table(sorted(
