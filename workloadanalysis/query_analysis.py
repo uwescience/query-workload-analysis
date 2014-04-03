@@ -161,6 +161,8 @@ def analyze_sdss(db, show_plots):
     num_interesting_queries = list(db.query('SELECT COUNT(*) c FROM {}'.format(EXPLAINED)))[0]['c']
     print "Distinct queries with query plan:", num_interesting_queries
 
+    # TODO: This does not seem to be interesting
+    """
     print "Overall cost assuming 1 (aka number of queries):", get_cost(db, '1')
     print "Overall actual cost:", get_cost(db, 'elapsed')
     print "Overall estimated cost:", get_cost(db, 'estimated_cost')
@@ -174,18 +176,13 @@ def analyze_sdss(db, show_plots):
     print "Actual cost, aggregate on plan:", get_aggregated_cost(db, 'elapsed', 'plan')
     print "Estimated cost, aggregate on plan:", get_aggregated_cost(db, 'estimated_cost', 'plan')
     print "(Average cost assumed per query)"
+    """
 
     expl_queries = '''
         SELECT query, plan, time_start, elapsed, COUNT(*) c
         FROM {}
         GROUP BY query
         ORDER BY id ASC'''.format(EXPLAINED)
-
-    distinct_queries = '''
-        SELECT query, COUNT(*) c
-        FROM {}
-        GROUP BY query
-        ORDER BY id ASC'''.format(DISTINCT)
 
     print
     print "Find recurring subtrees in distinct queries:"
