@@ -141,7 +141,7 @@ def print_stats(db):
 
 
 def get_aggregated_cost(db, cost, query):
-    result = db.query('SELECT SUM(cost) AS cost FROM (SELECT {query}, COUNT(*) count, AVG({cost}) AS cost FROM {table} GROUP BY {query})'.format(cost=cost, query=query, table=EXPLAINED))
+    result = db.query('SELECT SUM(cost) AS cost FROM (SELECT {query}, COUNT(*) count, AVG({cost}) AS cost FROM {table} GROUP BY {query}) AS tbl'.format(cost=cost, query=query, table=EXPLAINED))
     return list(result)[0]['cost']
 
 
