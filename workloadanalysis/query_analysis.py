@@ -5,6 +5,7 @@ import dataset
 import bz2
 import sqltokens
 import csv
+import hashlib
 
 from utils import format_tabulate as ft
 
@@ -31,19 +32,17 @@ def visit_operators(query_plan, visitor):
     return l
 
 
-def hash_dict(d):
-    keys = sorted(d.keys())
-    flattened_values = [x for l in d.values() for x in l]
-    return hash(frozenset(keys + flattened_values))
+def hashable(d):
+    return json.dumps(d, sort_keys=True)
 
 
 def get_hash(tree):
-    c = hash_dict(tree['columns'])
-    f = c + hash(frozenset(['filters']))
-    h = hash(f + hash(tree['operator']))
-    for child in tree['children']:
-        h = hash(get_hash(child) + h)
-    return h
+    f = hashlib.md5()
+    f.update(hashable(tree['columns'].keys()))
+    f.update(hashable(tree['filters']))
+    f.update(tree['operator'])
+    [f.update(get_hash(child)) for child in sorted(tree['children'])]
+    return f.hexdigest()
 
 
 def find_recurring(queries, estimated_cost):
