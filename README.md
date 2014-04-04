@@ -51,7 +51,7 @@ To speed up analysis, a few vies should be created. Since postgres <9.3 does not
 ```
 CREATE TABLE logs AS SELECT * FROM everything WHERE db='BestDR5';
 
-CREATE TABLE distinctlogs AS SELECT min(id) id, query, bool_or(has_plan) FROM logs WHERE not error GROUP BY query;
+CREATE TABLE distinctlogs AS SELECT min(id) id, query, bool_or(has_plan) AS has_plan FROM logs WHERE not error GROUP BY query;
 
 CREATE TABLE explained AS SELECT * FROM logs WHERE has_plan;
 ```

@@ -94,16 +94,6 @@ def operator_tree(root, cost, show_filters, parameters):
                 else:
                     tables[name].add(ref.attrib['Column'])
 
-        # extract the parameter list as filters from table valued functions
-        tvf = root.xpath('TableValuedFunction')
-        if tvf:
-            tbl = tvf[0].xpath(
-                'Object')[0].attrib['Table'].strip('[').strip(']')
-            consts = tvf[0].xpath('ParameterList//Const')
-            tables[tbl] = []
-            if show_filters:
-                filters.append({tbl: [x.attrib['ConstValue'] for x in consts]})
-
         if show_filters:
             # if the rel op is top, use the (constant) expression as filter
             if root.attrib['LogicalOp'] == "Top":
@@ -143,8 +133,9 @@ def operator_tree(root, cost, show_filters, parameters):
                     objects = []
 
                     refs = pred.xpath('.//ColumnReference')
+                    no_ref = pred.xpath('.//ColumnReference//ColumnReference')
 
-                    for ref in refs:
+                    for ref in list(set(refs) - set(no_ref)):
                         objects.append('.'.join(sorted(list(ref.attrib.itervalues()))))
 
                     consts = pred.xpath('.//Const')
@@ -162,8 +153,8 @@ def operator_tree(root, cost, show_filters, parameters):
 
                     available = {
                         'EQ': '=',
-                        'GT': '>',
-                        'LT': '<',
+                        'GT': '>=',
+                        'LT': '<=',
                         'GE': '>=',
                         'LE': '<=',
                         'NE': '<>'
@@ -171,21 +162,44 @@ def operator_tree(root, cost, show_filters, parameters):
 
                     if operator in available:
                         operator = available[operator]
-                    else:
+                    elif operator:
                         operator = ' {} '.format(operator)
-
-                    if operator:
-                        s = operator.join(objects)
                     else:
-                        assert(len(objects) == 1)
-                        s = objects[0]
+                        operator = ' '
+
+                    if not len(objects) % 2 == 0:
+                        print objects
+                        print operator
+
+                    assert(len(objects) % 2 == 0)
+
+                    a = []
+                    b = []
+                    for obj in objects:
+                        a.append(obj)
+                        if len(a) == 2:
+                            b.append(operator.join(a))
+                            a = []
+                    s = ' AND '.join(b)
 
                 for p in parameters:
                     s = s.replace(p[0], p[1])
 
-                s = s.replace('[', '').replace(']', '').replace("'", '')
+                s = s.replace('[', '').replace(']', '').replace('(', '').replace(')', '').replace("'", '').lower()
+                fs = s.split(' and ')
 
-                filters.append(s)
+                filters.extend([x.split("as ")[0].strip() for x in fs])
+
+            filters = list(set(filters))
+
+            # extract the parameter list as filters from table valued functions
+            tvf = root.xpath('TableValuedFunction')
+            if tvf:
+                tbl = tvf[0].xpath(
+                    'Object')[0].attrib['Table'].strip('[').strip(']')
+                consts = tvf[0].xpath('ParameterList//Const')
+                tables[tbl] = []
+                filters.append({tbl: [x.attrib['ConstValue'].replace('(', '').replace(')', '') for x in consts]})
 
         ret = {
             'operator': root.attrib['LogicalOp'],
