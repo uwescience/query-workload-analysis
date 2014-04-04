@@ -142,6 +142,8 @@ def operator_tree(root, cost, show_filters, parameters):
                     for const in consts:
                         objects.append(const.attrib['ConstValue'].strip("(").strip(")"))
 
+                    objects = [x for x in objects if x]
+
                     # operation
                     operator = None
                     op = pred.xpath('.//Compare')
