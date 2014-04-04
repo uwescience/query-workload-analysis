@@ -170,10 +170,9 @@ def operator_tree(root, cost, show_filters, parameters):
                         operator = ' '
 
                     if not len(objects) % 2 == 0:
+                        print "==> unexpected state"
                         print objects
                         print operator
-
-                    assert(len(objects) % 2 == 0)
 
                     a = []
                     b = []
