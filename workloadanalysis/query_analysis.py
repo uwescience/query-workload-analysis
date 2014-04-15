@@ -51,6 +51,7 @@ def find_recurring(queries, estimated_cost):
     # has to be list (mutable) so that we can modify it in sub-function
     cost_saved = [0]
     rows_cached = [0]
+    cost = 0
 
     def check_tree(tree):
         """Checks the plan for recurring subexpressions"""
@@ -65,8 +66,10 @@ def find_recurring(queries, estimated_cost):
 
     for query in queries:
         plan = json.loads(query['plan'])
+        cost += plan['total']
         check_tree(plan)
 
+    assert abs(cost - estimated_cost)/estimated_cost < .05, (cost, estimated_cost)
     print "Saved cost", cost_saved, str(cost_saved[0] / estimated_cost * 100) + "%"
     print "Remaining cost", estimated_cost - cost_saved[0]
     print "Cached rows:", rows_cached[0]
