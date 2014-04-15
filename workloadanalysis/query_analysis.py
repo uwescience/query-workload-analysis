@@ -9,6 +9,8 @@ import hashlib
 
 from utils import format_tabulate as ft
 
+from pprint import pprint
+
 # table with all queries from DR5
 ALL = 'logs'
 
@@ -38,14 +40,20 @@ def hashable(d):
 
 def get_hash(tree):
     f = hashlib.md5()
-    f.update(hashable(tree['columns'].keys()))
+    f.update(hashable(tree['columns']))
     f.update(hashable(tree['filters']))
     f.update(tree['operator'])
-    [f.update(get_hash(child)) for child in sorted(tree['children'])]
+    [f.update(get_hash(child)) for child in sorted(tree['children'], key=lambda x: x['operator'])]
     return f.hexdigest()
 
 
-def find_recurring(queries, estimated_cost):
+def print_op_tree(tree, indent=0):
+    print ' ' * indent, tree['operator']
+    for child in sorted(tree['children'], key=lambda x: x['operator']):
+        print_op_tree(child, indent + 1)
+
+
+def find_recurring(queries):
     seen = {}
 
     # has to be list (mutable) so that we can modify it in sub-function
@@ -66,12 +74,12 @@ def find_recurring(queries, estimated_cost):
 
     for query in queries:
         plan = json.loads(query['plan'])
+        #print_op_tree(plan)
         cost += plan['total']
         check_tree(plan)
 
-    assert abs(cost - estimated_cost)/estimated_cost < .05, (cost, estimated_cost)
-    print "Saved cost", cost_saved, str(cost_saved[0] / estimated_cost * 100) + "%"
-    print "Remaining cost", estimated_cost - cost_saved[0]
+    print "Saved cost", cost_saved, str(cost_saved[0] / cost * 100) + "%"
+    print "Remaining cost", cost - cost_saved[0]
     print "Cached rows:", rows_cached[0]
 
 
@@ -179,15 +187,15 @@ def analyze_sdss(db):
     """
 
     expl_queries = '''
-        SELECT query, plan, time_start, elapsed
+        SELECT query, plan, time_start, elapsed, estimated_cost
         FROM {}
+        WHERE estimated_cost < 100
         ORDER BY time_start ASC'''.format(EXPLAINED)
 
     print
     print "Find recurring subtrees in distinct queries:"
     queries = db.query(expl_queries)
-    estimated_cost = get_cost(db, 'estimated_cost')
-    find_recurring(queries, estimated_cost)
+    find_recurring(queries)
 
     print
     queries = db.query(expl_queries)
@@ -209,6 +217,8 @@ def analyze_sdss(db):
     str_ops = Counter()
     distinct_str_ops = Counter()
     touch = Counter()
+    estimated = Counter()
+    actual = Counter()
 
     which_str_ops = Counter()
 
@@ -224,6 +234,9 @@ def analyze_sdss(db):
 
         lengths[len(query)] += 1
         compressed_lengths[len(bz2.compress(query))] += 1
+
+        estimated[q['estimated_cost']] += 1
+        actual[q['elapsed']] += 1
 
         # tokenization is horribly slow and does not work for sdss
         continue
@@ -241,8 +254,8 @@ def analyze_sdss(db):
         headers=["string op", "count"])
 
     for name, values in zip(
-        ['lengths', 'compressed lengths', 'ops', 'distinct ops', 'string ops', 'distinct string ops', 'touch'],
-        [lengths, compressed_lengths, ops, distinct_ops, str_ops, distinct_str_ops, touch]):
+        ['lengths', 'compressed lengths', 'ops', 'distinct ops', 'string ops', 'distinct string ops', 'touch', 'estimated', 'actual'],
+        [lengths, compressed_lengths, ops, distinct_ops, str_ops, distinct_str_ops, touch, estimated, actual]):
         print
         print_table(sorted(
             values.iteritems(),
