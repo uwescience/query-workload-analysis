@@ -60,12 +60,15 @@ def find_recurring(queries):
     cost_saved = [0]
     rows_cached = [0]
     cost = 0
+    saved = [0]  # for each query
+    savings = Counter()
 
     def check_tree(tree):
         """Checks the plan for recurring subexpressions"""
         h = get_hash(tree)
         if h in seen:
             cost_saved[0] += tree['total']
+            saved[0] += tree['total']
         else:
             seen[h] = tree
             rows_cached[0] += tree['numRows']
@@ -73,15 +76,20 @@ def find_recurring(queries):
                 check_tree(child)
 
     for query in queries:
+        saved = [0]
         plan = json.loads(query['plan'])
         #print_op_tree(plan)
         cost += plan['total']
         check_tree(plan)
+        savings[saved[0]/plan['total']] += 1
 
     print "Saved cost", cost_saved, str(cost_saved[0] / cost * 100) + "%"
     print "Remaining cost", cost - cost_saved[0]
     print "Cached rows:", rows_cached[0]
 
+    print_table(sorted(
+                savings.iteritems(),
+                key=lambda t: t[0]), ["savings", "count"])
 
 def print_table(data, headers):
     print tabulate(data, headers, tablefmt='latex')
