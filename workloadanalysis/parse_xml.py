@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from collections import defaultdict
+import re
 
 from lxml import etree as ET
 
@@ -155,10 +156,10 @@ def operator_tree(root, cost, show_filters, parameters):
 
                     available = {
                         'EQ': '=',
-                        'GT': '>=',
-                        'LT': '<=',
-                        'GE': '>=',
-                        'LE': '<=',
+                        'GT': '>',
+                        'LT': '<',
+                        'GE': '>',
+                        'LE': '<',
                         'NE': '<>'
                     }
 
@@ -186,10 +187,12 @@ def operator_tree(root, cost, show_filters, parameters):
                 for p in parameters:
                     s = s.replace(p[0], p[1])
 
-                s = s.replace('[', '').replace(']', '').replace('(', '').replace(')', '').replace("'", '').lower()
+                s = s.lower().replace('[', '').replace(']', '').replace('(', '').replace(')', '').replace("'", '')
+                s = s.replace(',', ' and ').replace('>=', '>').replace('<=', '<')
                 fs = s.split(' and ')
+                fs = [re.sub(r' as [\w|\.]+', r'', x) for x in fs]
 
-                filters.extend([x.split("as ")[0].strip() for x in fs])
+                filters.extend([x.strip() for x in fs])
 
             filters = list(set(filters))
 
