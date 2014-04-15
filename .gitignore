@@ -6,3 +6,9 @@ clean_data/*
 *Queries*.txt
 *.pyc
 *.sqlite
+
+workloadanalysis/data.py
+workloadanalysis/sdss/*
+workloadanalysis/sqlshare/*
+workloadanalysis/sqlshare/*/*
+workloadanalysis/sqlshare_analysis.py
