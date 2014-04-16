@@ -7,7 +7,7 @@ import parse_xml
 import query_analysis
 import utils
 
-EXAMPLE = [{'query': '''
+EXAMPLE = [{'id': 42, 'has_plan': False, 'query': '''
 SELECT  top 1   p.objID, p.run,
 p.rerun, p.camcol, p.field, p.obj,
    p.type, p.ra, p.dec, p.u,p.g,p.r,p.i,p.z,

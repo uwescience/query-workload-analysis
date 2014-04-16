@@ -133,11 +133,15 @@ def operator_tree(root, cost, show_filters, parameters):
                     # objects to compare
                     objects = []
 
-                    refs = pred.xpath('.//ColumnReference')
+                    ref = pred.xpath('.//ColumnReference')
                     no_ref = pred.xpath('.//ColumnReference//ColumnReference')
 
-                    for ref in list(set(refs) - set(no_ref)):
-                        objects.append('.'.join(sorted(list(ref.attrib.itervalues()))))
+                    for ref in list(set(ref) - set(no_ref)):
+                        if 'Column' in ref.attrib and ref.attrib['Column'].startswith('Const') and ref.xpath('.//ColumnReference'):
+                            objects.append(ref.xpath('.//ColumnReference')[0].attrib['Column'])
+                            continue
+                        attribs = [v for k, v in ref.attrib.iteritems() if k != 'Alias']
+                        objects.append('.'.join(sorted(attribs)))
 
                     consts = pred.xpath('.//Const')
                     for const in consts:
