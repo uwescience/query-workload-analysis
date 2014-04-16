@@ -5,3 +5,4 @@ docopt
 lxml
 sqlparse
 unicodecsv
+prettyplotlib
