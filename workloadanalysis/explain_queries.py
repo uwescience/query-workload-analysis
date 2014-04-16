@@ -129,7 +129,8 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
     batch = []
 
     with db.connect() as connection:
-        connection.execute('DBCC FREEPROCCACHE')
+        connection.execute('DBCC FREEPROCCACHE WITH NO_INFOMSGS')
+        connection.execute('DBCC DROPCLEANBUFFERS WITH NO_INFOMSGS')
         connection.execute('set showplan_xml on')
         connection.execute('set noexec on')
 
