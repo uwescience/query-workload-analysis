@@ -71,10 +71,12 @@ def table_touch_cda():
     fig, ax = plt.subplots(1)
 
     data = read_csv(['touch'], False)
+    data.sort(order='touch')
     c = data['count'].astype(float)
     c /= sum(c)
     ppl.plot(ax, data['touch'], np.cumsum(c), label="Touch sqlshare", color=cs[0], linewidth=2, linestyle='-.')
 
+    #ax = ax.twinx()
     data = read_csv(['touch', 'counts'], True)
     c = data['counts'].astype(float)
     c /= sum(c)
