@@ -270,6 +270,19 @@ def analyze_sdss(db):
             key=lambda t: t[0]),
             headers=[name, "counts"])
 
+def increment_element_count(element, dict_obj):
+    if element in dict_obj:
+        dict_obj[element] += 1
+    else:
+        dict_obj[element] = 1
+
+def write_to_csv(dict_obj, col1, col2, filename):
+    f = open(filename, 'w')
+    f.write("%s,%s\n"%(col1,col2))
+    for key in dict_obj:
+        f.write("%d,%d\n"%(key, dict_obj[key]))
+    f.close()
+
 
 def analyze_sqlshare(db, write_to_file = False):
     if write_to_file:
@@ -279,30 +292,34 @@ def analyze_sqlshare(db, write_to_file = False):
     views = list(db.query('SELECT * FROM sqlshare_logs WHERE isView = 1'))
     explicit_implicit_joins(queries)
     print '#Total queries with plan: ', len(queries)
-    lengths = [] #
-    compressed_lengths = [] #
-    ops = [] #
-    distinct_ops = [] #
-    expanded_lengths = [] #
-    expanded_ops = []  #
-    expanded_distinct_ops = [] #
-    compressed_expanded_lengths = [] #
-    str_ops = [] #
-    distinct_str_ops = [] #
-    expanded_str_ops = [] #
-    expanded_distinct_str_ops = [] #
-    touch = [] #
+    lengths = {} #
+    compressed_lengths = {} #
+    ops = {} #
+    distinct_ops = {} #
+    expanded_lengths = {} #
+    expanded_ops = {}  #
+    expanded_distinct_ops = {} #
+    compressed_expanded_lengths = {} #
+    str_ops = {} #
+    distinct_str_ops = {} #
+    expanded_str_ops = {} #
+    expanded_distinct_str_ops = {} #
+    touch = {} #
 
     for q in queries:
         length = len(q['query'])
-        lengths.append(length)
-        compressed_lengths.append(len(bz2.compress(q['query'])))
+        increment_element_count(length, lengths)
+        compressed_length = len(bz2.compress(q['query']))
+        increment_element_count(compressed_length, compressed_lengths)
+                
         referenced_views = [x for x in q['ref_views'].split(',') if x != '']
 
         q_ex_ops = q['expanded_plan_ops'].split(',')
-        expanded_ops.append(len(q_ex_ops))
-        expanded_distinct_ops.append(len(set(q_ex_ops)))
-
+        len_q_ex_ops = len(q_ex_ops)
+        len_q_ex_distinct_ops = len(set(q_ex_ops))
+        increment_element_count(len_q_ex_ops, expanded_ops)
+        increment_element_count(len_q_ex_distinct_ops, expanded_distinct_ops)
+        
         q_ops = q_ex_ops
         expanded_query = q['query']
         while(True):
@@ -322,28 +339,25 @@ def analyze_sqlshare(db, write_to_file = False):
             #else:
                 #print 'No ops in view: ', view[0]['view']
 
-        expanded_lengths.append(len(expanded_query))
-        compressed_expanded_lengths.append(len(bz2.compress(expanded_query)))
-        ops.append(len(q_ops))
-        distinct_ops.append(len(set(q_ops)))
-
+        increment_element_count(len(expanded_query), expanded_lengths)
+        increment_element_count(len(bz2.compress(expanded_query)), compressed_expanded_lengths)
+        increment_element_count(len(q_ops), ops)
+        increment_element_count(len(set(q_ops)), distinct_ops)
+        
         if '--' in q['query']:
-            str_ops.append(-1)
-            distinct_str_ops.append(-1)
-            expanded_str_ops.append(-1)
-            expanded_distinct_str_ops.append(-1)
+            pass
         else:
             tokens = sqltokens.get_tokens(q['query'])
-            str_ops.append(len(tokens))
-            distinct_str_ops.append(len(set(tokens)))
+            increment_element_count(len(tokens), str_ops)
+            increment_element_count(len(set(tokens)), distinct_str_ops)
             ex_tokens = sqltokens.get_tokens(expanded_query)
-            expanded_str_ops.append(len(ex_tokens))
-            expanded_distinct_str_ops.append(len(set(ex_tokens)))
+            increment_element_count(len(ex_tokens), expanded_str_ops)
+            increment_element_count(len(set(ex_tokens)), expanded_distinct_str_ops)
 
         plan = json.loads(q['plan'])
         tables = visit_operators(plan, visitor_tables)
-        touch.append(len(tables))
-
+        increment_element_count(len(tables), touch)
+        
         #'Source|owner|Query|starttime|duration|length|compressed_length|expanded_length|compressed_expanded_lengths|
         #ops|distinct_ops|expanded_ops|expanded_distinct_ops|keywords|distinct_keywords|expanded_keywords|expanded_distinct_keywords|Touch\n'
         if write_to_file:
@@ -351,22 +365,35 @@ def analyze_sqlshare(db, write_to_file = False):
                 ('sqlshare',q['owner'], q['query'], q['time_start'],q['runtime'],lengths[-1], compressed_lengths[-1], expanded_lengths[-1], compressed_expanded_lengths[-1],
                     ops[-1],distinct_ops[-1],expanded_ops[-1],expanded_distinct_ops[-1],str_ops[-1],distinct_str_ops[-1],expanded_str_ops[-1],expanded_distinct_str_ops[-1],touch[-1]))
 
+    write_to_csv(lengths, 'length', '# of queries', 'lengths.csv')
+    write_to_csv(compressed_lengths, 'compressed_length', '# of queries', 'compressed_lengths.csv')
+    write_to_csv(expanded_lengths, 'expanded_length', '# of queries', 'expanded_lengths.csv')
+    write_to_csv(compressed_expanded_lengths, 'compressed_expanded_length', '# of queries', 'compressed_expanded_lengths.csv')
+    write_to_csv(ops, 'ops', '# of queries', 'ops.csv')
+    write_to_csv(distinct_ops, 'distinct_ops', '# of queries', 'distinct_ops.csv')
+    write_to_csv(expanded_ops, 'expanded_ops', '# of queries', 'expanded_ops.csv')
+    write_to_csv(expanded_distinct_ops, 'expanded_distinct_ops', '# of queries', 'expanded_distinct_ops.csv')
+    write_to_csv(str_ops, 'str_ops', '# of queries', 'str_ops.csv')
+    write_to_csv(distinct_str_ops, 'distinct_str_ops', '# of queries', 'distinct_str_ops.csv')
+    write_to_csv(expanded_str_ops, 'expanded_str_ops', '# of queries', 'expanded_str_ops.csv')
+    write_to_csv(expanded_distinct_str_ops, 'expanded_distinct_str_ops', '# of queries', 'expanded_distinct_str_ops.csv')
+    write_to_csv(touch, 'touch', '# of queries', 'touch.csv')
+    
+    # print 'lengths = ', lengths
+    # print 'compressed_lengths = ', compressed_lengths
+    # print 'expanded_lengths = ', expanded_lengths
+    # print 'compressed_expanded_lengths = ', compressed_expanded_lengths
 
-    print 'lengths = ', lengths
-    print 'compressed_lengths = ', compressed_lengths
-    print 'expanded_lengths = ', expanded_lengths
-    print 'compressed_expanded_lengths = ', compressed_expanded_lengths
+    # print 'ops = ', ops
+    # print 'distinct_ops = ', distinct_ops
+    # print 'expanded_ops = ', expanded_ops
+    # print 'expanded_distinct_ops = ', expanded_distinct_ops
 
-    print 'ops = ', ops
-    print 'distinct_ops = ', distinct_ops
-    print 'expanded_ops = ', expanded_ops
-    print 'expanded_distinct_ops = ', expanded_distinct_ops
-
-    print 'str_ops = ', str_ops
-    print 'distinct_str_ops = ', distinct_str_ops
-    print 'expanded_str_ops = ', expanded_str_ops
-    print 'expanded_distinct_str_ops = ', expanded_distinct_str_ops
-    print 'touch = ', touch
+    # print 'str_ops = ', str_ops
+    # print 'distinct_str_ops = ', distinct_str_ops
+    # print 'expanded_str_ops = ', expanded_str_ops
+    # print 'expanded_distinct_str_ops = ', expanded_distinct_str_ops
+    # print 'touch = ', touch
     if write_to_file:
         f.close()
 
