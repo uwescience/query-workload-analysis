@@ -44,6 +44,19 @@ def table_touch():
 
     fig.savefig('plot_touch_sdss.pdf', format='pdf', transparent=True)
 
+def table_touch_sqlshare():
+    fig, ax = plt.subplots(1)
+
+    data = read_csv(['touch'])
+    print data
+    ppl.bar(ax, range(len(data['touch'])), data['count'], xticklabels=data['touch'], grid='y', log=True)
+
+    plt.xlabel('Table touch')
+    plt.ylabel('# of queries')
+
+    plt.show()
+
+    fig.savefig('plot_touch_sdss.pdf', format='pdf', transparent=True)
 
 def logical_ops():
     fig, ax = plt.subplots(1)
@@ -64,3 +77,4 @@ if __name__ == '__main__':
     #query_length()
     #table_touch()
     logical_ops()
+    #table_touch_sqlshare()
