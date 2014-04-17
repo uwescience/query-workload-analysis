@@ -365,19 +365,19 @@ def analyze_sqlshare(db, write_to_file = False):
                 ('sqlshare',q['owner'], q['query'], q['time_start'],q['runtime'],lengths[-1], compressed_lengths[-1], expanded_lengths[-1], compressed_expanded_lengths[-1],
                     ops[-1],distinct_ops[-1],expanded_ops[-1],expanded_distinct_ops[-1],str_ops[-1],distinct_str_ops[-1],expanded_str_ops[-1],expanded_distinct_str_ops[-1],touch[-1]))
 
-    write_to_csv(lengths, 'length', '# of queries', 'lengths.csv')
-    write_to_csv(compressed_lengths, 'compressed_length', '# of queries', 'compressed_lengths.csv')
-    write_to_csv(expanded_lengths, 'expanded_length', '# of queries', 'expanded_lengths.csv')
-    write_to_csv(compressed_expanded_lengths, 'compressed_expanded_length', '# of queries', 'compressed_expanded_lengths.csv')
-    write_to_csv(ops, 'ops', '# of queries', 'ops.csv')
-    write_to_csv(distinct_ops, 'distinct_ops', '# of queries', 'distinct_ops.csv')
-    write_to_csv(expanded_ops, 'expanded_ops', '# of queries', 'expanded_ops.csv')
-    write_to_csv(expanded_distinct_ops, 'expanded_distinct_ops', '# of queries', 'expanded_distinct_ops.csv')
-    write_to_csv(str_ops, 'str_ops', '# of queries', 'str_ops.csv')
-    write_to_csv(distinct_str_ops, 'distinct_str_ops', '# of queries', 'distinct_str_ops.csv')
-    write_to_csv(expanded_str_ops, 'expanded_str_ops', '# of queries', 'expanded_str_ops.csv')
-    write_to_csv(expanded_distinct_str_ops, 'expanded_distinct_str_ops', '# of queries', 'expanded_distinct_str_ops.csv')
-    write_to_csv(touch, 'touch', '# of queries', 'touch.csv')
+    write_to_csv(lengths, 'length', 'count', 'lengths.csv')
+    write_to_csv(compressed_lengths, 'compressed_length', 'count', 'compressed_lengths.csv')
+    write_to_csv(expanded_lengths, 'expanded_length', 'count', 'expanded_lengths.csv')
+    write_to_csv(compressed_expanded_lengths, 'compressed_expanded_length', 'count', 'compressed_expanded_lengths.csv')
+    write_to_csv(ops, 'ops', 'count', 'ops.csv')
+    write_to_csv(distinct_ops, 'distinct_ops', 'count', 'distinct_ops.csv')
+    write_to_csv(expanded_ops, 'expanded_ops', 'count', 'expanded_ops.csv')
+    write_to_csv(expanded_distinct_ops, 'expanded_distinct_ops', 'count', 'expanded_distinct_ops.csv')
+    write_to_csv(str_ops, 'str_ops', 'count', 'str_ops.csv')
+    write_to_csv(distinct_str_ops, 'distinct_str_ops', 'count', 'distinct_str_ops.csv')
+    write_to_csv(expanded_str_ops, 'expanded_str_ops', 'count', 'expanded_str_ops.csv')
+    write_to_csv(expanded_distinct_str_ops, 'expanded_distinct_str_ops', 'count', 'expanded_distinct_str_ops.csv')
+    write_to_csv(touch, 'touch', 'count', 'touch.csv')
     
     # print 'lengths = ', lengths
     # print 'compressed_lengths = ', compressed_lengths
