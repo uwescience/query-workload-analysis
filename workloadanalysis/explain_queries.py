@@ -51,7 +51,7 @@ def explain_sqlshare(config, database, quiet, first_pass, dry=False):
                 query['expanded_plan_ops_logical'] = ','.join([x for x in ops])
             else:
                 print 'no logical ops'
-            
+
             if physical_ops:
                 query['expanded_plan_ops'] = ','.join([x for x in physical_ops])
             else:
@@ -163,10 +163,6 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
             print "Explain query", i,
             query = dict(query)
             print query['id']
-
-            if query['has_plan']:
-                print "==> skipping because we already have a plan"
-                continue
 
             try:
                 qu = query['query'].replace('[','"').replace(']','"')
