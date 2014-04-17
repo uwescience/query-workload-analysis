@@ -129,8 +129,6 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
     batch = []
 
     with db.connect() as connection:
-        connection.execute('DBCC FREEPROCCACHE WITH NO_INFOMSGS')
-        connection.execute('DBCC DROPCLEANBUFFERS WITH NO_INFOMSGS')
         connection.execute('set showplan_xml on')
         connection.execute('set noexec on')
 
@@ -152,6 +150,9 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
             dry = True
 
         for i, query in enumerate(queries):
+            # clean cache to refresh constant values
+            connection.execute('DBCC FREEPROCCACHE WITH NO_INFOMSGS')
+
             print "Explain query", i,
             query = dict(query)
             print query['id']
