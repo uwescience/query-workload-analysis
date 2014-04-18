@@ -96,23 +96,35 @@ def table_touch_cda():
 
     fig.savefig('plot_touch_cda.pdf', format='pdf', transparent=True)
 
-def logical_ops():
+def physical_ops():
     fig, ax = plt.subplots(1)
 
-    data = read_csv(['logical_op', 'count'], True)
-    ppl.barh(range(len(data['logical_op'])), data['count'])
+    data = read_csv(['physical_op', 'count'], True)
+    data.sort(order='count')
+    data = data[-10:]
 
-    plt.ylabel('Logical operators')
-    plt.xlabel('# of queries')
+    c = data['count'].astype(float)
+    c /= sum(c)
+    c *= 100
+    c = c.astype(int)
+    ypos = np.arange(len(data['physical_op']))
+    ppl.barh(ax, ypos, c, yticklabels=data['physical_op'], grid='x', annotate=True)
+
+    plt.ylabel('Physical operator')
+    plt.xlabel('% of queries')
+
+    #plt.subplots_adjust(bottom=.2, left=.3, right=.99, top=.9, hspace=.35)
+
+    plt.tight_layout(rect=[0, 0, 1, 0.6])
 
     plt.show()
 
-    fig.savefig('plot_logops_sdss.pdf', format='pdf', transparent=True)
+    fig.savefig('plot_physops_sdss.pdf', format='pdf', transparent=True)
 
 if __name__ == '__main__':
     plt.rc('font', family='serif')
 
     #query_length()
     #table_touch()
-    #logical_ops()
     #table_touch_cda()
+    #physical_ops()
