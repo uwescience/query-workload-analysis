@@ -135,25 +135,25 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
 
     batch = []
 
-    with db.connect() as connection:
-        datasetdb = None
-        table = None
+    datasetdb = None
+    table = None
 
-        query = "SELECT * from distinctlogs WHERE id %% {} = {} OFFSET {}".format(segments[1], segments[0], offset)
+    query = "SELECT * from distinctlogs WHERE id %% {} = {} OFFSET {}".format(segments[1], segments[0], offset)
 
-        if database:
-            datasetdb = dataset.connect(database)
-            queries = datasetdb.query(query)
-        else:
-            queries = EXAMPLE
+    if database:
+        datasetdb = dataset.connect(database)
+        queries = datasetdb.query(query)
+    else:
+        queries = EXAMPLE
 
-        errors = []
-        if datasetdb:
-            table = datasetdb['logs']
-        else:
-            dry = True
+    errors = []
+    if datasetdb:
+        table = datasetdb['logs']
+    else:
+        dry = True
 
-        for i, query in enumerate(queries):
+    for i, query in enumerate(queries):
+        with db.connect() as connection:
             # clean cache to refresh constant values
             connection.execute('DBCC FREEPROCCACHE WITH NO_INFOMSGS')
 
@@ -224,14 +224,14 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
                 datasetdb.commit()
                 batch = []
 
+            connection.execute('set showplan_xml off')
+            connection.execute('set noexec off')
+
         if not dry:
             datasetdb.begin()
             for query in batch:
                 table.update(query, ['id'])
             datasetdb.commit()
-
-        connection.execute('set showplan_xml off')
-        connection.execute('set noexec off')
 
         print "Errors", errors
 

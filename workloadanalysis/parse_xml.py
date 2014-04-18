@@ -112,6 +112,9 @@ def operator_tree(root, cost, show_filters, parameters):
             predicates += root.xpath('.//Predicate')
             not_predicates += root.xpath('.//RelOp//Predicate')
 
+            predicates += root.xpath('.//StreamAggregate')
+            not_predicates += root.xpath('.//RelOp//StreamAggregate')
+
             if root.attrib['LogicalOp'] == "Compute Scalar":
                 predicates += root.xpath('.//DefinedValue')
                 not_predicates += root.xpath('.//RelOp//DefinedValue')
@@ -119,8 +122,8 @@ def operator_tree(root, cost, show_filters, parameters):
             for pred in set(predicates) - set(not_predicates):
                 s = ''
 
-                sos = pred.xpath('./ScalarOperator')
-                nosos = pred.xpath('./ScalarOperator//ScalarOperator')
+                sos = pred.xpath('.//ScalarOperator')
+                nosos = pred.xpath('.//ScalarOperator//ScalarOperator')
 
                 sos = list(set(sos) - set(nosos))
 
