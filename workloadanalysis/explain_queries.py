@@ -227,13 +227,13 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
             connection.execute('set showplan_xml off')
             connection.execute('set noexec off')
 
-        if not dry:
-            datasetdb.begin()
-            for query in batch:
-                table.update(query, ['id'])
-            datasetdb.commit()
+    if not dry:
+        datasetdb.begin()
+        for query in batch:
+            table.update(query, ['id'])
+        datasetdb.commit()
 
-        print "Errors", errors
+    print "Errors", errors
 
 if __name__ == '__main__':
     config = {}
