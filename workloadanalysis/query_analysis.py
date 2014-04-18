@@ -1,5 +1,5 @@
 import json
-from collections import Counter
+from collections import Counter, defaultdict
 from tabulate import tabulate
 import dataset
 import bz2
@@ -20,6 +20,9 @@ DISTINCT = 'distinctlogs'
 # the queries that have been explained
 EXPLAINED = 'explained'
 
+# the queries that don't have the same query plan
+UNIQUE = 'uniqueplans'
+
 
 # visitors
 visitor_tables = lambda x: x.get('columns', {}).keys()
@@ -35,6 +38,10 @@ def visit_operators(query_plan, visitor):
 
 
 def hashable(d):
+    if isinstance(d, set):
+        d = list(d)
+    if isinstance(d, frozenset):
+        d = list(d)
     return json.dumps(d, sort_keys=True)
 
 
@@ -91,10 +98,81 @@ def find_recurring(queries):
                 savings.iteritems(),
                 key=lambda t: t[0]), ["savings", "count"])
 
-def print_table(data, headers):
-    print tabulate(data, headers, tablefmt='latex')
 
-    with open('results/' + '_'.join(headers).replace(' ', '_') + '.csv', 'w') as f:
+def find_recurring_subset(queries):
+    columns = defaultdict(set)
+    seen = {}
+
+    def transformed(tree):
+        """ Transforms the plan to to have sets for faster comparisons """
+        t = {}
+        cols = set()
+        for name, table in tree['columns'].iteritems():
+            for column in table:
+                cols.add(name + '.' + column)
+        filters = frozenset(tree['filters'])
+        t['columns'] = frozenset(cols)
+        t['filters'] = filters
+        t['operator'] = tree['operator']
+        children = []
+        for child in tree['children']:
+            children.append(transformed(child))
+        t['children'] = children
+        return t
+
+    def add_to_index(tree):
+        h = get_hash(tree)
+        seen[h] = tree
+        for col in tree['columns']:
+            columns[col].add(h)
+
+    foo = lambda x: x['operator'] + str(hash(x['columns']))
+
+    def check_child_matches(tree, matches):
+        for match in matches:
+            if tree['operator'] != match['operator']:
+                continue
+            if len(tree['children']) != len(match['children']):
+                continue
+            if not match['filters'].issubset(tree['filters']):
+                continue
+            if not match['columns'].issuperset(tree['columns']):
+                continue
+            for c, mc in zip(sorted(tree['children'], key=foo), sorted(match['children'], key=foo)):
+                if not check_child_matches(c, [mc]):
+                    continue
+            return True
+        return False
+
+    def have_seen(tree):
+        tablematches = None
+        for column in tree['columns']:
+            c = columns[column]
+            if tablematches is None:
+                tablematches = c
+            else:
+                tablematches = tablematches.intersection(c)
+        matches = [seen[h] for h in tablematches]
+        return check_child_matches(tree, matches)
+
+    def check_tree(tree, level=0):
+        if have_seen(tree):
+            print "have seen", level
+        else:
+            add_to_index(tree)
+            for child in tree['children']:
+                check_tree(child, level+1)
+
+    for query in queries:
+        plan = transformed(json.loads(query['plan']))
+        #pprint(plan)
+        check_tree(plan)
+
+
+def print_table(data, headers, sdss=True):
+    print tabulate(data, headers, tablefmt='latex')
+    subfolder = 'sdss' if sdss else 'sqlshare'
+    with open('results/' + subfolder + '/' + '_'.join(headers).replace(' ', '_') + '.csv', 'w') as f:
         writer = csv.writer(f)
         writer.writerow(headers)
         for row in data:
@@ -200,10 +278,21 @@ def analyze_sdss(db):
         WHERE estimated_cost < 100
         ORDER BY time_start ASC'''.format(EXPLAINED)
 
+    dist_queries = '''
+        SELECT query, plan, elapsed, estimated_cost
+        FROM {}
+        WHERE estimated_cost < 100
+        ORDER BY time_start ASC'''.format(UNIQUE)
+
     print
     print "Find recurring subtrees in distinct queries:"
     queries = db.query(expl_queries)
     find_recurring(queries)
+
+    print
+    print "Find recurring subtrees in distinct queries (distinct by plan):"
+    queries = db.query(dist_queries)
+    find_recurring_subset(queries)
 
     print
     queries = db.query(expl_queries)
@@ -311,7 +400,7 @@ def analyze_sqlshare(db, write_to_file = False):
         increment_element_count(length, lengths)
         compressed_length = len(bz2.compress(q['query']))
         increment_element_count(compressed_length, compressed_lengths)
-                
+
         referenced_views = [x for x in q['ref_views'].split(',') if x != '']
 
         q_ex_ops = q['expanded_plan_ops'].split(',')
@@ -319,7 +408,7 @@ def analyze_sqlshare(db, write_to_file = False):
         len_q_ex_distinct_ops = len(set(q_ex_ops))
         increment_element_count(len_q_ex_ops, expanded_ops)
         increment_element_count(len_q_ex_distinct_ops, expanded_distinct_ops)
-        
+
         q_ops = q_ex_ops
         expanded_query = q['query']
         while(True):
@@ -343,7 +432,7 @@ def analyze_sqlshare(db, write_to_file = False):
         increment_element_count(len(bz2.compress(expanded_query)), compressed_expanded_lengths)
         increment_element_count(len(q_ops), ops)
         increment_element_count(len(set(q_ops)), distinct_ops)
-        
+
         if '--' in q['query']:
             pass
         else:
@@ -357,7 +446,7 @@ def analyze_sqlshare(db, write_to_file = False):
         plan = json.loads(q['plan'])
         tables = visit_operators(plan, visitor_tables)
         increment_element_count(len(tables), touch)
-        
+
         #'Source|owner|Query|starttime|duration|length|compressed_length|expanded_length|compressed_expanded_lengths|
         #ops|distinct_ops|expanded_ops|expanded_distinct_ops|keywords|distinct_keywords|expanded_keywords|expanded_distinct_keywords|Touch\n'
         if write_to_file:
@@ -378,7 +467,7 @@ def analyze_sqlshare(db, write_to_file = False):
     write_to_csv(expanded_str_ops, 'expanded_str_ops', 'count', 'expanded_str_ops.csv')
     write_to_csv(expanded_distinct_str_ops, 'expanded_distinct_str_ops', 'count', 'expanded_distinct_str_ops.csv')
     write_to_csv(touch, 'touch', 'count', 'touch.csv')
-    
+
     # print 'lengths = ', lengths
     # print 'compressed_lengths = ', compressed_lengths
     # print 'expanded_lengths = ', expanded_lengths
@@ -407,3 +496,9 @@ def analyze(database, sdss):
         analyze_sdss(db)
     else:
         analyze_sqlshare(db, write_to_file=False)
+
+
+if __name__ == '__main__':
+    queries = [{ 'plan': '{"physicalOp": "Compute Scalar", "io": 0.0, "rowSize": 116.0, "cpu": 1e-07, "numRows": 1.0, "filters": ["myskyserver.dbo.fiaufromeqmyskyserver.dbo.specphotoall.ra", "foobar"], "operator": "Compute Scalar", "total": 0.0525204, "children": [{"physicalOp": "Sort", "io": 0.0112613, "rowSize": 80.0, "cpu": 0.00010008, "numRows": 1.0, "filters": ["100"], "operator": "TopN Sort", "total": 0.0525202, "children": [{"physicalOp": "Clustered Index Scan", "io": 0.0386806, "rowSize": 80.0, "cpu": 0.0010436, "numRows": 1.0, "filters": ["myskyserver.dbo.specphotoall.dec", "myskyserver.dbo.specphotoall.ra", "myskyserver.dbo.specphotoall.type"], "operator": "Clustered Index Scan", "total": 0.0397242, "children": [], "columns": {"SpecPhotoAll": ["z", "modelMag_g", "modelMag_r", "modelMag_i", "field", "run", "objID", "specObjID", "rerun", "obj", "dec", "type", "camcol", "ra"]}}], "columns": {"SpecPhotoAll": ["modelMag_r", "bar"]}}], "columns": {"SpecPhotoAll": ["dec", "ra"]}}'},
+               { 'plan': '{"physicalOp": "Compute Scalar", "io": 0.0, "rowSize": 116.0, "cpu": 1e-07, "numRows": 1.0, "filters": ["myskyserver.dbo.fiaufromeqmyskyserver.dbo.specphotoall.ra"], "operator": "Compute Scalar", "total": 0.0525204, "children": [{"physicalOp": "Sort", "io": 0.0112613, "rowSize": 80.0, "cpu": 0.00010008, "numRows": 1.0, "filters": ["100"], "operator": "TopN Sort", "total": 0.0525202, "children": [{"physicalOp": "Clustered Index Scan", "io": 0.0386806, "rowSize": 80.0, "cpu": 0.0010436, "numRows": 1.0, "filters": ["myskyserver.dbo.specphotoall.dec", "myskyserver.dbo.specphotoall.ra", "myskyserver.dbo.specphotoall.type"], "operator": "Clustered Index Scan", "total": 0.0397242, "children": [], "columns": {"SpecPhotoAll": ["z", "modelMag_g", "modelMag_r", "modelMag_i", "field", "run", "objID", "specObjID", "rerun", "obj", "dec", "type", "camcol", "ra"]}}], "columns": {"SpecPhotoAll": ["modelMag_r"]}}], "columns": {"SpecPhotoAll": ["dec", "ra"]}}'}]
+    find_recurring_subset(queries)
