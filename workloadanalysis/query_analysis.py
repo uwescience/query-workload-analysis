@@ -99,50 +99,60 @@ def find_recurring(queries):
                 key=lambda t: t[0]), ["savings", "count"])
 
 
+def transformed(tree):
+    """ Transforms the plan to to have sets for faster comparisons """
+    t = {}
+    cols = set()
+    for name, table in tree['columns'].iteritems():
+        for column in table:
+            cols.add(name + '.' + column)
+    filters = frozenset(tree['filters'])
+    t['columns'] = frozenset(cols)
+    t['filters'] = filters
+    t['operator'] = tree['operator']
+    t['total'] = tree['total']
+    children = []
+    for child in tree['children']:
+        children.append(transformed(child))
+    t['children'] = children
+    return t
+
+
+comparator = lambda x: x['operator'] + str(hash(x['columns']))
+
+
+def check_one_child(tree, match):
+    if tree['operator'] != match['operator']:
+        return False
+    if len(tree['children']) != len(match['children']):
+        return False
+    if not match['filters'].issubset(tree['filters']):
+        return False
+    if not match['columns'].issuperset(tree['columns']):
+        return False
+    for c, mc in zip(sorted(tree['children'], key=comparator), sorted(match['children'], key=comparator)):
+        if not check_one_child(c, mc):
+            return False
+    return True
+
+
+def check_child_matches(tree, matches):
+    for match in matches:
+        if check_one_child(tree, match):
+            return match
+    return False
+
+
 def find_recurring_subset(queries):
     columns = defaultdict(set)
     seen = {}
-
-    def transformed(tree):
-        """ Transforms the plan to to have sets for faster comparisons """
-        t = {}
-        cols = set()
-        for name, table in tree['columns'].iteritems():
-            for column in table:
-                cols.add(name + '.' + column)
-        filters = frozenset(tree['filters'])
-        t['columns'] = frozenset(cols)
-        t['filters'] = filters
-        t['operator'] = tree['operator']
-        children = []
-        for child in tree['children']:
-            children.append(transformed(child))
-        t['children'] = children
-        return t
+    cost_saved = [0]
 
     def add_to_index(tree):
         h = get_hash(tree)
         seen[h] = tree
         for col in tree['columns']:
             columns[col].add(h)
-
-    foo = lambda x: x['operator'] + str(hash(x['columns']))
-
-    def check_child_matches(tree, matches):
-        for match in matches:
-            if tree['operator'] != match['operator']:
-                continue
-            if len(tree['children']) != len(match['children']):
-                continue
-            if not match['filters'].issubset(tree['filters']):
-                continue
-            if not match['columns'].issuperset(tree['columns']):
-                continue
-            for c, mc in zip(sorted(tree['children'], key=foo), sorted(match['children'], key=foo)):
-                if not check_child_matches(c, [mc]):
-                    continue
-            return True
-        return False
 
     def have_seen(tree):
         tablematches = None
@@ -152,11 +162,17 @@ def find_recurring_subset(queries):
                 tablematches = c
             else:
                 tablematches = tablematches.intersection(c)
+        if not tablematches:
+            return False
         matches = [seen[h] for h in tablematches]
         return check_child_matches(tree, matches)
 
     def check_tree(tree, level=0):
-        if have_seen(tree):
+        m = have_seen(tree)
+        if m:
+            cost_saved[0] += tree['total']
+            #pprint(m)
+            #pprint(tree)
             print "have seen", level
         else:
             add_to_index(tree)
@@ -167,6 +183,7 @@ def find_recurring_subset(queries):
         plan = transformed(json.loads(query['plan']))
         #pprint(plan)
         check_tree(plan)
+    print 'Saved', cost_saved[0]
 
 
 def print_table(data, headers, sdss=True):
