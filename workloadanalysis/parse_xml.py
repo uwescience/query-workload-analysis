@@ -44,7 +44,7 @@ def get_physical_op_count(root, count):
         get_physical_op_count(child, count)
 
 
-def get_query_plans(tree, cost=False, show_filters=False):
+def get_query_plans(tree, cost=False, show_filters=False, consts=True):
     """Returns a list of the query plans in the given XML tree
 
     :param cost: Show costs and operator configs
@@ -52,8 +52,13 @@ def get_query_plans(tree, cost=False, show_filters=False):
     """
     qplans = tree.findall('.//QueryPlan')
     refs = tree.xpath('.//QueryPlan/ParameterList/ColumnReference')
-    parameters = [(x.attrib['Column'],
-                  x.attrib['ParameterCompiledValue']) for x in refs]
+    if consts:
+        parameters = [(x.attrib['Column'],
+                      x.attrib['ParameterCompiledValue']) for x in refs]
+    else:
+        parameters = [(x.attrib['Column'],
+                      'COST') for x in refs]
+        parameters.extend([(x.attrib['ConstValue'], 'COST') for x in tree.xpath('.//Const')])
     return [operator_tree(
         qplan, cost, show_filters, parameters) for qplan in qplans]
 
@@ -209,6 +214,7 @@ def operator_tree(root, cost, show_filters, parameters):
                 s = ''.join(news)
                 s = s.lower().replace('[', '').replace(']', '').replace("'", '')
                 s = s.replace('>=', '>').replace('<=', '<')
+                s = s.replace('COSTCOST', 'COST').replace('COSTCOST', 'COST').replace('COSTCOST', 'COST').replace('COSTCOST', 'COST')
                 fs = s.split(' and ')
                 fs = [re.sub(r' as [\w|\.]+', r'', x) for x in fs]
 

@@ -207,13 +207,17 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
                 print utils.json_pretty(query_plan)
             query['plan'] = json.dumps(query_plan, cls=utils.SetEncoder)
 
-            # simple_query_plan = parse_xml.get_query_plans(
-            #     tree, cost=False, show_filters=False)[0]
-            # query['simple_plan'] = json.dumps(
-            #     simple_query_plan, cls=utils.SetEncoder)
-
             query['estimated_cost'] = query_plan['total']
             query['has_plan'] = True
+
+            # plan for uniqueness, clustering happening here
+            simple_query_plan = parse_xml.get_query_plans(
+                tree, cost=False, show_filters=True, consts=False)[0]
+            query['simple_plan'] = json.dumps(
+                simple_query_plan, cls=utils.SetEncoder)
+
+            if not quiet:
+                print utils.json_pretty(simple_query_plan)
 
             batch.append(query)
 
