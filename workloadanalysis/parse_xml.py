@@ -194,8 +194,21 @@ def operator_tree(root, cost, show_filters, parameters):
                 for p in parameters:
                     s = s.replace(p[0], p[1])
 
-                s = s.lower().replace('[', '').replace(']', '').replace('(', '').replace(')', '').replace("'", '')
-                s = s.replace(',', ' and ').replace('>=', '>').replace('<=', '<')
+                # replace , if not inside ()
+                news = []
+                bc = 0  # nesting level
+                for i, c in enumerate(s):
+                    if c == '(':
+                        bc += 1
+                    elif c == ')':
+                        bc -= 1
+                    if c == ',' and bc == 0:
+                        news.append(' and ')
+                    else:
+                        news.append(c)
+                s = ''.join(news)
+                s = s.lower().replace('[', '').replace(']', '').replace("'", '')
+                s = s.replace('>=', '>').replace('<=', '<')
                 fs = s.split(' and ')
                 fs = [re.sub(r' as [\w|\.]+', r'', x) for x in fs]
 
