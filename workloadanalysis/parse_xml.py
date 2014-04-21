@@ -57,8 +57,8 @@ def get_query_plans(tree, cost=False, show_filters=False, consts=True):
                       x.attrib['ParameterCompiledValue']) for x in refs]
     else:
         parameters = [(x.attrib['Column'],
-                      'COST') for x in refs]
-        parameters.extend([(x.attrib['ConstValue'], 'COST') for x in tree.xpath('.//Const')])
+                      'CONST') for x in refs]
+        parameters.extend([(x.attrib['ConstValue'], 'CONST') for x in tree.xpath('.//Const')])
     return [operator_tree(
         qplan, cost, show_filters, parameters) for qplan in qplans]
 
@@ -197,7 +197,7 @@ def operator_tree(root, cost, show_filters, parameters):
                     s = ' AND '.join(b)
 
                 for p in parameters:
-                    s = s.replace(p[0], p[1])
+                    s = s.replace(p[0], p[1], 2)
 
                 # replace , if not inside ()
                 news = []
@@ -214,7 +214,7 @@ def operator_tree(root, cost, show_filters, parameters):
                 s = ''.join(news)
                 s = s.lower().replace('[', '').replace(']', '').replace("'", '')
                 s = s.replace('>=', '>').replace('<=', '<')
-                s = s.replace('COSTCOST', 'COST').replace('COSTCOST', 'COST').replace('COSTCOST', 'COST').replace('COSTCOST', 'COST')
+                s = s.replace('CONSTCONST', 'CONST')
                 fs = s.split(' and ')
                 fs = [re.sub(r' as [\w|\.]+', r'', x) for x in fs]
 
