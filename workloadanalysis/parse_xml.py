@@ -107,7 +107,7 @@ def operator_tree(root, cost, show_filters, parameters):
                     s = s.replace('(', '').replace(')', '')
                     for p in parameters:
                         s = s.replace(p[0], p[1], 2)
-                    return s
+                    return s.lower()
 
             # if the rel op is top, use the (constant) expression as filter
             if root.attrib['LogicalOp'] == "Top":
@@ -204,8 +204,7 @@ def operator_tree(root, cost, show_filters, parameters):
                             a = []
                     s = ' AND '.join(b)
 
-                for p in parameters:
-                    s = s.replace(p[0], p[1], 2)
+                s = repl(s)
 
                 # replace , if not inside ()
                 news = []
