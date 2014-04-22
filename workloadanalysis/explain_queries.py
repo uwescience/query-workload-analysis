@@ -205,7 +205,7 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
 
             if not quiet:
                 print utils.json_pretty(query_plan)
-            query['plan'] = json.dumps(query_plan, cls=utils.SetEncoder)
+            query['plan'] = json.dumps(query_plan, cls=utils.SetEncoder, sort_keys=True)
 
             query['estimated_cost'] = query_plan['total']
             query['has_plan'] = True
@@ -214,7 +214,7 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
             simple_query_plan = parse_xml.get_query_plans(
                 tree, cost=False, show_filters=True, consts=False)[0]
             query['simple_plan'] = json.dumps(
-                simple_query_plan, cls=utils.SetEncoder)
+                simple_query_plan, cls=utils.SetEncoder, sort_keys=True)
 
             if not quiet:
                 print utils.json_pretty(simple_query_plan)

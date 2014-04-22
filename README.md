@@ -55,7 +55,7 @@ CREATE TABLE distinctlogs AS SELECT min(id) id, query FROM logs WHERE not error 
 
 CREATE VIEW explained AS SELECT * FROM logs WHERE has_plan;
 
-CREATE VIEW uniqueplans AS SELECT * FROM explained WHERE id in (SELECT min(id) id from explained GROUP BY plan);
+CREATE VIEW uniqueplans AS SELECT * FROM explained WHERE id in (SELECT min(id) id from explained GROUP BY simple_plan);
 ```
 
 

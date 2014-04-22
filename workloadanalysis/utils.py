@@ -4,7 +4,7 @@ from json import dumps, JSONEncoder
 class SetEncoder(JSONEncoder):
     def default(self, obj):
         if isinstance(obj, set):
-            return list(obj)
+            return sorted(list(obj))
         if isinstance(obj, list):
             return sorted(obj)
         return JSONEncoder.default(self, obj)

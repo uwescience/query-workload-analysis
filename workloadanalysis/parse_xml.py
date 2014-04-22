@@ -58,7 +58,9 @@ def get_query_plans(tree, cost=False, show_filters=False, consts=True):
     else:
         parameters = [(x.attrib['Column'],
                       'CONST') for x in refs]
-        parameters.extend([(x.attrib['ConstValue'], 'CONST') for x in tree.xpath('.//Const')])
+        parameters.extend([(x.attrib['ConstValue'].strip("(").strip(")"), 'CONST') for x in tree.xpath('.//Const')])
+
+    parameters.sort(key=lambda x: -len(x[0]))
     return [operator_tree(
         qplan, cost, show_filters, parameters) for qplan in qplans]
 
@@ -101,14 +103,20 @@ def operator_tree(root, cost, show_filters, parameters):
                     tables[name].add(ref.attrib['Column'])
 
         if show_filters:
+            def repl(s):
+                    s = s.replace('(', '').replace(')', '')
+                    for p in parameters:
+                        s = s.replace(p[0], p[1], 2)
+                    return s
+
             # if the rel op is top, use the (constant) expression as filter
             if root.attrib['LogicalOp'] == "Top":
                 for x in root.xpath('Top/TopExpression//Const'):
-                    filters.append(x.attrib['ConstValue'].strip("(").strip(")"))
+                    filters.append(repl(x.attrib['ConstValue']))
 
             # set row count as filter for top sort
             if root.attrib['LogicalOp'] == "TopN Sort":
-                filters.append(root.xpath('TopSort')[0].attrib['Rows'])
+                filters.append(repl(root.xpath('TopSort')[0].attrib['Rows']))
 
             # extract scalar strings (where clause expression) from predicates
             predicates = root.xpath('.//SeekPredicates')
@@ -229,7 +237,8 @@ def operator_tree(root, cost, show_filters, parameters):
                     'Object')[0].attrib['Table'].strip('[').strip(']')
                 consts = tvf[0].xpath('ParameterList//Const')
                 tables[tbl] = []
-                filters.append({tbl: [x.attrib['ConstValue'].replace('(', '').replace(')', '') for x in consts]})
+
+                filters.append({tbl: set([repl(x.attrib['ConstValue']) for x in consts])})
 
         ret = {
             'operator': root.attrib['LogicalOp'],
