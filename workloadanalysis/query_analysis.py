@@ -106,7 +106,7 @@ def transformed(tree):
     for name, table in tree['columns'].iteritems():
         for column in table:
             cols.add(name + '.' + column)
-    filters = frozenset(tree['filters'])
+    filters = frozenset(map(hashable, tree['filters']))
     t['columns'] = frozenset(cols)
     t['filters'] = filters
     t['operator'] = tree['operator']
@@ -146,7 +146,9 @@ def check_child_matches(tree, matches):
 def find_recurring_subset(queries):
     columns = defaultdict(set)
     seen = {}
+    cost = 0
     cost_saved = [0]
+    usefulness = Counter()  # how often a subtree is used
 
     def add_to_index(tree):
         h = get_hash(tree)
@@ -173,17 +175,26 @@ def find_recurring_subset(queries):
             cost_saved[0] += tree['total']
             #pprint(m)
             #pprint(tree)
-            print "have seen", level
+            #print "have seen", level
+            usefulness[get_hash(m)] += 1
         else:
             add_to_index(tree)
             for child in tree['children']:
                 check_tree(child, level+1)
 
-    for query in queries:
+    for i, query in enumerate(queries):
         plan = transformed(json.loads(query['plan']))
         #pprint(plan)
+        cost += plan['total']
         check_tree(plan)
-    print 'Saved', cost_saved[0]
+        if not i % 1000:
+            print "Looked for reuse in", i
+
+    for h, c in usefulness.most_common(5):
+        print c, seen[h]
+
+    print "Saved cost", cost_saved, str(cost_saved[0] / cost * 100) + "%"
+    print "Remaining cost", cost - cost_saved[0]
 
 
 def print_table(data, headers, sdss=True):
@@ -417,7 +428,7 @@ def analyze_sqlshare(db, write_to_file = False):
     touch = {}
     time_taken = {}
     dataset_touch = {}
-    
+
     for q in queries:
         length = len(q['query'])
         increment_element_count(length, lengths)
@@ -427,7 +438,7 @@ def analyze_sqlshare(db, write_to_file = False):
             increment_element_count(q['runtime'], time_taken)
 
         expanded_query = q['query']
-        # calculating dataset touch and expanded query now. 
+        # calculating dataset touch and expanded query now.
         ref_views = {}
         while(True):
             previousLength = len(expanded_query)
@@ -464,7 +475,7 @@ def analyze_sqlshare(db, write_to_file = False):
                 for op in view[0]['expanded_plan_ops'].split(','):
                     if op in q_phy_ops:
                         q_phy_ops.remove(op)
-            
+
             #else:
                 #print 'No ops in view: ', view[0]['view']
 
@@ -516,7 +527,7 @@ def analyze_sqlshare(db, write_to_file = False):
     write_to_csv(distinct_physical_ops, 'distinct_physical_ops', 'count', 'Results/distinct_physical_ops.csv')
     write_to_csv(exp_physical_ops, 'exp_physical_ops', 'count', 'Results/exp_physical_ops.csv')
     write_to_csv(exp_distinct_physical_ops, 'exp_distinct_physical_ops', 'count', 'Results/exp_distinct_physical_ops.csv')
-    
+
     # print 'lengths = ', lengths
     # print 'comp_lengths = ', comp_lengths
     # print 'exp_lengths = ', exp_lengths
