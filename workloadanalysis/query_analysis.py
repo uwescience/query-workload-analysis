@@ -204,7 +204,7 @@ def find_recurring_subset(queries):
 
 
 def print_table(data, headers, sdss=True):
-    print tabulate(data, headers, tablefmt='latex')
+    #print tabulate(data, headers, tablefmt='latex')
     subfolder = 'sdss' if sdss else 'sqlshare'
     with open('results/' + subfolder + '/' + '_'.join(headers).replace(' ', '_') + '.csv', 'w') as f:
         writer = csv.writer(f)
