@@ -1,23 +1,14 @@
 physical op,count
-Compute Scalar,167150
-Clustered Index Seek,152349
-Nested Loops,132625
-Sort,116994
-Index Seek,70016
-Clustered Index Scan,61909
-Table-valued function,61796
-Table Scan,61796
-Sequence,61796
-Top,42754
-Constant Scan,12935
-Index Scan,1396
-Filter,1379
-Concatenation,593
-Merge Interval,588
-Stream Aggregate,197
-Parallelism,89
-Hash Match,49
-Table Spool,48
-Table Insert,29
-Merge Join,10
-Row Count Spool,6
+Compute Scalar,1994
+Sort,1980
+Clustered Index Scan,1154
+Clustered Index Seek,875
+Nested Loops,874
+Index Seek,849
+Hash Match,12
+Table Scan,7
+Sequence,7
+Table-valued function,7
+Index Scan,5
+Merge Join,4
+Top,2

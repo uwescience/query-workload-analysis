@@ -101,7 +101,7 @@ def table_touch():
 
 
 def table_touch_cdf():
-    fig, [ax1, ax2] = plt.subplots(1, 2, sharey=True)
+    fig, [ax1, ax2] = plt.subplots(1, 2, sharey=True, figsize=(8, 4))
 
     data = read_csv(['touch'], False)
     data.sort(order='touch')
@@ -134,6 +134,8 @@ def table_touch_cdf():
 
     ax1.set_ylim(0, 1.01)
     ax2.set_ylim(0, 1.01)
+
+    fig.tight_layout(rect=[0, .03, 1, 1])
 
     plt.show()
 

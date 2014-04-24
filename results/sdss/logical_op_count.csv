@@ -1,29 +1,15 @@
 logical op,count
-Compute Scalar,167150
-Clustered Index Seek,152349
-Inner Join,132649
-TopN Sort,116862
-Index Seek,70016
-Clustered Index Scan,61909
-Table-valued function,61796
-Table Scan,61796
-Sequence,61796
-Top,42754
-Constant Scan,12935
-Index Scan,1396
-Filter,1379
-Concatenation,593
-Merge Interval,588
-Aggregate,200
-Sort,76
-Distinct Sort,56
-Lazy Spool,48
-Gather Streams,46
-Repartition Streams,41
-Insert,29
-Left Semi Join,24
-Eager Spool,6
-Right Outer Join,5
-Left Outer Join,2
-Distribute Streams,2
-Left Anti Semi Join,1
+Compute Scalar,1994
+TopN Sort,1975
+Clustered Index Scan,1154
+Inner Join,887
+Clustered Index Seek,875
+Index Seek,849
+Table Scan,7
+Sequence,7
+Table-valued function,7
+Sort,5
+Index Scan,5
+Right Outer Join,2
+Top,2
+Left Outer Join,1
