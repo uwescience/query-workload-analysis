@@ -196,4 +196,4 @@ if __name__ == '__main__':
     #table_touch_cdf()
     #physical_ops()
     #runtime_cdf()
-    opcounts()
+    #opcounts()
