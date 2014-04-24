@@ -1,7 +1,6 @@
 default.ini.local
 *.egg-info/*
 clean_data/*
-*.csv
 *.log
 *Queries*.txt
 *.pyc
