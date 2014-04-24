@@ -411,7 +411,7 @@ def increment_element_count(element, dict_obj):
 def write_to_csv(dict_obj, col1, col2, filename):
     f = open(filename, 'w')
     f.write("%s,%s\n"%(col1,col2))
-    for key in dict_obj:
+    for key in sorted(dict_obj):
         f.write("%d,%d\n"%(key, dict_obj[key]))
     f.close()
 
@@ -443,6 +443,9 @@ def analyze_sqlshare(db, write_to_file = False):
     touch = {}
     time_taken = {}
     dataset_touch = {}
+
+    logical_ops_count = {}
+    physical_ops_count = {}
 
     for q in queries:
         length = len(q['query'])
@@ -501,6 +504,11 @@ def analyze_sqlshare(db, write_to_file = False):
         increment_element_count(len(q_phy_ops), physical_ops)
         increment_element_count(len(set(q_phy_ops)), distinct_physical_ops)
 
+        for op in q_ops:
+            increment_element_count(op, logical_ops_count)
+
+        for op in q_phy_ops:
+            increment_element_count(op, physical_ops_count)
 
         if '--' in q['query']:
             pass
@@ -523,25 +531,37 @@ def analyze_sqlshare(db, write_to_file = False):
                 ('sqlshare',q['owner'], q['query'], q['time_start'],q['runtime'],lengths[-1], comp_lengths[-1], exp_lengths[-1], comp_exp_lengths[-1],
                     ops[-1],distinct_ops[-1],exp_ops[-1],exp_distinct_ops[-1],str_ops[-1],distinct_str_ops[-1],exp_str_ops[-1],exp_distinct_str_ops[-1],touch[-1]))
 
-    write_to_csv(lengths, 'length', 'count', 'Results/lengths.csv')
-    write_to_csv(comp_lengths, 'comp_length', 'count', 'Results/comp_lengths.csv')
-    write_to_csv(exp_lengths, 'exp_length', 'count', 'Results/exp_lengths.csv')
-    write_to_csv(comp_exp_lengths, 'comp_exp_length', 'count', 'Results/comp_exp_lengths.csv')
-    write_to_csv(ops, 'ops', 'count', 'Results/ops.csv')
-    write_to_csv(distinct_ops, 'distinct_ops', 'count', 'Results/distinct_ops.csv')
-    write_to_csv(exp_ops, 'exp_ops', 'count', 'Results/exp_ops.csv')
-    write_to_csv(exp_distinct_ops, 'exp_distinct_ops', 'count', 'Results/exp_distinct_ops.csv')
-    write_to_csv(str_ops, 'str_ops', 'count', 'Results/str_ops.csv')
-    write_to_csv(distinct_str_ops, 'distinct_str_ops', 'count', 'Results/distinct_str_ops.csv')
-    write_to_csv(exp_str_ops, 'exp_str_ops', 'count', 'Results/exp_str_ops.csv')
-    write_to_csv(exp_distinct_str_ops, 'exp_distinct_str_ops', 'count', 'Results/exp_distinct_str_ops.csv')
-    write_to_csv(touch, 'touch', 'count', 'Results/touch.csv')
-    write_to_csv(dataset_touch, 'dataset_touch', 'count', 'Results/dataset_touch.csv')
-    write_to_csv(time_taken, 'time_taken', 'count', 'Results/time_taken.csv')
-    write_to_csv(physical_ops, 'physical_ops', 'count', 'Results/physical_ops.csv')
-    write_to_csv(distinct_physical_ops, 'distinct_physical_ops', 'count', 'Results/distinct_physical_ops.csv')
-    write_to_csv(exp_physical_ops, 'exp_physical_ops', 'count', 'Results/exp_physical_ops.csv')
-    write_to_csv(exp_distinct_physical_ops, 'exp_distinct_physical_ops', 'count', 'Results/exp_distinct_physical_ops.csv')
+    write_to_csv(lengths, 'length', 'count', '../results/sqlshare/lengths.csv')
+    write_to_csv(comp_lengths, 'comp_length', 'count', '../results/sqlshare/comp_lengths.csv')
+    write_to_csv(exp_lengths, 'exp_length', 'count', '../results/sqlshare/exp_lengths.csv')
+    write_to_csv(comp_exp_lengths, 'comp_exp_length', 'count', '../results/sqlshare/comp_exp_lengths.csv')
+    write_to_csv(ops, 'ops', 'count', '../results/sqlshare/ops.csv')
+    write_to_csv(distinct_ops, 'distinct_ops', 'count', '../results/sqlshare/distinct_ops.csv')
+    write_to_csv(exp_ops, 'exp_ops', 'count', '../results/sqlshare/exp_ops.csv')
+    write_to_csv(exp_distinct_ops, 'exp_distinct_ops', 'count', '../results/sqlshare/exp_distinct_ops.csv')
+    write_to_csv(str_ops, 'str_ops', 'count', '../results/sqlshare/str_ops.csv')
+    write_to_csv(distinct_str_ops, 'distinct_str_ops', 'count', '../results/sqlshare/distinct_str_ops.csv')
+    write_to_csv(exp_str_ops, 'exp_str_ops', 'count', '../results/sqlshare/exp_str_ops.csv')
+    write_to_csv(exp_distinct_str_ops, 'exp_distinct_str_ops', 'count', '../results/sqlshare/exp_distinct_str_ops.csv')
+    write_to_csv(touch, 'touch', 'count', '../results/sqlshare/touch.csv')
+    write_to_csv(dataset_touch, 'dataset_touch', 'count', '../results/sqlshare/dataset_touch.csv')
+    write_to_csv(time_taken, 'time_taken', 'count', '../results/sqlshare/time_taken.csv')
+    write_to_csv(physical_ops, 'physical_ops', 'count', '../results/sqlshare/physical_ops.csv')
+    write_to_csv(distinct_physical_ops, 'distinct_physical_ops', 'count', '../results/sqlshare/distinct_physical_ops.csv')
+    write_to_csv(exp_physical_ops, 'exp_physical_ops', 'count', '../results/sqlshare/exp_physical_ops.csv')
+    write_to_csv(exp_distinct_physical_ops, 'exp_distinct_physical_ops', 'count', '../results/sqlshare/exp_distinct_physical_ops.csv')
+    
+    f = open('../results/sqlshare/logical_ops_count.csv', 'w')
+    f.write("%s,%s\n"%('logical_op','count'))
+    for key in logical_ops_count:
+        f.write("%s,%d\n"%(key, logical_ops_count[key]))
+    f.close()
+
+    f = open('../results/sqlshare/physical_ops_count.csv', 'w')
+    f.write("%s,%s\n"%('physical_op','count'))
+    for key in physical_ops_count:
+        f.write("%s,%d\n"%(key, physical_ops_count[key]))
+    f.close()
 
     # print 'lengths = ', lengths
     # print 'comp_lengths = ', comp_lengths

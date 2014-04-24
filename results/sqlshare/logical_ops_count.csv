@@ -1,0 +1,35 @@
+logical_op,count
+Compute Scalar,12846
+Clustered Index Scan,78451
+Union,528
+Distinct Sort,1749
+Top,305
+Inner Join,12437
+Index Scan,117
+Sort,10114
+Flow Distinct,19
+Eager Spool,166
+Update,9
+Index Seek,28
+Assert,16
+Full Outer Join,102
+Left Semi Join,35
+Aggregate,39894
+Table-valued function,18
+Segment,594
+Right Outer Join,2199
+Right Semi Join,19
+Insert,11
+Left Outer Join,1483
+TopN Sort,263
+Left Anti Semi Join,239
+Lazy Spool,1060
+Filter,1760
+Constant Scan,265
+Right Anti Semi Join,110
+Clustered Index Seek,24422
+Delete,10
+Table Scan,6
+UDX,1
+Concatenation,1666
+Merge Interval,16
