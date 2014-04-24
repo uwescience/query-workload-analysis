@@ -30,6 +30,9 @@ visitor_logical_ops = lambda x: [x['operator']]
 visitor_physical_ops = lambda x: [x['physicalOp']]
 
 
+comparator = lambda x: x['operator'] + str(hash(hashable(x['columns'])))
+
+
 def visit_operators(query_plan, visitor):
     l = visitor(query_plan)
     for child in query_plan['children']:
@@ -47,10 +50,10 @@ def hashable(d):
 
 def get_hash(tree):
     f = hashlib.md5()
+    f.update(tree['operator'])
     f.update(hashable(tree['columns']))
     f.update(hashable(tree['filters']))
-    f.update(tree['operator'])
-    [f.update(get_hash(child)) for child in sorted(tree['children'], key=lambda x: x['operator'])]
+    [f.update(get_hash(child)) for child in sorted(tree['children'], key=comparator)]
     return f.hexdigest()
 
 
@@ -76,7 +79,7 @@ def find_recurring(queries):
         if h in seen:
             cost_saved[0] += tree['total']
             saved[0] += tree['total']
-        else:
+        elif len(tree['children']):  # ignore leaves
             seen[h] = tree
             rows_cached[0] += tree['numRows']
             for child in tree['children']:
@@ -118,9 +121,6 @@ def transformed(tree):
     return t
 
 
-comparator = lambda x: x['operator'] + str(hash(x['columns']))
-
-
 def check_one_child(tree, match):
     if tree['operator'] != match['operator']:
         return False
@@ -145,6 +145,7 @@ def check_child_matches(tree, matches):
 
 def find_recurring_subset(queries):
     columns = defaultdict(set)
+    empty_cols = defaultdict(set)  # special index for empty columns indexed by operator
     seen = {}
     cost = 0
     cost_saved = [0]
@@ -152,18 +153,23 @@ def find_recurring_subset(queries):
 
     def add_to_index(tree):
         h = get_hash(tree)
+        assert not h in seen or seen[h] == tree
         seen[h] = tree
+        if not len(tree['columns']):
+            empty_cols[tree['operator']].add(h)
         for col in tree['columns']:
             columns[col].add(h)
 
     def have_seen(tree):
         tablematches = None
-        for column in tree['columns']:
+        for i, column in enumerate(tree['columns']):
             c = columns[column]
-            if tablematches is None:
+            if i == 0:
                 tablematches = c
             else:
                 tablematches = tablematches.intersection(c)
+        if tablematches is None:
+            tablematches = empty_cols[tree['operator']]
         if not tablematches:
             return False
         matches = [seen[h] for h in tablematches]
@@ -177,7 +183,7 @@ def find_recurring_subset(queries):
             #pprint(tree)
             #print "have seen", level
             usefulness[get_hash(m)] += 1
-        else:
+        elif len(tree['children']):  # ignore leaf operators
             add_to_index(tree)
             for child in tree['children']:
                 check_tree(child, level+1)
@@ -187,8 +193,8 @@ def find_recurring_subset(queries):
         #pprint(plan)
         cost += plan['total']
         check_tree(plan)
-        if not i % 1000:
-            print "Looked for reuse in", i
+        if not i % 100:
+            print "Looked for reuse in", i, len(seen), len(columns), len(empty_cols)
 
     for h, c in usefulness.most_common(5):
         print c, seen[h]
@@ -283,6 +289,9 @@ def analyze_sdss(db):
     num_interesting_queries = list(db.query('SELECT COUNT(*) c FROM {}'.format(EXPLAINED)))[0]['c']
     print "Distinct queries with query plan:", num_interesting_queries
 
+    num_interesting_queries = list(db.query('SELECT COUNT(*) c FROM {}'.format(UNIQUE)))[0]['c']
+    print "Distinct queries with constants replaced:", num_interesting_queries
+
     # TODO: This does not seem to be interesting
     """
     print "Overall cost assuming 1 (aka number of queries):", get_cost(db, '1')
@@ -304,7 +313,8 @@ def analyze_sdss(db):
         SELECT query, plan, time_start, elapsed, estimated_cost
         FROM {}
         WHERE estimated_cost < 100
-        ORDER BY time_start ASC'''.format(EXPLAINED)
+        ORDER BY time_start ASC
+        '''.format(EXPLAINED)
 
     dist_queries = '''
         SELECT query, plan, elapsed, estimated_cost
@@ -312,14 +322,16 @@ def analyze_sdss(db):
         WHERE estimated_cost < 100
         ORDER BY time_start ASC'''.format(UNIQUE)
 
+    do_it_for = dist_queries
+
     print
     print "Find recurring subtrees in distinct queries:"
-    queries = db.query(expl_queries)
+    queries = db.query(do_it_for)
     find_recurring(queries)
 
     print
-    print "Find recurring subtrees in distinct queries (distinct by plan):"
-    queries = db.query(dist_queries)
+    print "Find recurring subtrees in distinct queries (using subset check):"
+    queries = db.query(do_it_for)
     find_recurring_subset(queries)
 
     print
