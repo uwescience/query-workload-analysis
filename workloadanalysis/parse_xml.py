@@ -224,6 +224,7 @@ def operator_tree(root, cost, show_filters, parameters):
                 s = s.replace('CONSTCONST', 'CONST')
                 fs = s.split(' and ')
                 fs = [re.sub(r' as [\w|\.]+', r'', x) for x in fs]
+                fs = [' or '.join(set(x.split(' or '))) for x in fs]
 
                 filters.extend([x.strip() for x in fs])
 
