@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from prettyplotlib import brewer2mpl
 from prettyplotlib.colors import set1 as cs
+from prettyplotlib.colors import set2 as pcs
 from matplotlib.ticker import FuncFormatter
 
 
@@ -29,7 +30,7 @@ def read_csv(headers, sdss):
         return np.recfromcsv(f)
 
 
-def query_length():
+def query_length_cdf():
     fig, ax = plt.subplots(1)
 
     data = read_csv(['lengths', 'counts'], True)
@@ -47,15 +48,42 @@ def query_length():
 
     plt.gca().yaxis.set_major_formatter(formatter)
 
-    plt.xlabel('Query length in characters')
-    plt.ylabel('% of queries')
+    ax.set_xlabel('Query length in characters')
+    ax.set_ylabel('% of queries')
 
-    plt.ylim(0, 1)
-    plt.xlim(0, 2500)
+    ax.set_ylim(0, 1.01)
+    ax.set_xlim(0, 2500)
+
+    ax.yaxis.grid()
 
     plt.show()
 
-    fig.savefig('plot_lengths_sdss.pdf', format='pdf', transparent=True)
+    fig.savefig('plot_lengths.pdf', format='pdf', transparent=True)
+
+
+def runtime_cdf():
+    fig, ax = plt.subplots(1)
+
+    data = read_csv(['actual', 'counts'], True)
+    c = data['counts'].astype(float)
+    c /= sum(c)
+    ppl.plot(ax, data['actual'], np.cumsum(c), label="SDSS", color=cs[0], linewidth=2, ls='-.')
+
+    ppl.legend(ax, loc='lower right')
+
+    plt.gca().yaxis.set_major_formatter(formatter)
+
+    ax.set_xlabel('Runtime in seconds')
+    ax.set_ylabel('% of queries')
+
+    ax.set_ylim(0, 1.01)
+    ax.set_xlim(0, 6)
+
+    ax.yaxis.grid()
+
+    plt.show()
+
+    fig.savefig('plot_runtimes.pdf', format='pdf', transparent=True)
 
 
 def table_touch():
@@ -71,7 +99,8 @@ def table_touch():
 
     fig.savefig('plot_touch_sdss.pdf', format='pdf', transparent=True)
 
-def table_touch_cda():
+
+def table_touch_cdf():
     fig, [ax1, ax2] = plt.subplots(1, 2, sharey=True)
 
     data = read_csv(['touch'], False)
@@ -91,8 +120,11 @@ def table_touch_cda():
     ax1.yaxis.set_major_formatter(formatter)
     ax2.yaxis.set_major_formatter(formatter)
 
-    ax1.set_xlim([0, 500])
-    ax1.set_xlim([0, 25])
+    ax1.set_xlim(0, 500)
+    ax1.set_xlim(0, 25)
+
+    ax1.yaxis.grid()
+    ax2.yaxis.grid()
 
     #ax1.set_xlabel('Table touch')
     fig.text(0.5, 0.02, "Table touch", ha='center')
@@ -100,14 +132,16 @@ def table_touch_cda():
 
     fig.subplots_adjust(wspace=0.1)
 
-    plt.ylim(0, 1)
+    ax1.set_ylim(0, 1.01)
+    ax2.set_ylim(0, 1.01)
 
     plt.show()
 
-    fig.savefig('plot_touch_cda.pdf', format='pdf', transparent=True)
+    fig.savefig('plot_touch_cdf.pdf', format='pdf', transparent=True)
+
 
 def physical_ops():
-    fig, ax = plt.subplots(1, figsize=(8,4))
+    fig, ax = plt.subplots(1, figsize=(8, 4))
 
     data = read_csv(['physical_op', 'count'], True)
     data.sort(order='count')
@@ -132,10 +166,32 @@ def physical_ops():
 
     fig.savefig('plot_physops_sdss.pdf', format='pdf', transparent=True)
 
+
+def opcounts():
+    fig, ax = plt.subplots(1, figsize=(8, 4))
+
+    data = read_csv(['ops', 'counts'], True)
+
+    #ppl.bar(ax, data['ops'], data['counts'], grid='y', log=True)
+    ppl.hist(ax, data['ops'], weights=data['counts'], bins=25, grid='y', log=True, facecolor=pcs[0])
+
+    ax.set_xlabel('Logical operators used (binned)')
+    ax.set_ylabel('# of queries')
+
+    ax.set_xlim(0, 110)
+
+    fig.tight_layout()
+    plt.show()
+
+    fig.savefig('ops_query.pdf', format='pdf', transparent=True)
+
+
 if __name__ == '__main__':
     plt.rc('font', family='serif')
 
-    #query_length()
+    #query_length_cdf()
     #table_touch()
-    #table_touch_cda()
+    #table_touch_cdf()
     #physical_ops()
+    #runtime_cdf()
+    opcounts()
