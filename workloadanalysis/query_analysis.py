@@ -337,7 +337,8 @@ def analyze_sdss(db):
     # counters for how often we have a certain count in a query
     lengths = Counter()
     compressed_lengths = Counter()
-    ops = Counter()
+    logops = Counter()
+    physops = Counter()
     distinct_ops = Counter()
     str_ops = Counter()
     distinct_str_ops = Counter()
@@ -350,8 +351,10 @@ def analyze_sdss(db):
     for q in queries:
         plan = json.loads(q['plan'])
         log_ops = visit_operators(plan, visitor_logical_ops)
+        phys_ops = visit_operators(plan, visitor_physical_ops)
         tables = visit_operators(plan, visitor_tables)
-        ops[len(log_ops)] += 1
+        logops[len(log_ops)] += 1
+        physops[len(phys_ops)] += 1
         touch[len(tables)] += 1
         distinct_ops[len(set(log_ops))] += 1
 
@@ -379,8 +382,8 @@ def analyze_sdss(db):
         headers=["string op", "count"])
 
     for name, values in zip(
-        ['lengths', 'compressed lengths', 'ops', 'distinct ops', 'string ops', 'distinct string ops', 'touch', 'estimated', 'actual'],
-        [lengths, compressed_lengths, ops, distinct_ops, str_ops, distinct_str_ops, touch, estimated, actual]):
+        ['lengths', 'compressed lengths', 'logops', 'physops', 'distinct ops', 'string ops', 'distinct string ops', 'touch', 'estimated', 'actual'],
+        [lengths, compressed_lengths, logops, physops, distinct_ops, str_ops, distinct_str_ops, touch, estimated, actual]):
         print
         print_table(sorted(
             values.iteritems(),
