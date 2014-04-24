@@ -117,6 +117,20 @@ def table_touch():
     fig.savefig('plot_touch_sdss.pdf', format='pdf', transparent=True)
 
 
+def dataset_touch():
+    fig, ax = plt.subplots(1)
+
+    data = read_csv(['dataset_touch'], False)
+    ppl.bar(ax, range(len(data['dataset_touch'])), data['count'], xticklabels=data['dataset_touch'], grid='y', log=True)
+
+    plt.xlabel('Dataset touch')
+    plt.ylabel('# of queries')
+
+    plt.show()
+
+    fig.savefig('plot_datasettouch_sqlshare.pdf', format='pdf', transparent=True)
+
+
 def table_touch_cdf():
     fig, [ax1, ax2] = plt.subplots(1, 2, sharey=True, figsize=(8, 4))
 
@@ -237,6 +251,7 @@ if __name__ == '__main__':
 
     #query_length_cdf()
     #table_touch()
+    #dataset_touch()
     #table_touch_cdf()
     #physical_ops()
     #logical_ops()
