@@ -444,6 +444,7 @@ def analyze_sqlshare(db, write_to_file = False):
     time_taken = {}
     dataset_touch = {}
 
+    keywords_count = {}
     logical_ops_count = {}
     physical_ops_count = {}
 
@@ -510,11 +511,14 @@ def analyze_sqlshare(db, write_to_file = False):
         for op in q_phy_ops:
             increment_element_count(op, physical_ops_count)
 
+        
         if '--' in q['query']:
             pass
         else:
             tokens = sqltokens.get_tokens(q['query'])
             increment_element_count(len(tokens), str_ops)
+            for keyword in tokens:
+                increment_element_count(keyword, keywords_count)
             increment_element_count(len(set(tokens)), distinct_str_ops)
             ex_tokens = sqltokens.get_tokens(expanded_query)
             increment_element_count(len(ex_tokens), exp_str_ops)
@@ -563,6 +567,11 @@ def analyze_sqlshare(db, write_to_file = False):
         f.write("%s,%d\n"%(key, physical_ops_count[key]))
     f.close()
 
+    f = open('../results/sqlshare/keywords_count.csv', 'w')
+    f.write("%s,%s\n"%('keyword','count'))
+    for key in keywords_count:
+        f.write("%s,%d\n"%(key, keywords_count[key]))
+    f.close()
     # print 'lengths = ', lengths
     # print 'comp_lengths = ', comp_lengths
     # print 'exp_lengths = ', exp_lengths
