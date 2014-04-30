@@ -280,6 +280,32 @@ def opcounts():
     fig.savefig('plot_logops_query.pdf', format='pdf', transparent=True)
 
 
+def new_tables_cdf():
+    fig, ax = plt.subplots(1)
+
+    data = read_csv(['query_number', 'num_new_tables'], True)
+    c = data['num_new_tables'].astype(float)
+    c /= sum(c)
+    ppl.plot(ax, data['query_number'], np.cumsum(c), label="SDSS", color=cs[0], linewidth=2, ls='-.', drawstyle='steps-post')
+    ppl.scatter(ax, data['query_number'], np.cumsum(c), color=cs[0], marker="o", s=100)
+
+    ppl.legend(ax, loc='lower right')
+
+    plt.gca().yaxis.set_major_formatter(formatter)
+
+    ax.set_xlabel('Query number')
+    ax.set_ylabel('% of newly used table')
+
+    ax.set_ylim(0, 1.01)
+    ax.set_xlim(0, 215000)
+
+    ax.yaxis.grid()
+
+    plt.show()
+
+    fig.savefig('num_new_tables.pdf', format='pdf', transparent=True)
+
+
 if __name__ == '__main__':
     plt.rc('font', family='serif')
 
@@ -292,3 +318,4 @@ if __name__ == '__main__':
     # logical_ops_sqlshare()
     # runtime_cdf()
     # opcounts()
+    # new_tables_cdf()
