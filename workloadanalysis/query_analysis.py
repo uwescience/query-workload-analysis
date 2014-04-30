@@ -357,10 +357,14 @@ def analyze_sdss(db):
     touch = Counter()
     estimated = Counter()
     actual = Counter()
+    tables_seen = set()
+
+    # count how many new tables we see
+    not_yet_seen_tables = []
 
     which_str_ops = Counter()
 
-    for q in queries:
+    for i, q in enumerate(queries):
         plan = json.loads(q['plan'])
         log_ops = visit_operators(plan, visitor_logical_ops)
         phys_ops = visit_operators(plan, visitor_physical_ops)
@@ -368,6 +372,12 @@ def analyze_sdss(db):
         logops[len(log_ops)] += 1
         physops[len(phys_ops)] += 1
         touch[len(tables)] += 1
+        new_tables = set(tables) - tables_seen
+        if new_tables:
+            for t in new_tables:
+                tables_seen.add(t)
+            not_yet_seen_tables.append([i, len(new_tables)])
+
         distinct_ops[len(set(log_ops))] += 1
 
         query = q['query']
@@ -392,6 +402,9 @@ def analyze_sdss(db):
         which_str_ops.iteritems(),
         key=lambda t: t[1], reverse=True),
         headers=["string op", "count"])
+
+    print
+    print_table(not_yet_seen_tables, headers=['query_number', 'num_new_tables'])
 
     for name, values in zip(
         ['lengths', 'compressed lengths', 'logops', 'physops', 'distinct ops', 'string ops', 'distinct string ops', 'touch', 'estimated', 'actual'],
@@ -511,7 +524,7 @@ def analyze_sqlshare(db, write_to_file = False):
         for op in q_phy_ops:
             increment_element_count(op, physical_ops_count)
 
-        
+
         if '--' in q['query']:
             pass
         else:
@@ -554,7 +567,7 @@ def analyze_sqlshare(db, write_to_file = False):
     write_to_csv(distinct_physical_ops, 'distinct_physical_ops', 'count', '../results/sqlshare/distinct_physical_ops.csv')
     write_to_csv(exp_physical_ops, 'exp_physical_ops', 'count', '../results/sqlshare/exp_physical_ops.csv')
     write_to_csv(exp_distinct_physical_ops, 'exp_distinct_physical_ops', 'count', '../results/sqlshare/exp_distinct_physical_ops.csv')
-    
+
     f = open('../results/sqlshare/logical_ops_count.csv', 'w')
     f.write("%s,%s\n"%('logical_op','count'))
     for key in logical_ops_count:
