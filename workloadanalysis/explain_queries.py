@@ -96,11 +96,6 @@ def explain_sqlshare(config, database, quiet, first_pass, dry=False):
         if not quiet:
             print utils.json_pretty(query_plan)
 
-        # ignore inserts
-        if query_plan['operator'] == 'Insert':
-            assert len(query_plan['children']) == 1
-            query_plan = query_plan['children'][0]
-
         query['plan'] = json.dumps(query_plan, cls=utils.SetEncoder)
 
         # indent tree and export as xml file
@@ -109,11 +104,6 @@ def explain_sqlshare(config, database, quiet, first_pass, dry=False):
 
         simple_query_plan = parse_xml.get_query_plans(
             tree, cost=False, show_filters=False)[0]
-
-        # ignore inserts
-        if simple_query_plan['operator'] == 'Insert':
-            assert len(simple_query_plan['children']) == 1
-            simple_query_plan = simple_query_plan['children'][0]
 
         query['simple_plan'] = json.dumps(
             simple_query_plan, cls=utils.SetEncoder)
@@ -215,6 +205,11 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
 
             query_plan = query_plans[0]
 
+             # ignore inserts
+            if query_plan['operator'] == 'Insert':
+                assert len(query_plan['children']) == 1
+                query_plan = query_plan['children'][0]
+
             if not quiet:
                 print utils.json_pretty(query_plan)
             query['plan'] = json.dumps(query_plan, cls=utils.SetEncoder, sort_keys=True)
@@ -225,6 +220,12 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
             # plan for uniqueness, clustering happening here
             simple_query_plan = parse_xml.get_query_plans(
                 tree, cost=False, show_filters=True, consts=False)[0]
+
+            # ignore inserts
+            if simple_query_plan['operator'] == 'Insert':
+                assert len(simple_query_plan['children']) == 1
+                simple_query_plan = simple_query_plan['children'][0]
+
             query['simple_plan'] = json.dumps(
                 simple_query_plan, cls=utils.SetEncoder, sort_keys=True)
 
