@@ -106,11 +106,21 @@ def runtime_cdf():
 def table_touch():
     fig, ax = plt.subplots(1)
 
-    data = read_csv(['touch', 'counts'], True)
-    ppl.bar(ax, range(len(data['touch'])), data['counts'], xticklabels=data['touch'], grid='y', log=True)
+    ax.set_yscale('log')
 
-    plt.xlabel('Table touch')
-    plt.ylabel('# of queries')
+    data = read_csv(['touch', 'counts'], True)
+    #ppl.bar(ax, range(len(data['touch'])), data['counts'], xticklabels=data['touch'], grid='y', log=True)
+    ppl.scatter(ax, data['touch'], data['counts'], label="SDSS", marker="o", s=100)
+
+    data = read_csv(['dataset_touch'], False)
+    ppl.scatter(ax, data['dataset_touch'], data['count'], label="SQLShare (Dataset)", marker="v", s=100)
+
+    ax.set_xlabel('Table touch')
+    ax.set_ylabel('# of queries')
+
+    ppl.legend(ax)
+
+    ax.set_ylim(0)
 
     plt.show()
 
@@ -178,12 +188,11 @@ def physical_ops():
 
     data = read_csv(['physical_op', 'count'], True)
     data.sort(order='count')
-    data = data[-10:]
+    #data = data[-14:]
 
     c = data['count'].astype(float)
     c /= sum(c)
     c *= 100
-    c = c.astype(int)
     ypos = np.arange(len(data['physical_op']))
     ppl.barh(ax, ypos, c, yticklabels=data['physical_op'], grid='x', annotate=True)
 
@@ -200,17 +209,16 @@ def physical_ops():
     fig.savefig('plot_physops_sdss.pdf', format='pdf', transparent=True)
 
 
-def logical_ops():
+def logical_ops_sdss():
     fig, ax = plt.subplots(1, figsize=(8, 4))
 
     data = read_csv(['logical_op', 'count'], True)
     data.sort(order='count')
-    data = data[-10:]
+    #data = data[-14:]
 
     c = data['count'].astype(float)
     c /= sum(c)
     c *= 100
-    c = c.astype(int)
     ypos = np.arange(len(data['logical_op']))
     ppl.barh(ax, ypos, c, yticklabels=data['logical_op'], grid='x', annotate=True)
 
@@ -225,6 +233,32 @@ def logical_ops():
     plt.show()
 
     fig.savefig('plot_logops_sdss.pdf', format='pdf', transparent=True)
+
+
+def logical_ops_sqlshare():
+    fig, ax = plt.subplots(1, figsize=(8, 5))
+
+    data = read_csv(['logical_ops', 'count'], False)
+    data.sort(order='count')
+    #data = data[-14:]
+
+    c = data['count'].astype(float)
+    c /= sum(c)
+    c *= 100
+    ypos = np.arange(len(data['logical_op']))
+    ppl.barh(ax, ypos, c, yticklabels=data['logical_op'], grid='x', annotate=True)
+
+    #ax.set_ylabel('Physical operator')
+    ax.set_xlabel('% of queries')
+
+    #plt.subplots_adjust(bottom=.2, left=.3, right=.99, top=.9, hspace=.35)
+
+    fig.tight_layout(rect=[0.03, 0, 1, 1])
+    fig.text(0.02, 0.55, 'Logical operator', rotation=90, va='center')
+
+    plt.show()
+
+    fig.savefig('plot_logops_sqlshare.pdf', format='pdf', transparent=True)
 
 
 def opcounts():
@@ -243,17 +277,45 @@ def opcounts():
     fig.tight_layout()
     plt.show()
 
-    fig.savefig('logops_query.pdf', format='pdf', transparent=True)
+    fig.savefig('plot_logops_query.pdf', format='pdf', transparent=True)
+
+
+def new_tables_cdf():
+    fig, ax = plt.subplots(1)
+
+    data = read_csv(['query_number', 'num_new_tables'], True)
+    c = data['num_new_tables'].astype(float)
+    c /= sum(c)
+    ppl.plot(ax, data['query_number'], np.cumsum(c), label="SDSS", color=cs[0], linewidth=2, ls='-.', drawstyle='steps-post')
+    ppl.scatter(ax, data['query_number'], np.cumsum(c), color=cs[0], marker="o", s=100)
+
+    ppl.legend(ax, loc='lower right')
+
+    plt.gca().yaxis.set_major_formatter(formatter)
+
+    ax.set_xlabel('Query number')
+    ax.set_ylabel('% of newly used table')
+
+    ax.set_ylim(0, 1.01)
+    ax.set_xlim(0, 215000)
+
+    ax.yaxis.grid()
+
+    plt.show()
+
+    fig.savefig('num_new_tables.pdf', format='pdf', transparent=True)
 
 
 if __name__ == '__main__':
     plt.rc('font', family='serif')
 
-    #query_length_cdf()
-    #table_touch()
-    #dataset_touch()
-    #table_touch_cdf()
-    #physical_ops()
-    #logical_ops()
-    #runtime_cdf()
-    #opcounts()
+    # query_length_cdf()
+    # table_touch()
+    # dataset_touch()
+    # table_touch_cdf()
+    # physical_ops()
+    # logical_ops_sdss()
+    # logical_ops_sqlshare()
+    # runtime_cdf()
+    # opcounts()
+    # new_tables_cdf()
