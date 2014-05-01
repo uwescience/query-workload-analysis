@@ -471,6 +471,7 @@ def analyze_sqlshare(db, write_to_file = False):
 
             if (len(expanded_query) == previousLength):
                 increment_element_count(len(prev_ref_views), dataset_touch)
+                # this is wrong, count referenced datasets at each level, not just the final one.
                 break
 
         q_ex_ops = q['expanded_plan_ops_logical'].split(',')
