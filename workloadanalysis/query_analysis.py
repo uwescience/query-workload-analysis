@@ -23,6 +23,9 @@ EXPLAINED = 'explained'
 # the queries that don't have the same query plan
 UNIQUE = 'uniqueplans'
 
+# like ALL but joined with explained
+EXPLAINED_ALL = 'logs_explained'
+
 
 # visitors
 visitor_tables = lambda x: x.get('columns', {}).keys()
@@ -322,6 +325,12 @@ def analyze_sdss(db):
         WHERE estimated_cost < 100
         ORDER BY time_start ASC'''.format(UNIQUE)
 
+    all_queries = '''
+        SELECT query, plan, time_start
+        FROM {}
+        WHERE estimated_cost < 100
+        ORDER BY time_start ASC'''.format(EXPLAINED_ALL)
+
     do_it_for = dist_queries
 
     print
@@ -344,8 +353,6 @@ def analyze_sdss(db):
     queries = db.query(expl_queries)
     explicit_implicit_joins(queries)
 
-    queries = db.query(expl_queries)
-
     # counters for how often we have a certain count in a query
     lengths = Counter()
     compressed_lengths = Counter()
@@ -358,13 +365,28 @@ def analyze_sdss(db):
     estimated = Counter()
     actual = Counter()
     tables_seen = set()
+    which_str_ops = Counter()
 
     # count how many new tables we see
     not_yet_seen_tables = []
 
-    which_str_ops = Counter()
+    # go over all queries (joined with explained)
+    print "Go over all queries"
+    for i, q in enumerate(db.query(all_queries)):
+        plan = json.loads(q['plan'])
+        tables = visit_operators(plan, visitor_tables)
+        new_tables = set(tables) - tables_seen
+        if new_tables:
+            for t in new_tables:
+                tables_seen.add(t)
+            not_yet_seen_tables.append([i, len(new_tables)])
 
-    for i, q in enumerate(queries):
+    print
+    print_table(not_yet_seen_tables, headers=['query_number', 'num_new_tables'])
+
+    # go over distinct queries
+    print "Go over distinct queries"
+    for q in db.query(expl_queries):
         plan = json.loads(q['plan'])
         log_ops = visit_operators(plan, visitor_logical_ops)
         phys_ops = visit_operators(plan, visitor_physical_ops)
@@ -372,11 +394,6 @@ def analyze_sdss(db):
         logops[len(log_ops)] += 1
         physops[len(phys_ops)] += 1
         touch[len(tables)] += 1
-        new_tables = set(tables) - tables_seen
-        if new_tables:
-            for t in new_tables:
-                tables_seen.add(t)
-            not_yet_seen_tables.append([i, len(new_tables)])
 
         distinct_ops[len(set(log_ops))] += 1
 
@@ -402,9 +419,6 @@ def analyze_sdss(db):
         which_str_ops.iteritems(),
         key=lambda t: t[1], reverse=True),
         headers=["string op", "count"])
-
-    print
-    print_table(not_yet_seen_tables, headers=['query_number', 'num_new_tables'])
 
     for name, values in zip(
         ['lengths', 'compressed lengths', 'logops', 'physops', 'distinct ops', 'string ops', 'distinct string ops', 'touch', 'estimated', 'actual'],
