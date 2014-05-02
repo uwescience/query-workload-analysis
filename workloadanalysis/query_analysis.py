@@ -326,9 +326,8 @@ def analyze_sdss(db):
         ORDER BY time_start ASC'''.format(UNIQUE)
 
     all_queries = '''
-        SELECT query, plan, time_start
+        SELECT *
         FROM {}
-        WHERE estimated_cost < 100
         ORDER BY time_start ASC'''.format(EXPLAINED_ALL)
 
     do_it_for = dist_queries
