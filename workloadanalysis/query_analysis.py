@@ -66,7 +66,7 @@ def print_op_tree(tree, indent=0):
         print_op_tree(child, indent + 1)
 
 
-def find_recurring(queries):
+def find_recurring(queries, sdss=True):
     seen = {}
 
     # has to be list (mutable) so that we can modify it in sub-function
@@ -102,7 +102,7 @@ def find_recurring(queries):
 
     print_table(sorted(
                 savings.iteritems(),
-                key=lambda t: t[0]), ["savings", "count"])
+                key=lambda t: t[0]), ["savings", "count"], sdss)
 
 
 def transformed(tree):
@@ -437,6 +437,15 @@ def write_to_csv(dict_obj, col1, col2, filename, to_reverse = True):
 
 
 def analyze_sqlshare(db):
+    distinct_q = 'SELECT plan from sqlshare_logs where has_plan = 1 group by query'
+    print "Find recurring subtrees in distinct queries:"
+    q = db.query(distinct_q)
+    find_recurring(q, sdss=False)
+
+    print "Find recurring subtrees in distinct queries (using subset check):"
+    q = db.query(distinct_q)
+    find_recurring_subset(q)
+    
     all_queries = list(db.query('SELECT * from sqlshare_logs where has_plan = 1'))
     queries = list(db.query('SELECT query, plan, expanded_plan_ops_logical, expanded_plan_ops, ref_views from sqlshare_logs where has_plan = 1 group by query'))
     views = list(db.query('SELECT * FROM sqlshare_logs WHERE isView = 1'))
@@ -445,6 +454,7 @@ def analyze_sqlshare(db):
     query_with_same_plan = list(db.query('SELECT Count(*) as count from (SELECT * from sqlshare_logs where has_plan = 1 group by simple_plan)'))
     print '#Total string distinct queries:', len(queries)
     print '#Total queries considering all constants the same:', query_with_same_plan[0]['count']
+    
     lengths = Counter()
     comp_lengths = Counter()
     ops = Counter()
