@@ -428,13 +428,6 @@ def analyze_sdss(db):
             key=lambda t: t[0]),
             headers=[name, "counts"])
 
-def write_to_csv(dict_obj, col1, col2, filename, to_reverse = True):
-    f = open(filename, 'w')
-    f.write("%s,%s\n"%(col1,col2))
-    for key in sorted(dict_obj, reverse=to_reverse):
-        f.write("%d,%d\n"%(key, dict_obj[key]))
-    f.close()
-
 
 def analyze_sqlshare(db):
     distinct_q = 'SELECT plan from sqlshare_logs where has_plan = 1 group by query'
@@ -445,7 +438,7 @@ def analyze_sqlshare(db):
     print "Find recurring subtrees in distinct queries (using subset check):"
     q = db.query(distinct_q)
     find_recurring_subset(q)
-    
+
     all_queries = list(db.query('SELECT * from sqlshare_logs where has_plan = 1'))
     queries = list(db.query('SELECT query, plan, expanded_plan_ops_logical, expanded_plan_ops, ref_views from sqlshare_logs where has_plan = 1 group by query'))
     views = list(db.query('SELECT * FROM sqlshare_logs WHERE isView = 1'))
@@ -454,7 +447,7 @@ def analyze_sqlshare(db):
     query_with_same_plan = list(db.query('SELECT Count(*) as count from (SELECT * from sqlshare_logs where has_plan = 1 group by simple_plan)'))
     print '#Total string distinct queries:', len(queries)
     print '#Total queries considering all constants the same:', query_with_same_plan[0]['count']
-    
+
     lengths = Counter()
     comp_lengths = Counter()
     ops = Counter()
@@ -481,6 +474,7 @@ def analyze_sqlshare(db):
     table_coverage = {}
 
     tables_seen_so_far = []
+    tables_in_query = {}
 
     for i,q in enumerate(queries):
         length = len(q['query'])
@@ -561,16 +555,31 @@ def analyze_sqlshare(db):
         tables = set(tables)
         touch[len(tables)] += 1
         # if len(set(tables)) > 50 and len(set(tables)) < 75:
-        #     print q['id'] 
+        #     print q['id']
         #     print set(tables)
         for t in tables:
             table_count[t] += 1
-
+        tables_in_query[i] = tables
         for t in tables:
             if t not in tables_seen_so_far:
                 tables_seen_so_far.append(t)
 
         table_coverage[i] = len(tables_seen_so_far)
+
+    # Calculating query graph.
+    query_graph = defaultdict(list)
+    for i, q in enumerate(queries):
+        for j in range(i+1, len(queries)):
+            if len(tables_in_query[i].intersection(tables_in_query[j])) > 0:
+                query_graph[i].append(j)
+                query_graph[j].append(i)
+
+    def write_to_csv(dict_obj, col1, col2, filename, to_reverse = True):
+        f = open(filename, 'w')
+        f.write("%s,%s\n"%(col1,col2))
+        for key in sorted(dict_obj, reverse=to_reverse):
+            f.write("%d,%d\n"%(key, dict_obj[key]))
+        f.close()
 
     write_to_csv(lengths, 'length', 'count', '../results/sqlshare/lengths.csv')
     write_to_csv(comp_lengths, 'comp_length', 'count', '../results/sqlshare/comp_lengths.csv')
@@ -592,6 +601,13 @@ def analyze_sqlshare(db):
     write_to_csv(exp_physical_ops, 'exp_physical_ops', 'count', '../results/sqlshare/exp_physical_ops.csv')
     write_to_csv(exp_distinct_physical_ops, 'exp_distinct_physical_ops', 'count', '../results/sqlshare/exp_distinct_physical_ops.csv')
     write_to_csv(table_coverage, 'query_id', 'tables', '../results/sqlshare/table_coverage.csv', to_reverse = False)
+    write_to_csv(query_graph, 'query', 'edges', '../results/sqlshare/query_graph.csv', to_reverse= False)
+
+    f = open('../results/sqlshare/query_graph.txt', 'w')
+    f.write("%s,%s\n"%('query','edges'))
+    for key in query_graph:
+        f.write("%s:%s\n"%(key, ','.join([x for x in query_graph[key]])))
+    f.close()
 
     f = open('../results/sqlshare/logical_ops_count.csv', 'w')
     f.write("%s,%s\n"%('logical_op','count'))
