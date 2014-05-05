@@ -339,7 +339,7 @@ def analyze_sdss(db):
 
     print
     print "Find recurring subtrees in distinct (template) queries:"
-    queries = db.query(dist_queries)
+    queries = db.query(expl_queries)
     find_recurring(queries)
 
     print
