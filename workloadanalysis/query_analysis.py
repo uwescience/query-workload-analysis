@@ -428,19 +428,23 @@ def analyze_sdss(db):
             key=lambda t: t[0]),
             headers=[name, "counts"])
 
-def write_to_csv(dict_obj, col1, col2, filename):
+def write_to_csv(dict_obj, col1, col2, filename, to_reverse = True):
     f = open(filename, 'w')
     f.write("%s,%s\n"%(col1,col2))
-    for key in sorted(dict_obj, reverse=True):
+    for key in sorted(dict_obj, reverse=to_reverse):
         f.write("%d,%d\n"%(key, dict_obj[key]))
     f.close()
 
 
 def analyze_sqlshare(db):
-    queries = list(db.query('SELECT * from sqlshare_logs where has_plan = 1'))
+    all_queries = list(db.query('SELECT * from sqlshare_logs where has_plan = 1'))
+    queries = list(db.query('SELECT query, plan, expanded_plan_ops_logical, expanded_plan_ops, ref_views from sqlshare_logs where has_plan = 1 group by query'))
     views = list(db.query('SELECT * FROM sqlshare_logs WHERE isView = 1'))
     explicit_implicit_joins(queries)
-    print '#Total queries with plan: ', len(queries)
+    print '#Total queries with plan: ', len(all_queries)
+    query_with_same_plan = list(db.query('SELECT Count(*) as count from (SELECT * from sqlshare_logs where has_plan = 1 group by simple_plan)'))
+    print '#Total string distinct queries:', len(queries)
+    print '#Total queries considering all constants the same:', query_with_same_plan[0]['count']
     lengths = Counter()
     comp_lengths = Counter()
     ops = Counter()
@@ -459,7 +463,7 @@ def analyze_sqlshare(db):
     exp_distinct_str_ops = Counter()
     touch = Counter()
     table_count = Counter()
-    time_taken = Counter()
+    #time_taken = Counter()
     dataset_touch = Counter()
     keywords_count = Counter()
     logical_ops_count = Counter()
@@ -473,8 +477,8 @@ def analyze_sqlshare(db):
         lengths[length] += 1
         comp_length = len(bz2.compress(q['query']))
         comp_lengths[comp_length] += 1
-        if q['isView'] == 0:
-            time_taken[q['runtime']] += 1
+        # if q['isView'] == 0:
+        #     time_taken[q['runtime']] += 1
 
         expanded_query = q['query']
         # calculating dataset touch and expanded query now.
@@ -572,12 +576,12 @@ def analyze_sqlshare(db):
     # write_to_csv(exp_distinct_str_ops, 'exp_distinct_str_ops', 'count', '../results/sqlshare/exp_distinct_str_ops.csv')
     write_to_csv(touch, 'touch', 'count', '../results/sqlshare/touch.csv')
     write_to_csv(dataset_touch, 'dataset_touch', 'count', '../results/sqlshare/dataset_touch.csv')
-    write_to_csv(time_taken, 'time_taken', 'count', '../results/sqlshare/time_taken.csv')
+    # write_to_csv(time_taken, 'time_taken', 'count', '../results/sqlshare/time_taken.csv')
     write_to_csv(physical_ops, 'physical_ops', 'count', '../results/sqlshare/physical_ops.csv')
     write_to_csv(distinct_physical_ops, 'distinct_physical_ops', 'count', '../results/sqlshare/distinct_physical_ops.csv')
     write_to_csv(exp_physical_ops, 'exp_physical_ops', 'count', '../results/sqlshare/exp_physical_ops.csv')
     write_to_csv(exp_distinct_physical_ops, 'exp_distinct_physical_ops', 'count', '../results/sqlshare/exp_distinct_physical_ops.csv')
-    write_to_csv(table_coverage, 'query_id', 'tables', '../results/sqlshare/table_coverage.csv')
+    write_to_csv(table_coverage, 'query_id', 'tables', '../results/sqlshare/table_coverage.csv', to_reverse = False)
 
     f = open('../results/sqlshare/logical_ops_count.csv', 'w')
     f.write("%s,%s\n"%('logical_op','count'))

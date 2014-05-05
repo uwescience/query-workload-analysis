@@ -1,33 +1,33 @@
 logical_op,count
-Clustered Index Scan,78451
-Aggregate,39894
-Clustered Index Seek,24422
-Compute Scalar,12846
-Inner Join,12437
-Sort,10114
-Right Outer Join,2199
-Filter,1760
-Distinct Sort,1749
-Concatenation,1666
-Left Outer Join,1483
-Lazy Spool,1060
-Segment,594
-Union,528
-Top,305
-Constant Scan,265
-TopN Sort,263
-Left Anti Semi Join,239
-Eager Spool,166
-Index Scan,117
-Right Anti Semi Join,110
-Full Outer Join,102
+Clustered Index Scan,73040
+Aggregate,39630
+Clustered Index Seek,23778
+Compute Scalar,12384
+Inner Join,11605
+Sort,9413
+Right Outer Join,2157
+Distinct Sort,1701
+Filter,1689
+Concatenation,1625
+Left Outer Join,1460
+Lazy Spool,1038
+Segment,529
+Union,518
+Top,288
+TopN Sort,256
+Constant Scan,242
+Left Anti Semi Join,221
+Eager Spool,163
+Right Anti Semi Join,102
+Index Scan,100
+Full Outer Join,100
 Left Semi Join,35
 Index Seek,28
 Flow Distinct,19
 Right Semi Join,19
 Table-valued function,18
-Assert,16
 Merge Interval,16
+Assert,15
 Insert,11
 Delete,10
 Update,9

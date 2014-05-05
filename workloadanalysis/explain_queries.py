@@ -97,6 +97,11 @@ def explain_sqlshare(config, database, quiet, first_pass, dry=False):
             print utils.json_pretty(query_plan)
 
         query['plan'] = json.dumps(query_plan, cls=utils.SetEncoder)
+        simple_query_plan = parse_xml.get_query_plans(
+            tree, cost=False, show_filters=True, consts=False)[0]
+
+        query['simple_plan'] = json.dumps(
+            simple_query_plan, cls=utils.SetEncoder, sort_keys=True)
 
         # indent tree and export as xml file
         parse_xml.indent(tree.getroot())
