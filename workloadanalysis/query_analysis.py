@@ -384,6 +384,8 @@ def analyze_sdss(db):
             for t in new_tables:
                 tables_seen.add(t)
             not_yet_seen_tables.append([i, len(new_tables)])
+        if not i % 10000:
+            print "Went over", i
 
     print
     print_table(not_yet_seen_tables, headers=['query_number', 'num_new_tables'])
