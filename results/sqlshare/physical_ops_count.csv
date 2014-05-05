@@ -1,28 +1,28 @@
 physical_op,count
-Compute Scalar,12487
 Clustered Index Scan,78451
-Merge Join,8231
-Top,305
-Segment,594
-Index Scan,117
-Sort,12058
 Stream Aggregate,38107
-Clustered Index Update,9
-Index Seek,28
-Assert,16
-Row Count Spool,289
-Filter,1760
-Table-valued function,18
-Constant Scan,265
-Clustered Index Insert,11
-Nested Loops,5233
-Hash Match,7301
-Table Spool,920
 Clustered Index Seek,24422
-Index Spool,176
-Clustered Index Delete,10
-Table Scan,6
-Sequence Project,376
-UDX,1
+Compute Scalar,12487
+Sort,12058
+Merge Join,8231
+Hash Match,7301
+Nested Loops,5233
+Filter,1760
+Table Spool,920
 Concatenation,911
+Segment,594
+Sequence Project,376
+Top,305
+Row Count Spool,289
+Constant Scan,265
+Index Spool,176
+Index Scan,117
+Index Seek,28
+Table-valued function,18
+Assert,16
 Merge Interval,16
+Clustered Index Insert,11
+Clustered Index Delete,10
+Clustered Index Update,9
+Table Scan,6
+UDX,1

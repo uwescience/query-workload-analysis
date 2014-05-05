@@ -428,59 +428,53 @@ def analyze_sdss(db):
             key=lambda t: t[0]),
             headers=[name, "counts"])
 
-def increment_element_count(element, dict_obj):
-    if element in dict_obj:
-        dict_obj[element] += 1
-    else:
-        dict_obj[element] = 1
-
 def write_to_csv(dict_obj, col1, col2, filename):
     f = open(filename, 'w')
     f.write("%s,%s\n"%(col1,col2))
-    for key in sorted(dict_obj):
+    for key in sorted(dict_obj, reverse=True):
         f.write("%d,%d\n"%(key, dict_obj[key]))
     f.close()
 
 
-def analyze_sqlshare(db, write_to_file = False):
-    if write_to_file:
-        f = open('ProcessedQueries_Sqlshare.csv', 'w')
-        f.write('Source|owner|Query|starttime|duration|length|comp_length|exp_length|comp_exp_lengths|ops|distinct_ops|exp_ops|exp_distinct_ops|keywords|distinct_keywords|expanded_keywords|exp_distinct_keywords|Touch\n')
+def analyze_sqlshare(db):
     queries = list(db.query('SELECT * from sqlshare_logs where has_plan = 1'))
     views = list(db.query('SELECT * FROM sqlshare_logs WHERE isView = 1'))
     explicit_implicit_joins(queries)
     print '#Total queries with plan: ', len(queries)
-    lengths = {}
-    comp_lengths = {}
-    ops = {}
-    distinct_ops = {}
-    physical_ops = {}
-    distinct_physical_ops = {}
-    exp_lengths = {}
-    exp_ops = {}
-    exp_distinct_ops = {}
-    exp_physical_ops = {}
-    exp_distinct_physical_ops = {}
-    comp_exp_lengths = {}
-    str_ops = {}
-    distinct_str_ops = {}
-    exp_str_ops = {}
-    exp_distinct_str_ops = {}
-    touch = {}
-    time_taken = {}
-    dataset_touch = {}
+    lengths = Counter()
+    comp_lengths = Counter()
+    ops = Counter()
+    distinct_ops = Counter()
+    physical_ops = Counter()
+    distinct_physical_ops = Counter()
+    exp_lengths = Counter()
+    exp_ops = Counter()
+    exp_distinct_ops = Counter()
+    exp_physical_ops = Counter()
+    exp_distinct_physical_ops = Counter()
+    comp_exp_lengths = Counter()
+    str_ops = Counter()
+    distinct_str_ops = Counter()
+    exp_str_ops = Counter()
+    exp_distinct_str_ops = Counter()
+    touch = Counter()
+    table_count = Counter()
+    time_taken = Counter()
+    dataset_touch = Counter()
+    keywords_count = Counter()
+    logical_ops_count = Counter()
+    physical_ops_count = Counter()
+    table_coverage = {}
 
-    keywords_count = {}
-    logical_ops_count = {}
-    physical_ops_count = {}
+    tables_seen_so_far = []
 
-    for q in queries:
+    for i,q in enumerate(queries):
         length = len(q['query'])
-        increment_element_count(length, lengths)
+        lengths[length] += 1
         comp_length = len(bz2.compress(q['query']))
-        increment_element_count(comp_length, comp_lengths)
+        comp_lengths[comp_length] += 1
         if q['isView'] == 0:
-            increment_element_count(q['runtime'], time_taken)
+            time_taken[q['runtime']] += 1
 
         expanded_query = q['query']
         # calculating dataset touch and expanded query now.
@@ -496,17 +490,17 @@ def analyze_sqlshare(db, write_to_file = False):
                 expanded_query = expanded_query.replace(v, '(' + ref_views[v] + ')')
 
             if (len(expanded_query) == previousLength):
-                increment_element_count(len(prev_ref_views), dataset_touch)
+                dataset_touch[len(prev_ref_views)] += 1
                 # this is wrong, count referenced datasets at each level, not just the final one.
                 break
 
         q_ex_ops = q['expanded_plan_ops_logical'].split(',')
-        increment_element_count(len(q_ex_ops), exp_ops)
-        increment_element_count(len(set(q_ex_ops)), exp_distinct_ops)
+        exp_ops[len(q_ex_ops)] += 1
+        exp_distinct_ops[len(set(q_ex_ops))] += 1
 
         q_ex_phy_ops = q['expanded_plan_ops'].split(',')
-        increment_element_count(len(q_ex_phy_ops), exp_physical_ops)
-        increment_element_count(len(set(q_ex_phy_ops)), exp_distinct_physical_ops)
+        exp_physical_ops[len(q_ex_phy_ops)]
+        exp_distinct_physical_ops[len(set(q_ex_phy_ops))]
 
         q_ops = q_ex_ops
         q_phy_ops = q_ex_phy_ops
@@ -522,45 +516,47 @@ def analyze_sqlshare(db, write_to_file = False):
                     if op in q_phy_ops:
                         q_phy_ops.remove(op)
 
-            #else:
-                #print 'No ops in view: ', view[0]['view']
-
-        increment_element_count(len(expanded_query), exp_lengths)
-        increment_element_count(len(bz2.compress(expanded_query)), comp_exp_lengths)
-        increment_element_count(len(q_ops), ops)
-        increment_element_count(len(set(q_ops)), distinct_ops)
-        increment_element_count(len(q_phy_ops), physical_ops)
-        increment_element_count(len(set(q_phy_ops)), distinct_physical_ops)
+        exp_lengths[len(expanded_query)] += 1
+        comp_exp_lengths[len(bz2.compress(expanded_query))] += 1
+        ops[len(q_ops)] += 1
+        distinct_ops[len(set(q_ops))] += 1
+        physical_ops[len(q_phy_ops)] += 1
+        distinct_physical_ops[len(set(q_phy_ops))] += 1
 
         for op in q_ops:
-            increment_element_count(op, logical_ops_count)
+            logical_ops_count[op] += 1
 
         for op in q_phy_ops:
-            increment_element_count(op, physical_ops_count)
+            physical_ops_count[op] += 1
 
 
-        if '--' in q['query']:
-            pass
-        else:
-            tokens = sqltokens.get_tokens(q['query'])
-            increment_element_count(len(tokens), str_ops)
-            for keyword in tokens:
-                increment_element_count(keyword, keywords_count)
-            increment_element_count(len(set(tokens)), distinct_str_ops)
-            ex_tokens = sqltokens.get_tokens(expanded_query)
-            increment_element_count(len(ex_tokens), exp_str_ops)
-            increment_element_count(len(set(ex_tokens)), exp_distinct_str_ops)
+        # if '--' in q['query']:
+        #     pass
+        # else:
+        #     tokens = sqltokens.get_tokens(q['query'])
+        #     str_ops[len(tokens)] += 1
+        #     for keyword in tokens:
+        #         keywords_count[keyword] += 1
+        #     distinct_str_ops[len(set(tokens))] += 1
+        #     ex_tokens = sqltokens.get_tokens(expanded_query)
+        #     exp_str_ops[len(ex_tokens)] += 1
+        #     exp_distinct_str_ops[len(set(ex_tokens))] += 1
 
         plan = json.loads(q['plan'])
         tables = visit_operators(plan, visitor_tables)
-        increment_element_count(len(tables), touch)
+        tables = set(tables)
+        touch[len(tables)] += 1
+        # if len(set(tables)) > 50 and len(set(tables)) < 75:
+        #     print q['id'] 
+        #     print set(tables)
+        for t in tables:
+            table_count[t] += 1
 
-        #'Source|owner|Query|starttime|duration|length|comp_length|exp_length|comp_exp_lengths|
-        #ops|distinct_ops|exp_ops|exp_distinct_ops|keywords|distinct_keywords|expanded_keywords|exp_distinct_keywords|Touch\n'
-        if write_to_file:
-            f.write('%s|%s|%s|%s|%s|%f|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d\n'%
-                ('sqlshare',q['owner'], q['query'], q['time_start'],q['runtime'],lengths[-1], comp_lengths[-1], exp_lengths[-1], comp_exp_lengths[-1],
-                    ops[-1],distinct_ops[-1],exp_ops[-1],exp_distinct_ops[-1],str_ops[-1],distinct_str_ops[-1],exp_str_ops[-1],exp_distinct_str_ops[-1],touch[-1]))
+        for t in tables:
+            if t not in tables_seen_so_far:
+                tables_seen_so_far.append(t)
+
+        table_coverage[i] = len(tables_seen_so_far)
 
     write_to_csv(lengths, 'length', 'count', '../results/sqlshare/lengths.csv')
     write_to_csv(comp_lengths, 'comp_length', 'count', '../results/sqlshare/comp_lengths.csv')
@@ -570,10 +566,10 @@ def analyze_sqlshare(db, write_to_file = False):
     write_to_csv(distinct_ops, 'distinct_ops', 'count', '../results/sqlshare/distinct_ops.csv')
     write_to_csv(exp_ops, 'exp_ops', 'count', '../results/sqlshare/exp_ops.csv')
     write_to_csv(exp_distinct_ops, 'exp_distinct_ops', 'count', '../results/sqlshare/exp_distinct_ops.csv')
-    write_to_csv(str_ops, 'str_ops', 'count', '../results/sqlshare/str_ops.csv')
-    write_to_csv(distinct_str_ops, 'distinct_str_ops', 'count', '../results/sqlshare/distinct_str_ops.csv')
-    write_to_csv(exp_str_ops, 'exp_str_ops', 'count', '../results/sqlshare/exp_str_ops.csv')
-    write_to_csv(exp_distinct_str_ops, 'exp_distinct_str_ops', 'count', '../results/sqlshare/exp_distinct_str_ops.csv')
+    # write_to_csv(str_ops, 'str_ops', 'count', '../results/sqlshare/str_ops.csv')
+    # write_to_csv(distinct_str_ops, 'distinct_str_ops', 'count', '../results/sqlshare/distinct_str_ops.csv')
+    # write_to_csv(exp_str_ops, 'exp_str_ops', 'count', '../results/sqlshare/exp_str_ops.csv')
+    # write_to_csv(exp_distinct_str_ops, 'exp_distinct_str_ops', 'count', '../results/sqlshare/exp_distinct_str_ops.csv')
     write_to_csv(touch, 'touch', 'count', '../results/sqlshare/touch.csv')
     write_to_csv(dataset_touch, 'dataset_touch', 'count', '../results/sqlshare/dataset_touch.csv')
     write_to_csv(time_taken, 'time_taken', 'count', '../results/sqlshare/time_taken.csv')
@@ -581,41 +577,31 @@ def analyze_sqlshare(db, write_to_file = False):
     write_to_csv(distinct_physical_ops, 'distinct_physical_ops', 'count', '../results/sqlshare/distinct_physical_ops.csv')
     write_to_csv(exp_physical_ops, 'exp_physical_ops', 'count', '../results/sqlshare/exp_physical_ops.csv')
     write_to_csv(exp_distinct_physical_ops, 'exp_distinct_physical_ops', 'count', '../results/sqlshare/exp_distinct_physical_ops.csv')
+    write_to_csv(table_coverage, 'query_id', 'tables', '../results/sqlshare/table_coverage.csv')
 
     f = open('../results/sqlshare/logical_ops_count.csv', 'w')
     f.write("%s,%s\n"%('logical_op','count'))
-    for key in logical_ops_count:
+    for key in sorted(logical_ops_count, key=logical_ops_count.get, reverse=True):
         f.write("%s,%d\n"%(key, logical_ops_count[key]))
     f.close()
 
     f = open('../results/sqlshare/physical_ops_count.csv', 'w')
     f.write("%s,%s\n"%('physical_op','count'))
-    for key in physical_ops_count:
+    for key in sorted(physical_ops_count, key=physical_ops_count.get, reverse=True):
         f.write("%s,%d\n"%(key, physical_ops_count[key]))
     f.close()
 
-    f = open('../results/sqlshare/keywords_count.csv', 'w')
-    f.write("%s,%s\n"%('keyword','count'))
-    for key in keywords_count:
-        f.write("%s,%d\n"%(key, keywords_count[key]))
+    f = open('../results/sqlshare/table_count.csv', 'w')
+    f.write("%s,%s\n"%('table','count'))
+    for key in sorted(table_count, key=table_count.get, reverse=True):
+        f.write("%s,%d\n"%(key.replace(',','``'), table_count[key])) #some wierd table names have comma
     f.close()
-    # print 'lengths = ', lengths
-    # print 'comp_lengths = ', comp_lengths
-    # print 'exp_lengths = ', exp_lengths
-    # print 'comp_exp_lengths = ', comp_exp_lengths
 
-    # print 'ops = ', ops
-    # print 'distinct_ops = ', distinct_ops
-    # print 'exp_ops = ', exp_ops
-    # print 'exp_distinct_ops = ', exp_distinct_ops
-
-    # print 'str_ops = ', str_ops
-    # print 'distinct_str_ops = ', distinct_str_ops
-    # print 'exp_str_ops = ', exp_str_ops
-    # print 'exp_distinct_str_ops = ', exp_distinct_str_ops
-    # print 'touch = ', touch
-    if write_to_file:
-        f.close()
+    # f = open('../results/sqlshare/keywords_count.csv', 'w')
+    # f.write("%s,%s\n"%('keyword','count'))
+    # for key in sorted(keywords_count, key=keywords_count.get, reverse=True):
+    #     f.write("%s,%d\n"%(key.replace(',','``'), keywords_count[key]))
+    # f.close()
 
 
 def analyze(database, sdss):
@@ -626,7 +612,7 @@ def analyze(database, sdss):
     if sdss:
         analyze_sdss(db)
     else:
-        analyze_sqlshare(db, write_to_file=False)
+        analyze_sqlshare(db)
 
 
 if __name__ == '__main__':
