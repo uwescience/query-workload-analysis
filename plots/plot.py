@@ -286,14 +286,18 @@ def new_tables_cdf():
     data = read_csv(['query_number', 'num_new_tables'], True)
     c = data['num_new_tables'].astype(float)
     c /= sum(c)
-    ppl.plot(ax, data['query_number'], np.cumsum(c), label="SDSS", color=cs[0], linewidth=2, ls='-.', drawstyle='steps-post')
-    ppl.scatter(ax, data['query_number'], np.cumsum(c), color=cs[0], marker="o", s=100)
+    q = data['query_number'].astype(float)
+    q /= q[-1]
+    ppl.plot(ax, q, np.cumsum(c), label="SDSS", color=cs[0], linewidth=2, ls='-.', drawstyle='steps-post')
+    ppl.scatter(ax, q, np.cumsum(c), color=cs[0], marker="o", s=100)
 
     data = read_csv(['table_coverage'], False)
     c = data['tables'].astype(float)
-    c /= sum(c)
-    ppl.plot(ax, data['query_id'], np.cumsum(c), label="SQLShare", color=cs[1], linewidth=2, ls='-.', drawstyle='steps-post')
-    ppl.scatter(ax, data['query_id'], np.cumsum(c), color=cs[1], marker="o", s=100)
+    c /= c[-1]
+    q = data['query_id'].astype(float)
+    q /= q[-1]
+    ppl.plot(ax, q, c, label="SQLShare", color=cs[1], linewidth=2, ls='-.', drawstyle='steps-post')
+    ppl.scatter(ax, q, c, color=cs[1], marker="o", s=100)
 
     ppl.legend(ax, loc='lower right')
 
@@ -310,31 +314,6 @@ def new_tables_cdf():
     plt.show()
 
     fig.savefig('num_new_tables.pdf', format='pdf', transparent=True)
-
-def new_tables_cdf_sqlshare():
-    fig, ax = plt.subplots(1)
-
-    data = read_csv(['table_coverage'], False)
-    c = data['tables'].astype(float)
-    c /= sum(c)
-    ppl.plot(ax, data['query_id'], np.cumsum(c), label="SQLShare", color=cs[0], linewidth=2, ls='-.', drawstyle='steps-post')
-    ppl.scatter(ax, data['query_id'], np.cumsum(c), color=cs[0], marker="o", s=100)
-
-    ppl.legend(ax, loc='lower right')
-
-    plt.gca().yaxis.set_major_formatter(formatter)
-
-    ax.set_xlabel('Query number')
-    ax.set_ylabel('% of newly used table')
-
-    # ax.set_ylim(0, 1.01)
-    # ax.set_xlim(0, 215000)
-
-    ax.yaxis.grid()
-
-    plt.show()
-
-    fig.savefig('num_new_tables_sqlshare.pdf', format='pdf', transparent=True)
 
 if __name__ == '__main__':
     plt.rc('font', family='serif')
