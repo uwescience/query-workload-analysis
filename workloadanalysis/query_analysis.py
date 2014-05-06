@@ -437,14 +437,14 @@ def analyze_sdss(db):
 
 
 def analyze_sqlshare(db):
-    distinct_q = 'SELECT plan from sqlshare_logs where has_plan = 1 group by query'
-    print "Find recurring subtrees in distinct queries:"
-    q = db.query(distinct_q)
-    find_recurring(q, sdss=False)
+    # distinct_q = 'SELECT plan from sqlshare_logs where has_plan = 1 group by query'
+    # print "Find recurring subtrees in distinct queries:"
+    # q = db.query(distinct_q)
+    # find_recurring(q, sdss=False)
 
-    print "Find recurring subtrees in distinct queries (using subset check):"
-    q = db.query(distinct_q)
-    find_recurring_subset(q)
+    # print "Find recurring subtrees in distinct queries (using subset check):"
+    # q = db.query(distinct_q)
+    # find_recurring_subset(q)
 
     all_queries = list(db.query('SELECT * from sqlshare_logs where has_plan = 1'))
     queries = list(db.query('SELECT query, plan, expanded_plan_ops_logical, expanded_plan_ops, ref_views from sqlshare_logs where has_plan = 1 group by query'))
@@ -574,12 +574,20 @@ def analyze_sqlshare(db):
         table_coverage[i] = len(tables_seen_so_far)
 
     # Calculating query graph.
+    f = open('../results/sqlshare/query_connect.dot', 'w')
+    f.write('Graph query_graph {\n')
+    for i in range(len(queries)):
+        f.write("%d;\n"%(i))
     query_graph = defaultdict(list)
     for i, q in enumerate(queries):
         for j in range(i+1, len(queries)):
             if len(tables_in_query[i].intersection(tables_in_query[j])) > 0:
+                f.write("%d -- %d;\n"%(i,j))
                 query_graph[i].append(j)
                 query_graph[j].append(i)
+
+    f.write('}')
+    f.close()
 
     def write_to_csv(dict_obj, col1, col2, filename, to_reverse = True):
         f = open(filename, 'w')
@@ -608,12 +616,11 @@ def analyze_sqlshare(db):
     write_to_csv(exp_physical_ops, 'exp_physical_ops', 'count', '../results/sqlshare/exp_physical_ops.csv')
     write_to_csv(exp_distinct_physical_ops, 'exp_distinct_physical_ops', 'count', '../results/sqlshare/exp_distinct_physical_ops.csv')
     write_to_csv(table_coverage, 'query_id', 'tables', '../results/sqlshare/table_coverage.csv', to_reverse = False)
-    write_to_csv(query_graph, 'query', 'edges', '../results/sqlshare/query_graph.csv', to_reverse= False)
 
     f = open('../results/sqlshare/query_graph.txt', 'w')
     f.write("%s,%s\n"%('query','edges'))
     for key in query_graph:
-        f.write("%s:%s\n"%(key, ','.join([x for x in query_graph[key]])))
+        f.write("%d|%s\n"%(key, ','.join([str(x) for x in query_graph[key]])))
     f.close()
 
     f = open('../results/sqlshare/logical_ops_count.csv', 'w')
