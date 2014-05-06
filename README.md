@@ -54,7 +54,7 @@ CREATE TABLE logs AS SELECT * FROM everything WHERE db='BestDR5';
 -- logs distinct by query
 CREATE TABLE distinctlogs AS SELECT min(id) id, query, count(*) count FROM logs WHERE NOT error GROUP BY query;
 
--- logs explained with count from distinctlogs
+-- logs explained (which is a subset of the rows of distinctlogs) with count from distinctlogs
 CREATE VIEW explained AS SELECT logs.*, distinctlogs.count FROM logs, distinctlogs WHERE logs.has_plan AND logs.query = distinctlogs.query;
 
 -- view with all logs from bestdr5 but explained
