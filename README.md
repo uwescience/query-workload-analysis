@@ -48,14 +48,20 @@ You should be able to run `qwla --help`.
 
 To speed up analysis, a few vies should be created. Since postgres <9.3 does not support materialized views, we can also make copies.
 
-```
+```sql
 CREATE TABLE logs AS SELECT * FROM everything WHERE db='BestDR5';
 
-CREATE TABLE distinctlogs AS SELECT min(id) id, query FROM logs WHERE not error GROUP BY query;
+-- logs distinct by query
+CREATE TABLE distinctlogs AS SELECT min(id) id, query, count(*) count FROM logs WHERE NOT error GROUP BY query;
 
-CREATE VIEW explained AS SELECT * FROM logs WHERE has_plan;
+-- logs explained with count from distinctlogs
+CREATE VIEW explained AS SELECT logs.*, distinctlogs.count FROM logs, distinctlogs WHERE logs.has_plan AND logs.query = distinctlogs.query;
 
-CREATE VIEW uniqueplans AS SELECT * FROM explained WHERE id in (SELECT min(id) id from explained GROUP BY simple_plan);
+-- view with all logs from bestdr5 but explained
+CREATE VIEW logs_explained AS SELECT logs.query, logs.time_start, explained.plan FROM logs, explained WHERE logs.query = explained.query;
+
+-- logs distinct by query template
+CREATE VIEW uniqueplans AS SELECT * FROM logs WHERE id in (SELECT min(id) id from explained GROUP BY simple_plan);
 ```
 
 
