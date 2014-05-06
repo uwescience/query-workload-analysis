@@ -1,0 +1,6 @@
+count,error msg
+4924912,ERROR: Maximum 60 queries allowed per minute. Rejected query:
+1869,error: must be a select statement:
+546,
+27,error: limit is  top 100000
+4,error: limit is  top 500000
