@@ -577,7 +577,7 @@ def analyze_sqlshare(db):
     f = open('../results/sqlshare/query_connect.dot', 'w')
     f.write('Graph query_graph {\n')
     for i in range(len(queries)):
-        f.write("%d;\n"%(i))
+        f.write("%d [label=\"%d\"];\n"%(i,i))
     query_graph = defaultdict(list)
     for i, q in enumerate(queries):
         for j in range(i+1, len(queries)):
