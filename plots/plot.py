@@ -307,7 +307,7 @@ def new_tables_cdf():
     ax.set_ylabel('% of newly used table')
 
     ax.set_ylim(0, 1.01)
-    ax.set_xlim(0)
+    ax.set_xlim(0, 1)
 
     ax.yaxis.grid()
 
