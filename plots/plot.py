@@ -348,5 +348,5 @@ if __name__ == '__main__':
     # logical_ops_sqlshare()
     # runtime_cdf()
     # opcounts()
-    # new_tables_cdf()
-    new_tables_cdf_sqlshare()
+    new_tables_cdf()
+    # new_tables_cdf_sqlshare()
