@@ -59,6 +59,7 @@ def query_length_cdf():
     plt.show()
 
     fig.savefig('plot_lengths.pdf', format='pdf', transparent=True)
+    fig.savefig('plot_lengths.png', format='png', transparent=True)
 
 
 def runtime_cdf():
@@ -101,9 +102,10 @@ def runtime_cdf():
     plt.show()
 
     fig.savefig('plot_runtimes_cdf.pdf', format='pdf', transparent=True)
+    fig.savefig('plot_runtimes_cdf.png', format='png', transparent=True)
 
 
-def table_touch():
+def table_touch(dataset = True):
     fig, ax = plt.subplots(1)
 
     ax.set_yscale('log')
@@ -112,8 +114,12 @@ def table_touch():
     #ppl.bar(ax, range(len(data['touch'])), data['counts'], xticklabels=data['touch'], grid='y', log=True)
     ppl.scatter(ax, data['touch'], data['counts'], label="SDSS", marker="o", s=100)
 
-    data = read_csv(['dataset_touch'], False)
-    ppl.scatter(ax, data['dataset_touch'], data['count'], label="SQLShare (Dataset)", marker="v", s=100)
+    if dataset:
+        data = read_csv(['dataset_touch'], False)
+        ppl.scatter(ax, data['dataset_touch'], data['count'], label="SQLShare (Dataset)", marker="v", s=100)
+    else:
+        data = read_csv(['touch'], False)
+        ppl.scatter(ax, data['touch'], data['count'], label="SQLShare", marker="v", s=100)
 
     ax.set_xlabel('Table touch')
     ax.set_ylabel('# of queries')
@@ -124,7 +130,13 @@ def table_touch():
 
     plt.show()
 
-    fig.savefig('plot_touch_sdss.pdf', format='pdf', transparent=True)
+    if dataset:
+        fig.savefig('plot_touch_dataset.pdf', format='pdf', transparent=True)
+        fig.savefig('plot_touch_dataset.png', format='png', transparent=True)
+    else:
+        fig.savefig('plot_touch.pdf', format='pdf', transparent=True)
+        fig.savefig('plot_touch.png', format='png', transparent=True)
+
 
 
 def dataset_touch():
@@ -139,10 +151,11 @@ def dataset_touch():
     plt.show()
 
     fig.savefig('plot_datasettouch_sqlshare.pdf', format='pdf', transparent=True)
+    fig.savefig('plot_datasettouch_sqlshare.png', format='png', transparent=True)
 
 
 def table_touch_cdf():
-    fig, [ax1, ax2] = plt.subplots(1, 2, sharey=True, figsize=(8, 4))
+    fig, [ax2, ax1] = plt.subplots(1, 2, sharey=True, figsize=(8, 4))
 
     data = read_csv(['touch'], False)
     data.sort(order='touch')
@@ -181,6 +194,7 @@ def table_touch_cdf():
     plt.show()
 
     fig.savefig('plot_touch_cdf.pdf', format='pdf', transparent=True)
+    fig.savefig('plot_touch_cdf.png', format='png', transparent=True)
 
 
 def physical_ops():
@@ -207,7 +221,33 @@ def physical_ops():
     plt.show()
 
     fig.savefig('plot_physops_sdss.pdf', format='pdf', transparent=True)
+    fig.savefig('plot_physops_sdss.png', format='png', transparent=True)
 
+def physical_ops_sqlshare():
+    fig, ax = plt.subplots(1, figsize=(8, 4))
+
+    data = read_csv(['physical_ops', 'count'], False)
+    data.sort(order='count')
+    #data = data[-14:]
+
+    c = data['count'].astype(float)
+    c /= sum(c)
+    c *= 100
+    ypos = np.arange(len(data['physical_op']))
+    ppl.barh(ax, ypos, c, yticklabels=data['physical_op'], grid='x', annotate=True)
+
+    #ax.set_ylabel('Physical operator')
+    ax.set_xlabel('% of queries')
+
+    #plt.subplots_adjust(bottom=.2, left=.3, right=.99, top=.9, hspace=.35)
+
+    fig.tight_layout(rect=[0.03, 0, 1, 1])
+    fig.text(0.02, 0.55, 'Physical operator', rotation=90, va='center')
+
+    plt.show()
+
+    fig.savefig('plot_physops_sqlshare.pdf', format='pdf', transparent=True)
+    fig.savefig('plot_physops_sqlshare.png', format='png', transparent=True)
 
 def logical_ops_sdss():
     fig, ax = plt.subplots(1, figsize=(8, 4))
@@ -233,6 +273,7 @@ def logical_ops_sdss():
     plt.show()
 
     fig.savefig('plot_logops_sdss.pdf', format='pdf', transparent=True)
+    fig.savefig('plot_logops_sdss.png', format='png', transparent=True)
 
 
 def logical_ops_sqlshare():
@@ -259,6 +300,7 @@ def logical_ops_sqlshare():
     plt.show()
 
     fig.savefig('plot_logops_sqlshare.pdf', format='pdf', transparent=True)
+    fig.savefig('plot_logops_sqlshare.png', format='png', transparent=True)
 
 
 def opcounts():
@@ -278,6 +320,7 @@ def opcounts():
     plt.show()
 
     fig.savefig('plot_logops_query.pdf', format='pdf', transparent=True)
+    fig.savefig('plot_logops_query.png', format='png', transparent=True)
 
 
 def new_tables_cdf():
@@ -314,18 +357,20 @@ def new_tables_cdf():
     plt.show()
 
     fig.savefig('num_new_tables.pdf', format='pdf', transparent=True)
+    fig.savefig('num_new_tables.png', format='png', transparent=True)
 
 if __name__ == '__main__':
     plt.rc('font', family='serif')
 
-    # query_length_cdf()
-    # table_touch()
-    # dataset_touch()
-    # table_touch_cdf()
-    # physical_ops()
-    # logical_ops_sdss()
-    # logical_ops_sqlshare()
-    # runtime_cdf()
-    # opcounts()
+    query_length_cdf()
+    table_touch()
+    table_touch(dataset=False)
+    table_touch_cdf()
+    physical_ops()
+    physical_ops_sqlshare()
+    logical_ops_sdss()
+    logical_ops_sqlshare()
+    runtime_cdf()
+    opcounts()
     new_tables_cdf()
     # new_tables_cdf_sqlshare()
