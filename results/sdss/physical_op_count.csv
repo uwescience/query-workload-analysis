@@ -4,19 +4,19 @@ Clustered Index Seek,152349
 Nested Loops,132625
 Sort,116994
 Index Seek,70016
-Clustered Index Scan,61906
+Clustered Index Scan,61909
 Table Scan,61796
 Sequence,61796
 Table-valued function,61796
-Top,42751
+Top,42754
 Constant Scan,12935
-Index Scan,1395
-Filter,1378
+Index Scan,1396
+Filter,1379
 Concatenation,593
 Merge Interval,588
 Stream Aggregate,197
 Parallelism,89
+Hash Match,49
 Table Spool,48
-Hash Match,48
 Merge Join,10
 Row Count Spool,6

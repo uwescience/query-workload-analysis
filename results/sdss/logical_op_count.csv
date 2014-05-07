@@ -1,17 +1,17 @@
 logical op,count
 Compute Scalar,167150
 Clustered Index Seek,152349
-Inner Join,132648
+Inner Join,132649
 TopN Sort,116862
 Index Seek,70016
-Clustered Index Scan,61906
+Clustered Index Scan,61909
 Table-valued function,61796
 Table Scan,61796
 Sequence,61796
-Top,42751
+Top,42754
 Constant Scan,12935
-Index Scan,1395
-Filter,1378
+Index Scan,1396
+Filter,1379
 Concatenation,593
 Merge Interval,588
 Aggregate,200

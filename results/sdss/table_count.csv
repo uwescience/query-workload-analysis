@@ -1,6 +1,6 @@
 table,count
-PhotoObjAll,310127
-SpecPhotoAll,180949
+PhotoObjAll,310128
+SpecPhotoAll,180951
 fGetNearbyObjEq,122772
 SpecObjAll,6896
 SpecLineAll,6037
@@ -25,12 +25,12 @@ PlateX,31
 fFootprintEq,20
 RC3,9
 fGetNearestObjEq,4
+Segment,3
 QsoCatalogAll,3
 First,3
 Neighbors,3
 DBColumns,3
 RunQA,3
-Segment,2
 fGetNearestObjAllEq,2
 SiteConstants,2
 sysscalartypes,2
