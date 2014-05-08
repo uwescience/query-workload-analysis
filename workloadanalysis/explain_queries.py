@@ -123,6 +123,12 @@ def explain_sqlshare(config, database, quiet, first_pass, dry=False):
     print "Error: {0} \%".format(len(errors)*100.0/len(queries))
 
 
+def get_op_tree(tree, optree, indent=0):
+    optree[0] += ' ' * indent + tree['operator'] + '\n'
+    for child in sorted(tree['children'], key=lambda x: x['operator']):
+        get_op_tree(child, optree, indent + 1)
+
+
 def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset=0):
     """Explain queries and store the results in database
     """
@@ -238,6 +244,10 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
             if not quiet:
                 print utils.json_pretty(simple_query_plan)
 
+            optree = ['']
+            get_op_tree(simple_query_plan, optree)
+            query['optree'] = optree[0]
+
             batch.append(query)
 
             if len(batch) > BATCH_SIZE and not dry:
@@ -352,6 +362,10 @@ def explain_tpch(config, database, quiet=False, dry=False):
 
             q['simple_plan'] = json.dumps(
                 simple_query_plan, cls=utils.SetEncoder, sort_keys=True)
+
+            optree = ['']
+            get_op_tree(simple_query_plan, optree)
+            q['optree'] = optree[0]
 
             if not dry:
                 table.upsert(q, ['id'])
