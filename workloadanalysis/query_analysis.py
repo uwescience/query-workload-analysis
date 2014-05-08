@@ -429,9 +429,9 @@ def analyze_sdss(db):
 
         distinct_ops[len(set(log_ops))] += 1
 
-        if len(tables):
-            # only valid sdss tables
-            table_set = set([x.lower() for x in tables]) & set(SDSS_TABLES)
+        # only valid sdss tables
+        table_set = set([x.lower() for x in tables]) & set(SDSS_TABLES)
+        if len(table_set):
             equal = []
             for i, c in enumerate(table_clusters):
                 if c.intersection(table_set):
@@ -470,7 +470,7 @@ def analyze_sdss(db):
         headers=["string_op", "count"])
 
     print_table(sorted(
-        table_clusters,
+        [[str(list(x))] for x in table_clusters],
         key=lambda t: len(t), reverse=True),
         headers=["table_cluster"])
 
