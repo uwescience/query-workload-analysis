@@ -394,6 +394,7 @@ def analyze_sdss(db):
     actual = Counter()
     tables_seen = set()
     which_str_ops = Counter()
+    which_tables = Counter()
 
     table_clusters = []
 
@@ -432,6 +433,10 @@ def analyze_sdss(db):
         # only valid sdss tables
         table_set = set([x.lower() for x in tables]) & set(SDSS_TABLES)
         if len(table_set):
+
+            for table in table_set:
+                which_tables[table] += 1
+
             equal = []
             for i, c in enumerate(table_clusters):
                 if c.intersection(table_set):
@@ -475,8 +480,8 @@ def analyze_sdss(db):
         headers=["table_cluster"])
 
     for name, values in zip(
-        ['lengths', 'compressed lengths', 'logops', 'physops', 'distinct ops', 'string ops', 'distinct string ops', 'touch', 'estimated', 'actual'],
-        [lengths, compressed_lengths, logops, physops, distinct_ops, str_ops, distinct_str_ops, touch, estimated, actual]):
+        ['lengths', 'compressed lengths', 'logops', 'physops', 'distinct ops', 'string ops', 'distinct string ops', 'touch', 'estimated', 'actual', 'which_tables'],
+        [lengths, compressed_lengths, logops, physops, distinct_ops, str_ops, distinct_str_ops, touch, estimated, actual, which_tables]):
         print
         print_table(sorted(
             values.iteritems(),
