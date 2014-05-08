@@ -274,8 +274,6 @@ def explain_tpch(config, database, quiet=False, dry=False):
     datasetdb = None
     table = None
 
-    query = "SELECT * from tpchqueries"
-
     if database:
         datasetdb = dataset.connect(database)
         table = datasetdb['tpchqueries']
@@ -283,8 +281,6 @@ def explain_tpch(config, database, quiet=False, dry=False):
         dry = True
 
     errors = []
-
-    print len(tpchqueries.queries)
 
     for i, query in enumerate(tpchqueries.queries):
         with db.connect() as connection:
@@ -294,7 +290,7 @@ def explain_tpch(config, database, quiet=False, dry=False):
             connection.execute('set showplan_xml on')
             connection.execute('set noexec on')
 
-            print "Explain query", i,
+            print "Explain query", i
 
             try:
                 qu = query.replace('[','"').replace(']','"')

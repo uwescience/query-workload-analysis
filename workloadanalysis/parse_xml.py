@@ -140,10 +140,9 @@ def operator_tree(root, cost, show_filters, parameters):
 
                 sos = list(set(sos) - set(nosos))
 
-                if len(sos) == 1:
-                    so = sos[0]
-                    if 'ScalarString' in so.attrib:
-                        s = so.attrib['ScalarString']
+                if all('ScalarString' in so.attrib for so in sos):
+                    # TPCH 1
+                    s = ' AND '.join(so.attrib['ScalarString'] for so in sos)
 
                 if not s:
                     # objects to compare
