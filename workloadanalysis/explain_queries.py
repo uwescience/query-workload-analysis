@@ -343,6 +343,16 @@ def explain_tpch(config, database, quiet=False, dry=False):
             q['estimated_cost'] = query_plan['total']
             q['has_plan'] = True
 
+            # plan for uniqueness, clustering happening here
+            simple_query_plan = parse_xml.get_query_plans(
+                tree, cost=False, show_filters=True, consts=False)[0]
+
+            if not quiet:
+                print utils.json_pretty(simple_query_plan)
+
+            q['simple_plan'] = json.dumps(
+                simple_query_plan, cls=utils.SetEncoder, sort_keys=True)
+
             if not dry:
                 table.upsert(q, ['id'])
 
