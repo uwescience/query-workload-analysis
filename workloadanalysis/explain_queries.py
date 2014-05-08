@@ -6,6 +6,7 @@ import sqlalchemy as sa
 import parse_xml
 import query_analysis
 import utils
+import tpchqueries
 
 EXAMPLE = [{'id': 42, 'has_plan': False, 'query': '''
 SELECT  top 1   p.objID, p.run,
@@ -256,6 +257,104 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
         datasetdb.commit()
 
     print "Errors", errors
+
+
+def explain_tpch(config, database, quiet=False, dry=False):
+    """Explain queries and store the results in database
+    """
+    connection_string = 'mssql+pymssql://%s:%s@%s:%s/%s?charset=UTF-8' % (
+                        config['user'],
+                        config['password'],
+                        config['server'],
+                        config['port'],
+                        config['db'])
+
+    db = sa.create_engine(connection_string, echo=(not quiet))
+
+    datasetdb = None
+    table = None
+
+    query = "SELECT * from tpchqueries"
+
+    if database:
+        datasetdb = dataset.connect(database)
+        table = datasetdb['tpchqueries']
+    else:
+        dry = True
+
+    errors = []
+
+    print len(tpchqueries.queries)
+
+    for i, query in enumerate(tpchqueries.queries):
+        with db.connect() as connection:
+            # clean cache to refresh constant values
+            connection.execute('DBCC FREEPROCCACHE WITH NO_INFOMSGS')
+
+            connection.execute('set showplan_xml on')
+            connection.execute('set noexec on')
+
+            print "Explain query", i,
+
+            try:
+                qu = query.replace('[','"').replace(']','"')
+                qu = qu.replace('SET PARSEONLY ON ', '')
+                res = connection.execute(qu).fetchall()[0]
+            except Exception as e:
+                errors.append(str(e))
+                print str(e)
+                print '==> execute error'
+                if 'closed automatically' in str(e):
+                    raise
+                continue
+
+            xml_string = "".join([x for x in res])
+            tree = parse_xml.clean(xml_string)
+
+            if not quiet:
+                print "==> query:", query
+                print
+
+            # indent tree and export as xml file
+            if not quiet:
+                parse_xml.indent(tree.getroot())
+                tree.write(sys.stdout)
+            # tree.write('clean_{}.xml'.format(i))
+
+            # get the simplified query plan as dictionary
+            query_plans = parse_xml.get_query_plans(
+                tree, cost=True, show_filters=True)
+            if len(query_plans) == 0:
+                errors.append("No query plan found")
+                print '==> no query_plan'
+                continue
+            if len(query_plans) > 1:
+                errors.append("Found two query plans")
+                print '==> multiple query_plan'
+                continue
+
+            query_plan = query_plans[0]
+
+            q = {
+                'query': query,
+                'id': i
+            }
+
+            if not quiet:
+                print utils.json_pretty(query_plan)
+            q['plan'] = json.dumps(query_plan, cls=utils.SetEncoder, sort_keys=True)
+
+            q['estimated_cost'] = query_plan['total']
+            q['has_plan'] = True
+
+            if not dry:
+                table.upsert(q, ['id'])
+
+            connection.execute('set showplan_xml off')
+            connection.execute('set noexec off')
+
+    print "Errors", errors
+
 
 if __name__ == '__main__':
     config = {}

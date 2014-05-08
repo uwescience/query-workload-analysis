@@ -3,7 +3,7 @@
 Usage:
     qwla (sdss|sqlshare) consume INPUT... [-d DATABASE] [-v]
     qwla (sdss|sqlshare) summarize [-d DATABASE]
-    qwla (sdss|sqlshare) explain CONFIG [-q] [-d DATABASE] [--dry] [--second] [-s SEGMENT NUMBER] [-o OFFSET]
+    qwla (sdss|sqlshare|tpch) explain CONFIG [-q] [-d DATABASE] [--dry] [--second] [-s SEGMENT NUMBER] [-o OFFSET]
     qwla (sdss|sqlshare) analyze [-d DATABASE]
     qwla (-h | --help)
     qwla --version
@@ -61,6 +61,9 @@ def main():
         if arguments['sdss']:
             explain_queries.explain_sdss(
                 config, db, arguments['-q'], segments, arguments['--dry'], arguments['-o'])
+        elif arguments['tpch']:
+            explain_queries.explain_tpch(
+                config, db, arguments['-q'], arguments['--dry'])
         else:
             if arguments['--second']:
                 explain_queries.explain_sqlshare(
