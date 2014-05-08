@@ -6,6 +6,7 @@ import bz2
 import sqltokens
 import csv
 import hashlib
+import copy
 
 from utils import format_tabulate as ft
 
@@ -25,6 +26,29 @@ UNIQUE = 'uniqueplans'
 
 # like ALL but joined with explained
 EXPLAINED_ALL = 'logs_explained'
+
+
+SDSS_TABLES = map(str.lower,
+# tables
+['Algorithm', 'BestTarget2Sector', 'Chunk', 'DataConstants', 'DBColumns',
+'DBObjects', 'DBViewCols', 'Dependency', 'ELRedShift', 'Field', 'FieldProfile', 'First',
+'Frame', 'Glossary', 'HalfSpace', 'History', 'HoleObj', 'Inventory', 'LoadHistory', 'Mask',
+'MaskedObject', 'Match', 'MatchHead', 'Neighbors', 'ObjMask', 'PhotoAuxAll', 'PhotoObjAll',
+'PhotoProfile', 'PhotoTag', 'Photoz', 'Photoz2', 'PlateX', 'ProfileDefs', 'ProperMotions',
+'QsoBest', 'QsoBunch', 'QsoCatalogAll', 'QsoConcordanceAll', 'QsoSpec', 'QsoTarget',
+'QuasarCatalog', 'QueryResults', 'RC3', 'RecentQueries', 'Region', 'Region2Box', 'RegionArcs',
+'RegionConvex', 'Rmatrix', 'Rosat', 'RunQA', 'RunShift', 'SDSSConstants', 'Sector', 'Sector2Tile',
+'Segment', 'SiteConstants', 'SiteDBs', 'SpecLineAll', 'SpecLineIndex', 'SpecObjAll', 'SpecPhotoAll',
+'Stetson', 'StripeDefs', 'TableDesc', 'Target', 'TargetInfo', 'TargetParam', 'TargRunQA', 'TileAll',
+'TiledTargetAll', 'TilingGeometry', 'TilingInfo', 'TilingNote', 'TilingRun', 'USNO', 'Versions',
+'XCRedshift', 'Zone'] +
+# views
+['Columns', 'CoordType', 'FieldMask', 'FieldQuality', 'FramesStatus', 'Galaxy', 'GalaxyTag', 'HoleType',
+'ImageMask', 'InsideMask', 'MaskType', 'ObjType', 'PhotoAux', 'PhotoFamily', 'PhotoFlags', 'PhotoMode',
+'PhotoObj', 'PhotoPrimary', 'PhotoSecondary', 'PhotoStatus', 'PhotoType', 'PrimTarget', 'ProgramType',
+'PspStatus', 'QsoCatalog', 'QsoConcordance', 'Run', 'SecTarget', 'Sky', 'SpecClass', 'SpecLine',
+'SpecLineNames', 'SpecObj', 'SpecPhoto', 'SpecZStatus', 'SpecZWarning', 'Star', 'StarTag', 'Tile',
+'TiledTarget', 'TilingBoundary', 'TilingMask', 'TiMask', 'Unknown'])
 
 
 # visitors
@@ -371,6 +395,8 @@ def analyze_sdss(db):
     tables_seen = set()
     which_str_ops = Counter()
 
+    table_clusters = []
+
     # count how many new tables we see
     not_yet_seen_tables = []
 
@@ -403,6 +429,23 @@ def analyze_sdss(db):
 
         distinct_ops[len(set(log_ops))] += 1
 
+        if len(tables):
+            # only valid sdss tables
+            table_set = set([x.lower() for x in tables]) & set(SDSS_TABLES)
+            equal = []
+            for i, c in enumerate(table_clusters):
+                if c.intersection(table_set):
+                    equal.append(i)
+                    table_clusters[i] = c | table_set
+            equal.append(len(table_clusters))
+            table_clusters.append(table_set)
+
+            if len(equal) > 1:
+                first = equal[0]
+                for i in equal[1:]:
+                    table_clusters[first] = table_clusters[first] | table_clusters[i]
+            table_clusters = [x for i, x in enumerate(table_clusters) if i not in equal[1:]]
+
         query = q['query']
 
         lengths[len(query)] += 1
@@ -424,7 +467,12 @@ def analyze_sdss(db):
     print_table(sorted(
         which_str_ops.iteritems(),
         key=lambda t: t[1], reverse=True),
-        headers=["string op", "count"])
+        headers=["string_op", "count"])
+
+    print_table(sorted(
+        table_clusters,
+        key=lambda t: len(t), reverse=True),
+        headers=["table_cluster"])
 
     for name, values in zip(
         ['lengths', 'compressed lengths', 'logops', 'physops', 'distinct ops', 'string ops', 'distinct string ops', 'touch', 'estimated', 'actual'],
@@ -483,7 +531,7 @@ def analyze_sqlshare(db):
     tables_seen_so_far = []
     tables_in_query = {}
 
-    for i,q in enumerate(queries):
+    for i, q in enumerate(queries):
         length = len(q['query'])
         lengths[length] += 1
         comp_length = len(bz2.compress(q['query']))
