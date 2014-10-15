@@ -116,10 +116,10 @@ def table_touch(dataset = True):
 
     if dataset:
         data = read_csv(['dataset_touch'], False)
-        ppl.scatter(ax, data['dataset_touch'], data['count'], label="SQLShare (Dataset)", marker="v", s=100)
+        ppl.scatter(ax, data['dataset_touch'], data['count'], label="SQLShare (Dataset)", marker="v", s=100, color=pcs[0])
     else:
         data = read_csv(['touch'], False)
-        ppl.scatter(ax, data['touch'], data['count'], label="SQLShare", marker="v", s=100)
+        ppl.scatter(ax, data['touch'], data['count'], label="SQLShare", marker="v", s=100, color=pcs[1])
 
     ax.set_xlabel('Table touch')
     ax.set_ylabel('# of queries')
@@ -306,21 +306,68 @@ def logical_ops_sqlshare():
 def opcounts():
     fig, ax = plt.subplots(1, figsize=(8, 4))
 
-    data = read_csv(['logops', 'counts'], True)
+    ax.set_yscale('log')
 
+    data = read_csv(['physops', 'counts'], True)
     #ppl.bar(ax, data['ops'], data['counts'], grid='y', log=True)
-    ppl.hist(ax, data['logops'], weights=data['counts'], bins=25, grid='y', log=True, facecolor=pcs[0])
+    y, x = np.array(np.histogram(data['physops'], 10, weights=data['counts']))
+    w = x[1] - x[0]
+    x += w/2
+    data = [a for a in zip(list(x), list(y)) if a[1]]
+    x = [i[0] for i in data]
+    y = [i[1] for i in data]
+    ppl.scatter(ax, x=x, y=y,  marker="o", color=pcs[0], s=100, label="SDSS")
 
-    ax.set_xlabel('Logical operators used (binned)')
+    data = read_csv(['ops'], False)
+    d = data['ops']
+    y, x = np.histogram(d, bins=np.linspace(min(d), max(d), (max(d) - min(d)) / w), weights=data['count'])
+    x += w/2
+    data = [a for a in zip(list(x), list(y)) if a[1]]
+    x = [i[0] for i in data]
+    y = [i[1] for i in data]
+    ppl.scatter(ax, x=x, y=y, marker="v", color=pcs[1], s=100, label="SQLShare")
+
+    ax.set_xlabel('Physical operators used')
     ax.set_ylabel('# of queries')
 
-    ax.set_xlim(0, 110)
+    ppl.legend(ax, loc='lower right')
+
+    ax.set_xlim(0)
+    ax.set_ylim(0)
 
     fig.tight_layout()
     plt.show()
 
     fig.savefig('plot_logops_query.pdf', format='pdf', transparent=True)
     fig.savefig('plot_logops_query.png', format='png', transparent=True)
+
+
+def distopcounts():
+    fig, ax = plt.subplots(1, figsize=(8, 4))
+
+    ax.set_yscale('log')
+
+    data = read_csv(['distinct_ops', 'counts'], True)
+
+    #ppl.bar(ax, data['ops'], data['counts'], grid='y', log=True)
+    ppl.scatter(ax, data['distinct_ops'], data['counts'], color=pcs[0], marker="o", label="SDSS", s=100)
+
+    data = read_csv(['distinct_physical_ops'], False)
+    ppl.scatter(ax, data['distinct_physical_ops'], data['count'], color=pcs[1], marker="v", label="SQLShare", s=100)
+
+    ax.set_xlabel('Distinct physical operators used')
+    ax.set_ylabel('# of queries')
+
+    ppl.legend(ax, loc='lower right')
+
+    ax.set_xlim(0)
+    ax.set_ylim(0)
+
+    fig.tight_layout()
+    plt.show()
+
+    fig.savefig('plot_dist_physops_query.pdf', format='pdf', transparent=True)
+    fig.savefig('plot_dist_physops_query.png', format='png', transparent=True)
 
 
 def new_tables_cdf():
@@ -362,15 +409,16 @@ def new_tables_cdf():
 if __name__ == '__main__':
     plt.rc('font', family='serif')
 
-    query_length_cdf()
-    table_touch()
-    table_touch(dataset=False)
-    table_touch_cdf()
-    physical_ops()
-    physical_ops_sqlshare()
-    logical_ops_sdss()
-    logical_ops_sqlshare()
-    runtime_cdf()
-    opcounts()
-    new_tables_cdf()
+    # query_length_cdf()
+    # table_touch()
+    # table_touch(dataset=False)
+    # table_touch_cdf()
+    # physical_ops()
+    # physical_ops_sqlshare()
+    # logical_ops_sdss()
+    # logical_ops_sqlshare()
+    # runtime_cdf()
+    # opcounts()
+    # distopcounts()
+    # new_tables_cdf()
     # new_tables_cdf_sqlshare()
