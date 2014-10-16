@@ -50,12 +50,13 @@ To speed up analysis, a few vies should be created. Since postgres <9.3 does not
 
 ```sql
 CREATE TABLE logs AS SELECT * FROM everything WHERE db='BestDR5';
+ALTER TABLE logs ADD COLUMN has_plan boolean NOT NULL DEFAULT false;
 
 -- logs distinct by query
 CREATE TABLE distinctlogs AS SELECT min(id) id, query, count(*) count FROM logs WHERE NOT error GROUP BY query;
 
 -- logs explained (which is a subset of the rows of distinctlogs) with count from distinctlogs
-CREATE VIEW explained AS SELECT logs.*, distinctlogs.count FROM logs, distinctlogs WHERE logs.has_plan AND logs.query = distinctlogs.query;
+CREATE VIEW explained AS SELECT logs.*, distinctlogs.count AS count FROM logs, distinctlogs WHERE logs.has_plan AND logs.id = distinctlogs.id;
 
 -- view with all logs from bestdr5 but explained
 CREATE VIEW logs_explained AS SELECT logs.query, logs.time_start, explained.plan FROM logs, explained WHERE logs.query = explained.query;
