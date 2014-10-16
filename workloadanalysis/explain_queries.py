@@ -176,9 +176,9 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
             connection.execute('set showplan_xml on')
             connection.execute('set noexec on')
 
-            print "Explain query", i,
+            print "Process query index:", i,
             query = dict(query)
-            print query['id']
+            print "query id:", query['id']
 
             entry = None
             if not dry:
