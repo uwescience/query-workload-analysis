@@ -147,12 +147,14 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
     if not segments:
         segments = [0, 1]
 
+    # batch of queries
     batch = []
 
     datasetdb = None
     table = None
 
-    query = "SELECT * from distinctlogs WHERE id %% {} = {} OFFSET {}".format(segments[1], segments[0], offset)
+    query = "SELECT * from distinctlogs WHERE id %% {} = {} OFFSET {}".format(
+        segments[1], segments[0], offset)
 
     if database:
         datasetdb = dataset.connect(database)
@@ -178,19 +180,29 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
             query = dict(query)
             print query['id']
 
-            try:
-                qu = query['query'].replace('[','"').replace(']','"')
-                qu = qu.replace('SET PARSEONLY ON ', '')
-                res = connection.execute(qu).fetchall()[0]
-            except Exception as e:
-                errors.append(str(e))
-                print str(e)
-                print '==> execute error'
-                if 'closed automatically' in str(e):
-                    raise
-                continue
+            entry = None
+            if not dry:
+                entry = table.find(query_id=query['id'])
 
-            xml_string = "".join([x for x in res])
+            if entry and 'xml' in table.columns and len(entry['xml']):
+                xml_string = entry['xml']
+            else:
+                try:
+                    qu = query['query'].replace('[', '"').replace(']', '"')
+                    qu = qu.replace('SET PARSEONLY ON ', '')
+                    res = connection.execute(qu).fetchall()[0]
+                except Exception as e:
+                    errors.append(str(e))
+                    print str(e)
+                    print '==> execute error'
+                    if 'closed automatically' in str(e):
+                        raise
+                    continue
+
+                xml_string = "".join([x for x in res])
+
+                query['xml'] = xml_string
+
             tree = parse_xml.clean(xml_string)
 
             if not quiet:
@@ -217,7 +229,7 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
 
             query_plan = query_plans[0]
 
-             # ignore inserts
+            # ignore inserts
             if query_plan['operator'] == 'Insert':
                 assert len(query_plan['children']) == 1
                 query_plan = query_plan['children'][0]
