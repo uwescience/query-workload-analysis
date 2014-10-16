@@ -182,7 +182,7 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
 
             entry = None
             if not dry:
-                entry = table.find(query_id=query['id'])
+                entry = table.find_one(id=query['id'])
 
             if entry and 'xml' in table.columns and len(entry['xml']):
                 xml_string = entry['xml']
