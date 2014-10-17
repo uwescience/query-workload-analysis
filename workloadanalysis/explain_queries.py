@@ -187,7 +187,7 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
             if entry and 'xml' in table.columns and entry['xml'] and len(entry['xml']):
                 xml_string = entry['xml']
             else:
-                print "Explain query"
+                print "get explain from sql server"
                 try:
                     qu = query['query'].replace('[', '"').replace(']', '"')
                     qu = qu.replace('SET PARSEONLY ON ', '')

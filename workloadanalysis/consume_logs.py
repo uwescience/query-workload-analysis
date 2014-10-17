@@ -2,7 +2,6 @@ from datetime import datetime
 
 import unicodecsv as csv
 import dataset
-import sqlalchemy as sa
 
 
 def csv_fixer(infile):
@@ -61,8 +60,7 @@ def consume_sdss(db, f):
                 'rows': int(row[16]),
                 'query': pretty_query(row[17]),
                 'error': bool(int(row[18])),
-                'error_msg': row[19],
-                'has_plan': False
+                'error_msg': row[19]
             }
         except Exception as e:
             print "==> Skipping line with error"
