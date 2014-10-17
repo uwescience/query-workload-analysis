@@ -305,7 +305,7 @@ def get_cost(db, cost):
     return list(result)[0]['cost']
 
 
-def analyze_sdss(db):
+def analyze_sdss(db, analyze_recurring):
     print "Limited to DR5"
     print
 
@@ -354,22 +354,23 @@ def analyze_sdss(db):
         FROM {}
         ORDER BY time_start ASC'''.format(EXPLAINED_ALL)
 
-    print
-    print "Find recurring subtrees in distinct (query) queries:"
-    queries = db.query(expl_queries)
-    find_recurring(queries)
+    if analyze_recurring:
+        print
+        print "Find recurring subtrees in distinct (query) queries:"
+        queries = db.query(expl_queries)
+        find_recurring(queries)
 
-    # stored csv from previous will be overwritten
+        # stored csv from previous will be overwritten
 
-    print
-    print "Find recurring subtrees in distinct (template) queries:"
-    queries = db.query(dist_queries)
-    find_recurring(queries)
+        print
+        print "Find recurring subtrees in distinct (template) queries:"
+        queries = db.query(dist_queries)
+        find_recurring(queries)
 
-    print
-    print "Find recurring subtrees in distinct (template) queries (using subset check):"
-    queries = db.query(dist_queries)
-    find_recurring_subset(queries)
+        print
+        print "Find recurring subtrees in distinct (template) queries (using subset check):"
+        queries = db.query(dist_queries)
+        find_recurring_subset(queries)
 
     print
     queries = db.query(expl_queries)
@@ -701,13 +702,13 @@ def analyze_sqlshare(db):
     # f.close()
 
 
-def analyze(database, sdss):
+def analyze(database, sdss, analyze_recurring):
     """Analyze the query log from the database
     """
     db = dataset.connect(database)
 
     if sdss:
-        analyze_sdss(db)
+        analyze_sdss(db, analyze_recurring)
     else:
         analyze_sqlshare(db)
 

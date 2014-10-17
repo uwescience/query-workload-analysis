@@ -4,7 +4,7 @@ Usage:
     qwla (sdss|sqlshare) consume INPUT... [-d DATABASE] [-v]
     qwla (sdss|sqlshare) summarize [-d DATABASE]
     qwla (sdss|sqlshare|tpch) explain CONFIG [-q] [-d DATABASE] [--dry] [--second] [-s SEGMENT NUMBER] [-o OFFSET]
-    qwla (sdss|sqlshare) analyze [-d DATABASE]
+    qwla (sdss|sqlshare) analyze [-d DATABASE] [--recurring]
     qwla (-h | --help)
     qwla --version
 
@@ -17,6 +17,7 @@ Options:
     NUMBER         Number of segments
     OFFSET         Offset
     --dry          Dry run, does not write anything
+    --recurring    Investigate potential for reuse
     -q             Don't print results
     --second       (For SQLShare only) for second pass of explain
     -v             (For SQLShare only) if the input being consumed is a view
@@ -73,7 +74,7 @@ def main():
                     config, db, arguments['-q'], True, arguments['--dry'])
 
     if arguments['analyze']:
-        query_analysis.analyze(db, arguments['sdss'])
+        query_analysis.analyze(db, arguments['sdss'], arguments['--recurring'])
 
 
 if __name__ == '__main__':
