@@ -18,7 +18,7 @@ p.rerun, p.camcol, p.field, p.obj,
 '''}]
 
 
-BATCH_SIZE = 25
+BATCH_SIZE = 50
 
 
 def explain_sqlshare(config, database, quiet, first_pass, dry=False):
@@ -150,8 +150,13 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
     # batch of queries
     batch = []
 
+    # batch of expr ops
+    ops_batch = []
+
     datasetdb = None
     table = None
+    ops_table = None
+    expressions = None
 
     query = "SELECT * from distinctlogs WHERE id %% {} = {} OFFSET {}".format(
         segments[1], segments[0], offset)
@@ -165,6 +170,7 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
     errors = []
     if datasetdb:
         table = datasetdb['logs']
+        ops_table = datasetdb['expr_ops']
     else:
         dry = True
 
@@ -269,6 +275,15 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
                     table.update(query, ['id'])
                 datasetdb.commit()
                 batch = []
+
+            # get expressions
+            for op in parse_xml.get_expression_operators(tree):
+                op['query'] = query['id']
+                ops_batch.append(op)
+
+            if len(ops_batch) > BATCH_SIZE and not dry:
+                ops_table.insert_many(ops_batch)
+                ops_batch = []
 
             connection.execute('set showplan_xml off')
             connection.execute('set noexec off')

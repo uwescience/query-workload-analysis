@@ -265,6 +265,39 @@ def operator_tree(root, cost, show_filters, parameters):
     return children
 
 
+def get_expression_operators(root):
+    """Returns all expression operators in the tree
+
+    # http://technet.microsoft.com/en-us/library/ms174318(v=sql.105).aspx
+    #
+    # Logical Operation="AND"
+    # Compare CompareOp="GT"
+    # Const ConstValue="(7)"
+    # Intrinsic FunctionName="sin"
+    # Aggregate AggType="countstar" Distinct="false"
+    # Arithmetic Operation="MULT"
+    # Sequence FunctionName="row_number"
+    """
+    ops = []
+    for op in root.xpath('.//Arithmetic'):
+        ops.append({'class': 'arithmetic', 'operator': op.attrib['Operation']})
+    for op in root.xpath('.//Logical'):
+        ops.append({'class': 'logical', 'operator': op.attrib['Operation']})
+    for op in root.xpath('.//Compare'):
+        ops.append({'class': 'compare', 'operator': op.attrib['CompareOp']})
+    for op in root.xpath('.//Const'):
+        ops.append({'class': 'const', 'operator': op.attrib['ConstValue'].strip('(').strip(')')})
+    for op in root.xpath('.//Intrinsic'):
+        ops.append({'class': 'intrinsic', 'operator': op.attrib['FunctionName']})
+    for op in root.xpath('.//Aggregate'):
+        ops.append({'class': 'aggregate', 'operator': op.attrib['AggType'], 'distinct': op.attrib['Distinct']})
+    for op in root.xpath('.//Sequence'):
+        # skip if sequence operator and not sequence expression
+        if op.attrib != []:
+            ops.append({'class': 'sequence', 'operator': op.attrib['FunctionName']})
+    return ops
+
+
 def indent(elem, level=0):
     """pretty indent from http://effbot.org/zone/element-lib.htm#prettyprint"""
     i = "\n" + level * "  "
