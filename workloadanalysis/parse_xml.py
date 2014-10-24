@@ -286,7 +286,7 @@ def get_expression_operators(root):
     for op in root.xpath('.//Compare'):
         ops.append({'class': 'compare', 'operator': op.attrib['CompareOp']})
     for op in root.xpath('.//Const'):
-        ops.append({'class': 'const', 'operator': op.attrib['ConstValue'].strip('(').strip(')')})
+        ops.append({'class': 'const', 'value': op.attrib['ConstValue'].strip('(').strip(')')})
     for op in root.xpath('.//Intrinsic'):
         ops.append({'class': 'intrinsic', 'operator': op.attrib['FunctionName']})
     for op in root.xpath('.//Aggregate'):
