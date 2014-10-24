@@ -300,6 +300,8 @@ def get_expression_operators(root):
             op['value'] = None
         if 'operator' not in op.keys():
             op['operator'] = None
+        if 'distinct' not in op.keys():
+            op['distinct'] = None
     return ops
 
 
