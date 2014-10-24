@@ -295,6 +295,11 @@ def get_expression_operators(root):
         # skip if sequence operator and not sequence expression
         if op.attrib != []:
             ops.append({'class': 'sequence', 'operator': op.attrib['FunctionName']})
+    for op in ops:
+        if 'value' not in op.keys():
+            op['value'] = None
+        if 'operator' not in op.keys():
+            op['operator'] = None
     return ops
 
 
