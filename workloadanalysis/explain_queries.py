@@ -25,6 +25,7 @@ def explain_sqlshare(config, database, quiet, first_pass, dry=False):
     db = dataset.connect(database)
     errors = []
     table = db['sqlshare_logs']
+    ops_table = db['ops_table']
 
     if not first_pass:
         queries = list(db.query('SELECT * FROM sqlshare_logs Where has_plan = 1'))
@@ -104,16 +105,13 @@ def explain_sqlshare(config, database, quiet, first_pass, dry=False):
         query['simple_plan'] = json.dumps(
             simple_query_plan, cls=utils.SetEncoder, sort_keys=True)
 
-        # indent tree and export as xml file
-        parse_xml.indent(tree.getroot())
-        #tree.write('clean_{}.xml'.format(i))
+        opsInQuery = []
 
-        simple_query_plan = parse_xml.get_query_plans(
-            tree, cost=False, show_filters=False)[0]
+        for op in parse_xml.get_expression_operators(tree):
+            op['query'] = query['id']
+            opsInQuery.append(op)
 
-        query['simple_plan'] = json.dumps(
-            simple_query_plan, cls=utils.SetEncoder)
-
+        ops_table.insert_many(opsInQuery)
         query['estimated_cost'] = query_plan['total']
         query['has_plan'] = True
         if not dry:
