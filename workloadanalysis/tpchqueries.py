@@ -19,7 +19,6 @@ def get_queries():
             qs = f.read().split('\n\n')
             qs = [re.sub('\s+', ' ', q).strip().strip("go").strip().strip(";").strip() for q in qs]
             qs = [q for q in qs if len(q) and not q.strip().startswith("--")]
-            queries.extend(qs)
             for tpc_query, query in enumerate(qs):
                 queries.append({
                     "tp_query": tpc_query,  # note: number 15 is not used, hence the numbers are off
