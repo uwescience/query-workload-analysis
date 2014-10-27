@@ -126,7 +126,7 @@ def find_recurring(queries, sdss=True):
 
     print_table(sorted(
                 savings.iteritems(),
-                key=lambda t: t[0]), ["savings", "count"], sdss)
+                key=lambda t: t[0]), ["savings", "count"], 'sdss')
 
 
 def transformed(tree):
@@ -230,17 +230,16 @@ def find_recurring_subset(queries):
     print "Remaining cost", cost - cost_saved[0]
 
 
-def print_table(data, headers, sdss=True):
+def print_table(data, headers, workload='sdss'):
     #print tabulate(data, headers, tablefmt='latex')
-    subfolder = 'sdss' if sdss else 'sqlshare'
-    with open('results/' + subfolder + '/' + '_'.join(headers).replace(' ', '_') + '.csv', 'w') as f:
+    with open('results/' + workload + '/' + '_'.join(headers).replace(' ', '_') + '.csv', 'w') as f:
         writer = csv.writer(f)
         writer.writerow(headers)
         for row in data:
             writer.writerow(row)
 
 
-def get_counts(queries, visitors, names):
+def get_counts(queries, visitors, names, workload='sdss'):
     '''Count something which requires visiting all operators'''
 
     assert len(visitors) == len(names)
@@ -260,7 +259,7 @@ def get_counts(queries, visitors, names):
         print_table(sorted(
             r.iteritems(),
             key=lambda t: t[1], reverse=True),
-            headers=[name, "count"])
+            headers=[name, "count"], workload)
 
 
 def explicit_implicit_joins(queries):
@@ -491,7 +490,93 @@ def analyze_sdss(db, analyze_recurring):
 
 
 def analyze_tpch(db):
-    print "not yet implemented"
+    queries = list(db['tpchqueries'])
+    get_counts(queries,
+               [visitor_tables, visitor_logical_ops, visitor_physical_ops],
+               ['table', 'logical op', 'physical op'], 'tpch')
+
+    print
+    explicit_implicit_joins(queries)
+
+    # counters for how often we have a certain count in a query
+    lengths = Counter()
+    compressed_lengths = Counter()
+    logops = Counter()
+    physops = Counter()
+    distinct_ops = Counter()
+    str_ops = Counter()
+    distinct_str_ops = Counter()
+    touch = Counter()
+    estimated = Counter()
+    which_str_ops = Counter()
+
+    table_clusters = []
+
+    for q in queries:
+        plan = json.loads(q['plan'])
+        log_ops = visit_operators(plan, visitor_logical_ops)
+        phys_ops = visit_operators(plan, visitor_physical_ops)
+        tables = visit_operators(plan, visitor_tables)
+        logops[len(log_ops)] += 1
+        physops[len(phys_ops)] += 1
+        touch[len(tables)] += 1
+
+        distinct_ops[len(set(log_ops))] += 1
+
+        # only valid sdss tables
+        table_set = set([x.lower() for x in tables]) & set(SDSS_TABLES)
+        if len(table_set):
+
+            for table in table_set:
+                which_tables[table] += 1
+
+            equal = []
+            for i, c in enumerate(table_clusters):
+                if c.intersection(table_set):
+                    equal.append(i)
+                    table_clusters[i] = c | table_set
+            equal.append(len(table_clusters))
+            table_clusters.append(table_set)
+
+            if len(equal) > 1:
+                first = equal[0]
+                for i in equal[1:]:
+                    table_clusters[first] = table_clusters[first] | table_clusters[i]
+            table_clusters = [x for i, x in enumerate(table_clusters) if i not in equal[1:]]
+
+        query = q['query']
+
+        lengths[len(query)] += 1
+        compressed_lengths[len(bz2.compress(query))] += 1
+
+        estimated[q['estimated_cost']] += 1
+        actual[q['elapsed']] += 1
+
+        tokens = sqltokens.get_tokens(query)
+        str_ops[len(tokens)] += 1
+        distinct_str_ops[len(set(tokens))] += 1
+
+        which_str_ops.update(tokens)
+
+    print
+    print_table(sorted(
+        which_str_ops.iteritems(),
+        key=lambda t: t[1], reverse=True),
+        headers=["string_op", "count"], 'tpch')
+
+    print_table(sorted(
+        [[str(list(x))] for x in table_clusters],
+        key=lambda t: len(t), reverse=True),
+        headers=["table_cluster"], 'tpch')
+
+    for name, values in zip(
+        ['lengths', 'compressed lengths', 'logops', 'physops', 'distinct ops', 'string ops', 'distinct string ops', 'touch', 'estimated'],
+        [lengths, compressed_lengths, logops, physops, distinct_ops, str_ops, distinct_str_ops, touch, estimated]):
+        print
+        print_table(sorted(
+            values.iteritems(),
+            key=lambda t: t[0]),
+            headers=[name, "counts"], 'tpch')
 
 
 def analyze_sqlshare(db):

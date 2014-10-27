@@ -4,7 +4,7 @@ Usage:
     qwla (sdss|sqlshare) consume INPUT... [-d DATABASE] [-v]
     qwla (sdss|sqlshare) summarize [-d DATABASE]
     qwla (sdss|sqlshare|tpch) explain CONFIG [-q] [-d DATABASE] [--dry] [--second] [-s SEGMENT NUMBER] [-o OFFSET]
-    qwla (sdss|sqlshare) analyze [-d DATABASE] [--recurring]
+    qwla (sdss|sqlshare|tpch) analyze [-d DATABASE] [--recurring]
     qwla (-h | --help)
     qwla --version
 
