@@ -259,7 +259,7 @@ def get_counts(queries, visitors, names, workload='sdss'):
         print_table(sorted(
             r.iteritems(),
             key=lambda t: t[1], reverse=True),
-            headers=[name, "count"], workload)
+            headers=[name, "count"], workload=workload)
 
 
 def explicit_implicit_joins(queries):
