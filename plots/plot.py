@@ -25,8 +25,14 @@ formatter = FuncFormatter(to_percent)
 
 
 def read_csv(headers, sdss):
-    folder = 'sdss' if sdss else 'sqlshare'
-    with open('../results/' + folder + '/' + '_'.join(headers) + '.csv') as f:
+    if sdss:
+        return read_data(headers, 'sdss')
+    else:
+        return read_data(headers, 'sqlshare')
+
+
+def read_data(headers, source):
+    with open('../results/' + source + '/' + '_'.join(headers) + '.csv') as f:
         return np.recfromcsv(f)
 
 
@@ -44,6 +50,12 @@ def query_length_cdf():
     c /= sum(c)
     ppl.plot(ax, data['length'], np.cumsum(c), label="SQLShare", color=cs[1], linewidth=2, ls='--')
 
+    data = read_data(['lengths', 'counts'], 'tpch')
+    data.sort(order='lengths')
+    c = data['counts'].astype(float)
+    c /= sum(c)
+    ppl.plot(ax, data['lengths'], np.cumsum(c), label="TPC-H", color=cs[2], linewidth=2, ls=':')
+
     ppl.legend(ax, loc='lower right')
 
     plt.gca().yaxis.set_major_formatter(formatter)
@@ -52,7 +64,7 @@ def query_length_cdf():
     ax.set_ylabel('% of queries')
 
     ax.set_ylim(0, 1.01)
-    ax.set_xlim(0, 2500)
+    ax.set_xlim(0, 2000)
 
     ax.yaxis.grid()
 
