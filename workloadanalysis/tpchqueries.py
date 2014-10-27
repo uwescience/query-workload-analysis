@@ -23,7 +23,8 @@ def get_queries():
             for tpc_query, query in enumerate(qs):
                 queries.append({
                     "tp_query": tpc_query,  # note: number 15 is not used, hence the numbers are off
-                    "id": id
+                    "id": id,
+                    "query": query,
                 })
                 id += 1
 
