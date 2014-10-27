@@ -17,7 +17,7 @@ def get_queries():
         with open(directory + "/" + filename) as f:
             qs = f.read().split('\n\n')
             qs = [re.sub('\s+', ' ', q).strip().strip("go").strip().strip(";").strip() for q in qs]
-            qs = [re for q in qs if len(q) and not q.strip().startswith("--")]
+            qs = [q for q in qs if len(q) and not q.strip().startswith("--")]
             queries.extend(qs)
 
     return queries
