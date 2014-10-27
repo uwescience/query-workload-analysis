@@ -333,9 +333,7 @@ def explain_tpch(config, database, quiet=False, dry=False):
             print "Explain query", i
 
             try:
-                qu = query['query'].replace('[','"').replace(']','"')
-                qu = qu.replace('SET PARSEONLY ON ', '')
-                res = connection.execute(qu).fetchall()[0]
+                res = connection.execute(query['query']).fetchall()[0]
             except Exception as e:
                 errors.append(str(e))
                 print str(e)
