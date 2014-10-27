@@ -291,6 +291,7 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
         for query in batch:
             table.update(query, ['id'])
         datasetdb.commit()
+        ops_table.insert_many(ops_batch)
 
     print "Errors", errors
 
@@ -313,12 +314,13 @@ def explain_tpch(config, database, quiet=False, dry=False):
     if database:
         datasetdb = dataset.connect(database)
         table = datasetdb['tpchqueries']
+        ops_table = datasetdb['expr_ops_tpch']
     else:
         dry = True
 
     errors = []
 
-    for i, query in enumerate(tpchqueries.queries):
+    for i, query in enumerate(tpchqueries.get_queries()):
         with db.connect() as connection:
             # clean cache to refresh constant values
             connection.execute('DBCC FREEPROCCACHE WITH NO_INFOMSGS')
@@ -395,6 +397,11 @@ def explain_tpch(config, database, quiet=False, dry=False):
 
             if not dry:
                 table.upsert(q, ['id'])
+
+            # get expressions
+            for op in parse_xml.get_expression_operators(tree):
+                op['query'] = query['id']
+                ops_table.insert(op)
 
             connection.execute('set showplan_xml off')
             connection.execute('set noexec off')
