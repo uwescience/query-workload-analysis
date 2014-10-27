@@ -162,6 +162,7 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
     if database:
         datasetdb = dataset.connect(database)
         queries = datasetdb.query(query)
+        datasetdb.query("truncate table expr_ops")
     else:
         queries = EXAMPLE
 
@@ -315,6 +316,7 @@ def explain_tpch(config, database, quiet=False, dry=False):
         datasetdb = dataset.connect(database)
         table = datasetdb['tpchqueries']
         ops_table = datasetdb['expr_ops_tpch']
+        datasetdb.query("truncate table expr_ops_tpch")
     else:
         dry = True
 
@@ -400,7 +402,7 @@ def explain_tpch(config, database, quiet=False, dry=False):
 
             # get expressions
             for op in parse_xml.get_expression_operators(tree):
-                op['query'] = query['id']
+                op['query'] = q['id']
                 ops_table.insert(op)
 
             connection.execute('set showplan_xml off')
