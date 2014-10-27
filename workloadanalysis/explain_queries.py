@@ -333,7 +333,7 @@ def explain_tpch(config, database, quiet=False, dry=False):
             print "Explain query", i
 
             try:
-                qu = query.replace('[','"').replace(']','"')
+                qu = query['query'].replace('[','"').replace(']','"')
                 qu = qu.replace('SET PARSEONLY ON ', '')
                 res = connection.execute(qu).fetchall()[0]
             except Exception as e:
@@ -348,7 +348,7 @@ def explain_tpch(config, database, quiet=False, dry=False):
             tree = parse_xml.clean(xml_string)
 
             if not quiet:
-                print "==> query:", query
+                print "==> query:", query['query']
                 print
 
             # indent tree and export as xml file
@@ -371,17 +371,11 @@ def explain_tpch(config, database, quiet=False, dry=False):
 
             query_plan = query_plans[0]
 
-            q = {
-                'query': query,
-                'id': i
-            }
-
             if not quiet:
                 print utils.json_pretty(query_plan)
-            q['plan'] = json.dumps(query_plan, cls=utils.SetEncoder, sort_keys=True)
+            query['plan'] = json.dumps(query_plan, cls=utils.SetEncoder, sort_keys=True)
 
-            q['estimated_cost'] = query_plan['total']
-            q['has_plan'] = True
+            query['estimated_cost'] = query_plan['total']
 
             # plan for uniqueness, clustering happening here
             simple_query_plan = parse_xml.get_query_plans(
@@ -390,12 +384,12 @@ def explain_tpch(config, database, quiet=False, dry=False):
             if not quiet:
                 print utils.json_pretty(simple_query_plan)
 
-            q['simple_plan'] = json.dumps(
+            query['simple_plan'] = json.dumps(
                 simple_query_plan, cls=utils.SetEncoder, sort_keys=True)
 
             optree = ['']
             get_op_tree(simple_query_plan, optree)
-            q['optree'] = optree[0]
+            query['optree'] = optree[0]
 
             if not dry:
                 table.upsert(q, ['id'])

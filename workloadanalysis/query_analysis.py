@@ -490,6 +490,10 @@ def analyze_sdss(db, analyze_recurring):
             headers=[name, "counts"])
 
 
+ef analyze_tpch(db):
+    print "not yet implemented"
+
+
 def analyze_sqlshare(db):
     # distinct_q = 'SELECT plan from sqlshare_logs where has_plan = 1 group by query'
     # print "Find recurring subtrees in distinct queries:"
@@ -700,17 +704,6 @@ def analyze_sqlshare(db):
     # for key in sorted(keywords_count, key=keywords_count.get, reverse=True):
     #     f.write("%s,%d\n"%(key.replace(',','``'), keywords_count[key]))
     # f.close()
-
-
-def analyze(database, sdss, analyze_recurring):
-    """Analyze the query log from the database
-    """
-    db = dataset.connect(database)
-
-    if sdss:
-        analyze_sdss(db, analyze_recurring)
-    else:
-        analyze_sqlshare(db)
 
 
 if __name__ == '__main__':

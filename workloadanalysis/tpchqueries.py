@@ -13,15 +13,22 @@ def get_queries():
         break
 
     queries = []
+    id = 0
     for filename in files:
         with open(directory + "/" + filename) as f:
             qs = f.read().split('\n\n')
             qs = [re.sub('\s+', ' ', q).strip().strip("go").strip().strip(";").strip() for q in qs]
             qs = [q for q in qs if len(q) and not q.strip().startswith("--")]
             queries.extend(qs)
+            for tpc_query, query in enumerate(qs):
+                queries.append({
+                    "tp_query": tpc_query,  # note: number 15 is not used, hence the numbers are off
+                    "id": id
+                })
+                id += 1
 
     return queries
 
 
 if __name__ == '__main__':
-    print len(get_queries())
+    print get_queries()
