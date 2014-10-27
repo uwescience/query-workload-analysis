@@ -304,7 +304,9 @@ def get_cost(db, cost):
     return list(result)[0]['cost']
 
 
-def analyze_sdss(db, analyze_recurring):
+def analyze_sdss(database, analyze_recurring):
+    db = dataset.connect(database)
+
     print "Limited to DR5"
     print
 
@@ -579,7 +581,9 @@ def analyze_tpch(db):
             headers=[name, "counts"], workload='tpch')
 
 
-def analyze_sqlshare(db):
+def analyze_sqlshare(database):
+    db = dataset.connect(database)
+
     # distinct_q = 'SELECT plan from sqlshare_logs where has_plan = 1 group by query'
     # print "Find recurring subtrees in distinct queries:"
     # q = db.query(distinct_q)
