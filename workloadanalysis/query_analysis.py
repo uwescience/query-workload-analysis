@@ -490,7 +490,7 @@ def analyze_sdss(db, analyze_recurring):
             headers=[name, "counts"])
 
 
-ef analyze_tpch(db):
+def analyze_tpch(db):
     print "not yet implemented"
 
 
