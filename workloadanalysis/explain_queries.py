@@ -390,11 +390,12 @@ def explain_tpch(config, database, quiet=False, dry=False):
             query['optree'] = optree[0]
 
             if not dry:
-                table.upsert(q, ['id'])
+                table.upsert(query, ['id'])
 
             # get expressions
             for op in parse_xml.get_expression_operators(tree):
-                op['query'] = q['id']
+                op['query'] = query['id']
+                op['tpch_query'] = query['tp_query']
                 ops_table.insert(op)
 
             connection.execute('set showplan_xml off')
