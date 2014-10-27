@@ -75,11 +75,11 @@ def main():
 
     if arguments['analyze']:
         if arguments['sdss']:
-            analyze_sdss(db, arguments['--recurring'])
+            query_analysis.analyze_sdss(db, arguments['--recurring'])
         elif arguments['tpch']:
-            analyze_tpch(db)
+            query_analysis.analyze_tpch(db)
         else:
-            analyze_sqlshare(db)
+            query_analysis.analyze_sqlshare(db)
 
 
 if __name__ == '__main__':

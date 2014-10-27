@@ -490,7 +490,7 @@ def analyze_sdss(db, analyze_recurring):
 
 
 def analyze_tpch(db):
-    queries = list(db['tpchqueries'])
+    queries = list(dataset.connect(db)['tpchqueries'])
     get_counts(queries,
                [visitor_tables, visitor_logical_ops, visitor_physical_ops],
                ['table', 'logical op', 'physical op'], 'tpch')
@@ -509,6 +509,7 @@ def analyze_tpch(db):
     touch = Counter()
     estimated = Counter()
     which_str_ops = Counter()
+    which_tables = Counter()
 
     table_clusters = []
 
@@ -550,7 +551,6 @@ def analyze_tpch(db):
         compressed_lengths[len(bz2.compress(query))] += 1
 
         estimated[q['estimated_cost']] += 1
-        actual[q['elapsed']] += 1
 
         tokens = sqltokens.get_tokens(query)
         str_ops[len(tokens)] += 1
@@ -562,21 +562,21 @@ def analyze_tpch(db):
     print_table(sorted(
         which_str_ops.iteritems(),
         key=lambda t: t[1], reverse=True),
-        headers=["string_op", "count"], 'tpch')
+        headers=["string_op", "count"], workload='tpch')
 
     print_table(sorted(
         [[str(list(x))] for x in table_clusters],
         key=lambda t: len(t), reverse=True),
-        headers=["table_cluster"], 'tpch')
+        headers=["table_cluster"], workload='tpch')
 
     for name, values in zip(
-        ['lengths', 'compressed lengths', 'logops', 'physops', 'distinct ops', 'string ops', 'distinct string ops', 'touch', 'estimated'],
-        [lengths, compressed_lengths, logops, physops, distinct_ops, str_ops, distinct_str_ops, touch, estimated]):
+        ['lengths', 'compressed lengths', 'logops', 'physops', 'distinct ops', 'string ops', 'distinct string ops', 'touch', 'estimated', 'which_tables'],
+        [lengths, compressed_lengths, logops, physops, distinct_ops, str_ops, distinct_str_ops, touch, estimated, which_tables]):
         print
         print_table(sorted(
             values.iteritems(),
             key=lambda t: t[0]),
-            headers=[name, "counts"], 'tpch')
+            headers=[name, "counts"], workload='tpch')
 
 
 def analyze_sqlshare(db):
