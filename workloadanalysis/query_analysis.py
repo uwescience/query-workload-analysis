@@ -308,6 +308,13 @@ def analyze_sdss(database, analyze_recurring):
     db = dataset.connect(database)
 
     print "Limited to DR5"
+
+    expression_ops = db.query("""select class, operator, count(*)
+    from expr_ops group by class, operator order by class, operator;""")
+
+    print_table(which_str_ops.iteritems(),
+        headers=["class", "operator", "count"])
+
     print
 
     print_stats(db)
@@ -491,7 +498,15 @@ def analyze_sdss(database, analyze_recurring):
             headers=[name, "counts"])
 
 
-def analyze_tpch(db):
+def analyze_tpch(database):
+    db = dataset.connect(database)
+
+    expression_ops = db.query("""select class, operator, count(*)
+    from expr_ops_tpch group by class, operator order by class, operator;""")
+
+    print_table(which_str_ops.iteritems(),
+        headers=["class", "operator", "count"])
+
     queries = list(dataset.connect(db)['tpchqueries'])
     get_counts(queries,
                [visitor_tables, visitor_logical_ops, visitor_physical_ops],
