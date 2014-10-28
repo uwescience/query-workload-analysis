@@ -593,12 +593,12 @@ def analyze_sqlshare(database):
     # q = db.query(distinct_q)
     # find_recurring_subset(q)
 
-    all_queries = list(db.query('SELECT * from sqlshare_logs where has_plan = 1'))
-    queries = list(db.query('SELECT query, plan, expanded_plan_ops_logical, expanded_plan_ops, ref_views from sqlshare_logs where has_plan = 1 group by query'))
-    views = list(db.query('SELECT * FROM sqlshare_logs WHERE isView = 1'))
+    all_queries = list(db.query('SELECT * from sqlshare_logs where has_plan = true'))
+    queries = list(db.query('SELECT query, plan, expanded_plan_ops_logical, expanded_plan_ops, ref_views from sqlshare_logs where has_plan = true group by query'))
+    views = list(db.query('SELECT * FROM sqlshare_logs WHERE isView = false'))
     explicit_implicit_joins(queries)
     print '#Total queries with plan: ', len(all_queries)
-    query_with_same_plan = list(db.query('SELECT Count(*) as count from (SELECT * from sqlshare_logs where has_plan = 1 group by simple_plan)'))
+    query_with_same_plan = list(db.query('SELECT Count(*) as count from (SELECT * from sqlshare_logs where has_plan = true group by simple_plan)'))
     print '#Total string distinct queries:', len(queries)
     print '#Total queries considering all constants the same:', query_with_same_plan[0]['count']
 
