@@ -101,6 +101,8 @@ def operator_tree(root, cost, show_filters, parameters):
                     filters.append(name + "." + ref.attrib['Column'])
                 else:
                     tables[name].add(ref.attrib['Column'])
+            else:
+                tables['None'].add(ref.attrib['Column'])
 
         if show_filters:
             def repl(s):
@@ -136,7 +138,8 @@ def operator_tree(root, cost, show_filters, parameters):
                 s = ''
 
                 sos = pred.xpath('.//ScalarOperator')
-                nosos = pred.xpath('.//ScalarOperator//ScalarOperator')
+                nosos = pred.xpath('.//RelOp//ScalarOperator')
+                nosos += pred.xpath('.//ScalarOperator//ScalarOperator')
 
                 sos = list(set(sos) - set(nosos))
 
@@ -144,12 +147,18 @@ def operator_tree(root, cost, show_filters, parameters):
                     # TPCH 1
                     s = ' AND '.join(so.attrib['ScalarString'] for so in sos)
 
+                    # add missing group by filter
+                    gb = pred.xpath('.//GroupBy//ColumnReference')
+                    if gb:
+                        s += " AND groupby:" + gb[0].attrib['Column']
+
                 if not s:
                     # objects to compare
                     objects = []
 
                     ref = pred.xpath('.//ColumnReference')
-                    no_ref = pred.xpath('.//ColumnReference//ColumnReference')
+                    no_ref = pred.xpath('.//RelOp//ColumnReference')
+                    no_ref += pred.xpath('.//ColumnReference//ColumnReference')
 
                     for ref in list(set(ref) - set(no_ref)):
                         if 'Column' in ref.attrib and ref.attrib['Column'].startswith('Const') and ref.xpath('.//ColumnReference'):
