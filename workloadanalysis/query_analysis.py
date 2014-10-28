@@ -232,7 +232,8 @@ def find_recurring_subset(queries):
 
 def print_table(data, headers, workload='sdss'):
     #print tabulate(data, headers, tablefmt='latex')
-    with open('results/' + workload + '/' + '_'.join(headers).replace(' ', '_') + '.csv', 'w') as f:
+    name = 'results/' + workload + '/' + '_'.join(headers).replace(' ', '_') + '.csv'
+    with open(name, 'w') as f:
         writer = csv.writer(f)
         writer.writerow(headers)
         for row in data:
@@ -312,8 +313,8 @@ def analyze_sdss(database, analyze_recurring):
     expression_ops = db.query("""select class, operator, count(*)
     from expr_ops group by class, operator order by class, operator;""")
 
-    print_table(which_str_ops.iteritems(),
-        headers=["class", "operator", "count"])
+    print_table([[x['class'], x['operator'], x['count']] for x in expression_ops],
+        ["class", "operator", "count"], 'sdss')
 
     print
 
@@ -504,10 +505,10 @@ def analyze_tpch(database):
     expression_ops = db.query("""select class, operator, count(*)
     from expr_ops_tpch group by class, operator order by class, operator;""")
 
-    print_table(which_str_ops.iteritems(),
-        headers=["class", "operator", "count"])
+    print_table([[x['class'], x['operator'], x['count']] for x in expression_ops],
+        ["class", "operator", "count"], 'tpch')
 
-    queries = list(dataset.connect(db)['tpchqueries'])
+    queries = list(db['tpchqueries'])
     get_counts(queries,
                [visitor_tables, visitor_logical_ops, visitor_physical_ops],
                ['table', 'logical op', 'physical op'], 'tpch')
@@ -589,7 +590,6 @@ def analyze_tpch(database):
     for name, values in zip(
         ['lengths', 'compressed lengths', 'logops', 'physops', 'distinct ops', 'string ops', 'distinct string ops', 'touch', 'estimated', 'which_tables'],
         [lengths, compressed_lengths, logops, physops, distinct_ops, str_ops, distinct_str_ops, touch, estimated, which_tables]):
-        print
         print_table(sorted(
             values.iteritems(),
             key=lambda t: t[0]),
