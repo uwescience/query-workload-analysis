@@ -68,11 +68,11 @@ def explain_sqlshare(config, database, quiet, first_pass, dry=False):
         print "Explain query", i
         op_count = [0]
         #see if the plan is valid
-        if query['plan'][0] != '<':
-            errors.append(query['plan'])
+        if query['xml_plan'][0] != '<':
+            errors.append(query['xml_plan'])
             continue
 
-        xml_string = "".join([x for x in query['plan']])
+        xml_string = "".join([x for x in query['xml_plan']])
 
         # print operators
         #parse_xml.get_physical_op_count(tree.getroot(), op_count)

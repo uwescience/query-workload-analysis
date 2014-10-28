@@ -94,7 +94,7 @@ def consume_sqlshare(db, f, isview):
                     'owner': row[0].split(']')[0][1:],
                     'length': len(row[4]),
                     'isView': True,
-                    'plan': row[5],
+                    'xml_plan': row[5],
                     'runtime': -1,
                     'has_plan': False
                 }
@@ -109,7 +109,7 @@ def consume_sqlshare(db, f, isview):
                     'query': pretty_query(row[5]),
                     'length': int(row[6]),
                     'runtime': int(row[7]),
-                    'plan': row[8],
+                    'xml_plan': row[8],
                     'isView': False,
                     'view': 'NA',
                     'has_plan': False
