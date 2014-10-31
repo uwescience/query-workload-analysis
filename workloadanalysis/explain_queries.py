@@ -29,7 +29,7 @@ def explain_sqlshare(config, database, quiet, first_pass, dry=False):
 
     if not first_pass:
         queries = list(db.query('SELECT * FROM sqlshare_logs Where has_plan = true'))
-        views = list(db.query('SELECT * FROM sqlshare_logs Where isView = true'))
+        views = list(db.query('SELECT * FROM sqlshare_logs Where isview = true'))
         for i, query in enumerate(queries):
             print "Explain query pass 2", i
 
@@ -62,7 +62,7 @@ def explain_sqlshare(config, database, quiet, first_pass, dry=False):
         return
 
     queries = list(db.query('SELECT * FROM sqlshare_logs where has_plan = false'))
-    #views = list(db.query('SELECT * FROM sqlshare_logs WHERE isView = 1'))
+    #views = list(db.query('SELECT * FROM sqlshare_logs WHERE isview = 1'))
 
     for i, query in enumerate(queries):
         print "Explain query", i
