@@ -44,15 +44,37 @@ def load_data(metric):
 
 
 def query_length():
+    d = load_data("query_length")
+
+    sns.set_context("paper", font_scale=1.3)
+    sns.set_style("whitegrid")
+
+    for w in workloads:
+        sns.kdeplot(d[w], cumulative=True, label=labels[w],
+                    bw=1, color=colors[w])
+
+    axes = plt.gca()
+
+    axes.set_xlim(0, 6000)
+
+    axes.yaxis.set_major_formatter(formatter)
+
+    axes.set_xlabel('Query length in characters')
+    axes.set_ylabel('% of queries')
+
+    plt.tight_layout()
+
+    plt.savefig('plot_length_cdf.pdf', format='pdf', transparent=True)
+    plt.show()
+
+
+def table_touch():
     d = load_data("table_touch")
 
     sns.set_context("paper", font_scale=1.3)
     sns.set_style("whitegrid")
 
     f, axes = plt.subplots(1, 2, figsize=(7, 4), sharey=True)
-
-    sns.set(style="white", palette="muted")
-    sns.despine(left=True)
 
     a = {
         'tpch': 0,
@@ -82,3 +104,4 @@ def query_length():
 
 if __name__ == '__main__':
     query_length()
+    # table_touch()
