@@ -17,26 +17,38 @@ def visit_operators(query_plan, visitor):
 
 
 def extract_tpch(db):
+    return extract(db, 'tpchqueries', 'tpch_tables', 'tpch_logops', 'tpch_physops')
+
+
+def extract_sdss(db):
+    return extract(db, 'explained', 'sdss_tables', 'sdss_logops', 'sdss_physops')
+
+
+def extract_sqlshare(db):
+    return extract(db, 'sqlshare_logs', 'sqlshare_tables', 'sqlshare_logops', 'sqlshare_physops')
+
+
+def extract(db, query_table, tables_name, logops_name, physops_name):
     datasetdb = dataset.connect(db)
 
-    queries = datasetdb['tpchqueries']
+    queries = datasetdb[query_table]
 
-    tables = datasetdb['tpch_tables']
-    logops = datasetdb['tpch_logops']
-    physops = datasetdb['tpch_physops']
+    tables = datasetdb[tables_name]
+    logops = datasetdb[logops_name]
+    physops = datasetdb[physops_name]
 
     try:
-        datasetdb.query("truncate table tpch_tables")
+        datasetdb.query("truncate table %s" % tables_name)
     except sa.exc.ProgrammingError:
         pass
 
     try:
-        datasetdb.query("truncate table tpch_logops")
+        datasetdb.query("truncate table %s" % logops_name)
     except sa.exc.ProgrammingError:
         pass
 
     try:
-        datasetdb.query("truncate table tpch_physops")
+        datasetdb.query("truncate table %s" % physops_name)
     except sa.exc.ProgrammingError:
         pass
 

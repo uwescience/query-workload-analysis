@@ -315,8 +315,8 @@ def explain_tpch(config, database, quiet=False, dry=False):
     if database:
         datasetdb = dataset.connect(database)
         table = datasetdb['tpchqueries']
-        ops_table = datasetdb['expr_ops_tpch']
-        datasetdb.query("truncate table expr_ops_tpch")
+        ops_table = datasetdb['tpch_expr_ops']
+        datasetdb.query("truncate table tpch_expr_ops")
     else:
         dry = True
 
