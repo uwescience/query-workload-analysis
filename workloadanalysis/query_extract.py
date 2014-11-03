@@ -25,17 +25,22 @@ def extract_tpch(db):
     logops = datasetdb['tpch_logops']
     physops = datasetdb['tpch_physops']
 
-    datasetdb.begin()
-
     try:
         datasetdb.query("truncate table tpch_tables")
     except sa.exc.ProgrammingError:
         pass
 
     try:
-        datasetdb.query("truncate table tpch_operators")
+        datasetdb.query("truncate table tpch_logops")
     except sa.exc.ProgrammingError:
         pass
+
+    try:
+        datasetdb.query("truncate table tpch_physops")
+    except sa.exc.ProgrammingError:
+        pass
+
+    datasetdb.begin()
 
     for query in queries:
         plan = json.loads(query['plan'])
