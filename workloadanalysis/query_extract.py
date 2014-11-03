@@ -1,5 +1,6 @@
 import dataset
 import json
+import sqlalchemy as sa
 
 
 # visitors
@@ -26,8 +27,15 @@ def extract_tpch(db):
 
     datasetdb.begin()
 
-    datasetdb.query("truncate table tpch_tables")
-    datasetdb.query("truncate table tpch_operators")
+    try:
+        datasetdb.query("truncate table tpch_tables")
+    except sa.exc.ProgrammingError:
+        pass
+
+    try:
+        datasetdb.query("truncate table tpch_operators")
+    except sa.exc.ProgrammingError:
+        pass
 
     for query in queries:
         plan = json.loads(query['plan'])
