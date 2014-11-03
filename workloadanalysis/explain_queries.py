@@ -401,6 +401,7 @@ def explain_tpch(config, database, quiet=False, dry=False):
             connection.execute('set showplan_xml off')
             connection.execute('set noexec off')
 
+
     print "Errors", errors
 
 

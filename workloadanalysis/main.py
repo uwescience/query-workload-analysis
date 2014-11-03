@@ -4,6 +4,7 @@ Usage:
     qwla (sdss|sqlshare) consume INPUT... [-d DATABASE] [-v]
     qwla (sdss|sqlshare) summarize [-d DATABASE]
     qwla (sdss|sqlshare|tpch) explain CONFIG [-q] [-d DATABASE] [--dry] [--second] [-s SEGMENT NUMBER] [-o OFFSET]
+    qwla (sdss|sqlshare|tpch) extract [-d DATABASE]
     qwla (sdss|sqlshare|tpch) analyze [-d DATABASE] [--recurring]
     qwla (-h | --help)
     qwla --version
@@ -31,6 +32,7 @@ from docopt import docopt
 import consume_logs
 import explain_queries
 import query_analysis
+import query_extract
 import summary
 
 
@@ -72,6 +74,14 @@ def main():
             else:
                 explain_queries.explain_sqlshare(
                     config, db, arguments['-q'], True, arguments['--dry'])
+
+    if arguments['extract']:
+        if arguments['sdss']:
+            query_extract.extract_sdss(db)
+        elif arguments['tpch']:
+            query_extract.extract_tpch(db)
+        else:
+            query_extract.extract_sqlshare(db)
 
     if arguments['analyze']:
         if arguments['sdss']:
