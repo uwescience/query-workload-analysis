@@ -55,6 +55,8 @@ def extract(db, query_table, tables_name, logops_name, physops_name):
     datasetdb.begin()
 
     for query in queries:
+        if not query['plan']:
+            continue
         plan = json.loads(query['plan'])
 
         log_ops = visit_operators(plan, visitor_logical_ops)
