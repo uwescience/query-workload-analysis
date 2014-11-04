@@ -418,6 +418,9 @@ def analyze_tpch(database):
     which_str_ops = Counter()
     table_clusters = []
 
+    not_yet_seen_tables = []
+    tables_seen = set()
+
     for q in queries:
         plan = json.loads(q['plan'])
         tables = visit_operators(plan, visitor_tables)
@@ -440,6 +443,12 @@ def analyze_tpch(database):
                     table_clusters[first] = table_clusters[first] | table_clusters[i]
             table_clusters = [x for i, x in enumerate(table_clusters) if i not in equal[1:]]
 
+        new_tables = set(tables) - tables_seen
+        if new_tables:
+            for t in new_tables:
+                tables_seen.add(t)
+            not_yet_seen_tables.append([i, len(new_tables)])
+
         query = q['query']
         compressed_lengths[len(bz2.compress(query))] += 1
 
@@ -450,6 +459,9 @@ def analyze_tpch(database):
         distinct_str_ops[len(set(tokens))] += 1
 
         which_str_ops.update(tokens)
+
+    print
+    print_table(not_yet_seen_tables, headers=['query_number', 'num_new_tables'])
 
     print
     print_table(sorted(
