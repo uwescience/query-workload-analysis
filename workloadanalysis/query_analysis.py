@@ -637,7 +637,7 @@ def analyze_sqlshare(database):
     edges = Counter();
     for ts in tables_in_query:
         for j, t in enumerate(tables_in_query[ts]):
-            ts_minus_t = tables_in_query[ts]
+            ts_minus_t = tables_in_query[ts].copy()
             ts_minus_t.remove(t)
             for t_dash in ts_minus_t:
                 t_id = tables_seen_so_far.index(t)
