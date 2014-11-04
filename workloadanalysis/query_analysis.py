@@ -240,29 +240,6 @@ def print_table(data, headers, workload='sdss'):
             writer.writerow(row)
 
 
-def get_counts(queries, visitors, names, workload='sdss'):
-    '''Count something which requires visiting all operators'''
-
-    assert len(visitors) == len(names)
-
-    c = [Counter() for _ in visitors]
-
-    def count(plan):
-        for i, visitor in enumerate(visitors):
-            c[i].update(visit_operators(plan, visitor))
-
-    for query in queries:
-        plan = json.loads(query['plan'])
-        count(plan)
-
-    for r, name in zip(c, names):
-        print
-        print_table(sorted(
-            r.iteritems(),
-            key=lambda t: t[1], reverse=True),
-            headers=[name, "count"], workload=workload)
-
-
 def explicit_implicit_joins(queries):
     explicit_join = 0
     implicit_join = 0
@@ -326,12 +303,6 @@ def analyze_sdss(database, analyze_recurring):
         print "Find recurring subtrees in distinct (template) queries (using subset check):"
         queries = db.query(dist_queries)
         find_recurring_subset(queries)
-
-    print
-    queries = db.query(expl_queries)
-    get_counts(queries,
-               [visitor_tables, visitor_logical_ops, visitor_physical_ops],
-               ['table', 'logical op', 'physical op'])
 
     print
     queries = db.query(expl_queries)
@@ -435,9 +406,6 @@ def analyze_tpch(database):
         ["class", "operator", "count"], 'tpch')
 
     queries = list(db['tpchqueries'])
-    get_counts(queries,
-               [visitor_tables, visitor_logical_ops, visitor_physical_ops],
-               ['table', 'logical op', 'physical op'], 'tpch')
 
     print
     explicit_implicit_joins(queries)
