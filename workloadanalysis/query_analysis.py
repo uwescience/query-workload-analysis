@@ -320,10 +320,12 @@ def analyze_sdss(database, analyze_recurring):
 
     # count how many new tables we see
     not_yet_seen_tables = []
+    last = 0
 
     # go over all queries (joined with explained)
     print "Go over all queries"
     for i, q in enumerate(db.query(all_queries)):
+        last = i
         plan = json.loads(q['plan'])
         tables = visit_operators(plan, visitor_tables)
         new_tables = set(tables) - tables_seen
@@ -335,6 +337,7 @@ def analyze_sdss(database, analyze_recurring):
             print "Went over", i
 
     print
+    not_yet_seen_tables.append([last, 0])
     print_table(not_yet_seen_tables, headers=['query_number', 'num_new_tables'])
 
     # go over distinct queries
@@ -420,8 +423,10 @@ def analyze_tpch(database):
 
     not_yet_seen_tables = []
     tables_seen = set()
+    last = 0
 
     for idx, q in enumerate(queries):
+        last = idx
         plan = json.loads(q['plan'])
         tables = visit_operators(plan, visitor_tables)
 
@@ -461,6 +466,7 @@ def analyze_tpch(database):
         which_str_ops.update(tokens)
 
     print
+    not_yet_seen_tables.append([last, 0])
     print_table(not_yet_seen_tables, headers=['query_number', 'num_new_tables'], workload="tpch")
 
     print
