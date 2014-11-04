@@ -635,9 +635,9 @@ def analyze_sqlshare(database):
         f.write("%d [label=\"%d\"];\n"%(i,i))
     table_graph = defaultdict(list)
     edges = Counter();
-    for i, ts in enumerate(tables_in_query):
-        for j, t in enumerate(ts):
-            ts_minus_t = ts
+    for ts in tables_in_query:
+        for j, t in enumerate(tables_in_query[ts]):
+            ts_minus_t = tables_in_query[ts]
             ts_minus_t.remove(t)
             for t_dash in ts_minus_t:
                 t_id = tables_seen_so_far.index(t)
