@@ -326,12 +326,12 @@ def explain_tpch(config, database, quiet=False, dry=False):
         with db.connect() as connection:
             # clean cache to refresh constant values
             connection.execute('DBCC FREEPROCCACHE WITH NO_INFOMSGS')
-
             connection.execute('set showplan_xml on')
-            connection.execute('set noexec on')
 
             print "Explain query", i
 
+            import timeit
+            start_time = timeit.default_timer()
             try:
                 res = connection.execute(query['query']).fetchall()[0]
             except Exception as e:
@@ -341,6 +341,8 @@ def explain_tpch(config, database, quiet=False, dry=False):
                 if 'closed automatically' in str(e):
                     raise
                 continue
+
+            query['elapsed'] = timeit.default_timer() - start_time
 
             xml_string = "".join([x for x in res])
             tree = parse_xml.clean(xml_string)
