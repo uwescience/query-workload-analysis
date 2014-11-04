@@ -529,6 +529,7 @@ def analyze_sqlshare(database):
 
     tables_seen_so_far = []
     tables_in_query = {}
+    tables = []
 
     for i, q in enumerate(queries):
         comp_length = len(bz2.compress(q['query']))
@@ -619,6 +620,25 @@ def analyze_sqlshare(database):
     f.write('}')
     f.close()
 
+    f = open('../results/sqlshare/table_connect.dot', 'w')
+    f.write('Graph tabke_graph {\n')
+    for t in tables_seen_so_far:
+        f.write("%s [label=\"%s\"];\n"%(t,t))
+    table_graph = defaultdict(list)
+    edges = Counter();
+    for i, ts in enumerate(tables_in_query):
+        for j, t in enumerate(ts):
+            ts_minus_t = ts
+            ts_minus_t.remove(t)
+            for t_dash in ts_minus_t:
+                edges["%s -- %s"%(t,t_dash)] +=1;
+                table_graph[t].append[t_dash]
+
+    for i,k in enumerate(edges.keys()):
+        f.write("%s [label=\"%d\"]\n"%(k,edges[k]))
+    f.write('}')
+    f.close()
+
     def write_to_csv(dict_obj, col1, col2, filename, to_reverse = True):
         f = open(filename, 'w')
         f.write("%s,%s\n"%(col1,col2))
@@ -646,6 +666,12 @@ def analyze_sqlshare(database):
     f.write("%s,%s\n"%('query','edges'))
     for key in query_graph:
         f.write("%d|%s\n"%(key, ','.join([str(x) for x in query_graph[key]])))
+    f.close()
+
+    f = open('../results/sqlshare/table_graph.txt', 'w')
+    f.write("%s,%s\n"%('query','edges'))
+    for key in table_graph:
+        f.write("%d|%s\n"%(key, ','.join([str(x) for x in table_graph[key]])))
     f.close()
 
     # f = open('../results/sqlshare/keywords_count.csv', 'w')
