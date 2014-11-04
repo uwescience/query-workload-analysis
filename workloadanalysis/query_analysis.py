@@ -662,24 +662,6 @@ def analyze_sqlshare(database):
         f.write("%d|%s\n"%(key, ','.join([str(x) for x in query_graph[key]])))
     f.close()
 
-    f = open('../results/sqlshare/logical_ops_count.csv', 'w')
-    f.write("%s,%s\n"%('logical_op','count'))
-    for key in sorted(logical_ops_count, key=logical_ops_count.get, reverse=True):
-        f.write("%s,%d\n"%(key, logical_ops_count[key]))
-    f.close()
-
-    f = open('../results/sqlshare/physical_ops_count.csv', 'w')
-    f.write("%s,%s\n"%('physical_op','count'))
-    for key in sorted(physical_ops_count, key=physical_ops_count.get, reverse=True):
-        f.write("%s,%d\n"%(key, physical_ops_count[key]))
-    f.close()
-
-    f = open('../results/sqlshare/table_count.csv', 'w')
-    f.write("%s,%s\n"%('table','count'))
-    for key in sorted(table_count, key=table_count.get, reverse=True):
-        f.write("%s,%d\n"%(key.replace(',','``'), table_count[key])) #some wierd table names have comma
-    f.close()
-
     # f = open('../results/sqlshare/keywords_count.csv', 'w')
     # f.write("%s,%s\n"%('keyword','count'))
     # for key in sorted(keywords_count, key=keywords_count.get, reverse=True):
