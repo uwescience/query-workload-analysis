@@ -421,7 +421,7 @@ def analyze_tpch(database):
     not_yet_seen_tables = []
     tables_seen = set()
 
-    for q in queries:
+    for idx, q in enumerate(queries):
         plan = json.loads(q['plan'])
         tables = visit_operators(plan, visitor_tables)
 
@@ -447,7 +447,7 @@ def analyze_tpch(database):
         if new_tables:
             for t in new_tables:
                 tables_seen.add(t)
-            not_yet_seen_tables.append([i, len(new_tables)])
+            not_yet_seen_tables.append([idx, len(new_tables)])
 
         query = q['query']
         compressed_lengths[len(bz2.compress(query))] += 1
