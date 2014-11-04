@@ -461,7 +461,7 @@ def analyze_tpch(database):
         which_str_ops.update(tokens)
 
     print
-    print_table(not_yet_seen_tables, headers=['query_number', 'num_new_tables'])
+    print_table(not_yet_seen_tables, headers=['query_number', 'num_new_tables'], workload="tpch")
 
     print
     print_table(sorted(
