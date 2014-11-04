@@ -614,7 +614,11 @@ def analyze_sqlshare(database):
     for i, q in enumerate(queries):
         for j in range(i+1, len(queries)):
             if len(tables_in_query[i].intersection(tables_in_query[j])) > 0:
-                edges["%d -- %d"%(i,j)] += 1
+                if (edges["%d -- %d"%(j,i)] == 0): # checking if the edge in other direction already exists.
+                    edges["%d -- %d"%(i,j)] += 1
+                else:
+                    edges["%d -- %d"%(j,i)] += 1
+
                 # f.write("%d -- %d;\n"%(i,j))
                 query_graph[i].append(j)
                 query_graph[j].append(i)
