@@ -510,14 +510,14 @@ def analyze_sqlshare(database):
     print '#Total string distinct queries:', len(queries)
     print '#Total queries considering all constants the same:', query_with_same_plan[0]['count']
 
-    comp_lengths = Counter()
+    #comp_lengths = Counter()
     ops = Counter()
     exp_lengths = Counter()
     exp_ops = Counter()
     exp_distinct_ops = Counter()
     exp_physical_ops = Counter()
     exp_distinct_physical_ops = Counter()
-    comp_exp_lengths = Counter()
+    # comp_exp_lengths = Counter()
     str_ops = Counter()
     distinct_str_ops = Counter()
     exp_str_ops = Counter()
@@ -532,8 +532,8 @@ def analyze_sqlshare(database):
     tables = []
 
     for i, q in enumerate(queries):
-        comp_length = len(bz2.compress(q['query']))
-        comp_lengths[comp_length] += 1
+        # comp_length = len(bz2.compress(q['query']))
+        # comp_lengths[comp_length] += 1
         # if q['isView'] == 0:
         #     time_taken[q['runtime']] += 1
 
@@ -578,7 +578,7 @@ def analyze_sqlshare(database):
                         q_phy_ops.remove(op)
 
         exp_lengths[len(expanded_query)] += 1
-        comp_exp_lengths[len(bz2.compress(expanded_query))] += 1
+        # comp_exp_lengths[len(bz2.compress(expanded_query))] += 1
         ops[len(q_ops)] += 1
 
 
@@ -646,9 +646,9 @@ def analyze_sqlshare(database):
             f.write("%d,%d\n"%(key, dict_obj[key]))
         f.close()
 
-    write_to_csv(comp_lengths, 'comp_length', 'count', '../results/sqlshare/comp_lengths.csv')
+    # write_to_csv(comp_lengths, 'comp_length', 'count', '../results/sqlshare/comp_lengths.csv')
     write_to_csv(exp_lengths, 'exp_length', 'count', '../results/sqlshare/exp_lengths.csv')
-    write_to_csv(comp_exp_lengths, 'comp_exp_length', 'count', '../results/sqlshare/comp_exp_lengths.csv')
+    # write_to_csv(comp_exp_lengths, 'comp_exp_length', 'count', '../results/sqlshare/comp_exp_lengths.csv')
     write_to_csv(ops, 'ops', 'count', '../results/sqlshare/ops.csv')
     write_to_csv(exp_ops, 'exp_ops', 'count', '../results/sqlshare/exp_ops.csv')
     write_to_csv(exp_distinct_ops, 'exp_distinct_ops', 'count', '../results/sqlshare/exp_distinct_ops.csv')
