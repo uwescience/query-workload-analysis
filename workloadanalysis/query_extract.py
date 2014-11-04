@@ -13,7 +13,10 @@ def visitor_columns(x):
     cols = []
     for table in x.get('columns').keys():
         for col in x.get('columns')[table]:
-            cols.append(table + '.' + col)
+            cols.append({
+                'table': table,
+                'column': table + '.' + col
+            })
     return cols
 
 
@@ -87,6 +90,6 @@ def extract(db, query_table, tables_name, columns_name, logops_name, physops_nam
 
         columns_ = visit_operators(plan, visitor_columns)
         columns.insert_many([
-            {'query_id': query['id'], 'table': x} for x in columns_])
+            {'query_id': query['id'], 'column': x['column'], 'table': x['table']} for x in columns_])
 
     datasetdb.commit()
