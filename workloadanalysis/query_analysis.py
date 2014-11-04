@@ -279,48 +279,10 @@ def explicit_implicit_joins(queries):
     print '#Explicit join:', explicit_join
 
 
-def print_stats(db):
-    num_interesting_queries = list(db.query('SELECT COUNT(*) c FROM {}'.format(DISTINCT)))[0]['c']
-    print "Distinct queries in BestDR5:", num_interesting_queries
-
-    print
-    print "Top 10 queries:"
-    result = db.query('SELECT query, COUNT(*) AS c FROM {} GROUP BY query ORDER BY c DESC LIMIT 10'.format(ALL))
-    for line in result:
-        print '{:3}'.format(line['c']), line['query']
-
-    print
-    print "Error messages:"
-    result = db.query('SELECT COUNT(*) AS c, error_msg FROM {} where error GROUP BY error_msg ORDER BY c DESC'.format(ALL))
-    print_table(ft(result), headers=['count', 'error msg'])
-
-
-def get_aggregated_cost(db, cost, query):
-    result = db.query('SELECT SUM(cost) AS cost FROM (SELECT {query}, COUNT(*) count, AVG({cost}) AS cost FROM {table} GROUP BY {query}) AS tbl'.format(cost=cost, query=query, table=EXPLAINED))
-    return list(result)[0]['cost']
-
-
-def get_cost(db, cost):
-    result = db.query('SELECT SUM({cost}) AS cost FROM {table}'.format(cost=cost, table=EXPLAINED))
-    return list(result)[0]['cost']
-
-
 def analyze_sdss(database, analyze_recurring):
     db = dataset.connect(database)
 
     print "Limited to DR5"
-
-    expression_ops = db.query("""select class, operator, count(*)
-    from expr_ops group by class, operator order by class, operator;""")
-
-    print_table([[x['class'], x['operator'], x['count']] for x in expression_ops],
-        ["class", "operator", "count"], 'sdss')
-
-    print
-
-    print_stats(db)
-
-    print
 
     num_interesting_queries = list(db.query('SELECT COUNT(*) c FROM {}'.format(EXPLAINED)))[0]['c']
     print "Distinct queries with query plan:", num_interesting_queries
@@ -328,22 +290,6 @@ def analyze_sdss(database, analyze_recurring):
     num_interesting_queries = list(db.query('SELECT COUNT(*) c FROM {}'.format(UNIQUE)))[0]['c']
     print "Distinct queries with constants replaced:", num_interesting_queries
 
-    # TODO: This does not seem to be interesting
-    """
-    print "Overall cost assuming 1 (aka number of queries):", get_cost(db, '1')
-    print "Overall actual cost:", get_cost(db, 'elapsed')
-    print "Overall estimated cost:", get_cost(db, 'estimated_cost')
-
-    print
-
-    print "Cost of 1, aggregate on query:", get_aggregated_cost(db, '1', 'query')
-    print "Actual cost, aggregate on query:", get_aggregated_cost(db, 'elapsed', 'query')
-    print "Estimated cost, aggregate on query:", get_aggregated_cost(db, 'estimated_cost', 'query')
-    print "Cost of 1, aggregate on plan:", get_aggregated_cost(db, '1', 'plan')
-    print "Actual cost, aggregate on plan:", get_aggregated_cost(db, 'elapsed', 'plan')
-    print "Estimated cost, aggregate on plan:", get_aggregated_cost(db, 'estimated_cost', 'plan')
-    print "(Average cost assumed per query)"
-    """
 
     expl_queries = '''
         SELECT query, plan, time_start, elapsed, estimated_cost
@@ -392,19 +338,12 @@ def analyze_sdss(database, analyze_recurring):
     explicit_implicit_joins(queries)
 
     # counters for how often we have a certain count in a query
-    lengths = Counter()
     compressed_lengths = Counter()
-    logops = Counter()
-    physops = Counter()
-    distinct_ops = Counter()
     str_ops = Counter()
     distinct_str_ops = Counter()
-    touch = Counter()
     estimated = Counter()
-    actual = Counter()
     tables_seen = set()
     which_str_ops = Counter()
-    which_tables = Counter()
 
     table_clusters = []
 
@@ -431,22 +370,11 @@ def analyze_sdss(database, analyze_recurring):
     print "Go over distinct queries"
     for q in db.query(expl_queries):
         plan = json.loads(q['plan'])
-        log_ops = visit_operators(plan, visitor_logical_ops)
-        phys_ops = visit_operators(plan, visitor_physical_ops)
         tables = visit_operators(plan, visitor_tables)
-        logops[len(log_ops)] += 1
-        physops[len(phys_ops)] += 1
-        touch[len(tables)] += 1
-
-        distinct_ops[len(set(log_ops))] += 1
 
         # only valid sdss tables
         table_set = set([x.lower() for x in tables]) & set(SDSS_TABLES)
         if len(table_set):
-
-            for table in table_set:
-                which_tables[table] += 1
-
             equal = []
             for i, c in enumerate(table_clusters):
                 if c.intersection(table_set):
@@ -463,11 +391,9 @@ def analyze_sdss(database, analyze_recurring):
 
         query = q['query']
 
-        lengths[len(query)] += 1
         compressed_lengths[len(bz2.compress(query))] += 1
 
         estimated[q['estimated_cost']] += 1
-        actual[q['elapsed']] += 1
 
         # tokenization is horribly slow and does not work for sdss
         continue
@@ -490,8 +416,8 @@ def analyze_sdss(database, analyze_recurring):
         headers=["table_cluster"])
 
     for name, values in zip(
-        ['lengths', 'compressed lengths', 'logops', 'physops', 'distinct ops', 'string ops', 'distinct string ops', 'touch', 'estimated', 'actual', 'which_tables'],
-        [lengths, compressed_lengths, logops, physops, distinct_ops, str_ops, distinct_str_ops, touch, estimated, actual, which_tables]):
+        ['compressed lengths', 'string ops', 'distinct string ops', 'estimated'],
+        [compressed_lengths, str_ops, distinct_str_ops, estimated]):
         print
         print_table(sorted(
             values.iteritems(),
@@ -517,37 +443,20 @@ def analyze_tpch(database):
     explicit_implicit_joins(queries)
 
     # counters for how often we have a certain count in a query
-    lengths = Counter()
     compressed_lengths = Counter()
-    logops = Counter()
-    physops = Counter()
-    distinct_ops = Counter()
     str_ops = Counter()
     distinct_str_ops = Counter()
-    touch = Counter()
     estimated = Counter()
     which_str_ops = Counter()
-    which_tables = Counter()
-
     table_clusters = []
 
     for q in queries:
         plan = json.loads(q['plan'])
-        log_ops = visit_operators(plan, visitor_logical_ops)
-        phys_ops = visit_operators(plan, visitor_physical_ops)
         tables = visit_operators(plan, visitor_tables)
-        logops[len(log_ops)] += 1
-        physops[len(phys_ops)] += 1
-        touch[len(tables)] += 1
-
-        distinct_ops[len(set(log_ops))] += 1
 
         # only valid sdss tables
         table_set = set([x.lower() for x in tables]) & set(SDSS_TABLES)
         if len(table_set):
-
-            for table in table_set:
-                which_tables[table] += 1
 
             equal = []
             for i, c in enumerate(table_clusters):
@@ -564,8 +473,6 @@ def analyze_tpch(database):
             table_clusters = [x for i, x in enumerate(table_clusters) if i not in equal[1:]]
 
         query = q['query']
-
-        lengths[len(query)] += 1
         compressed_lengths[len(bz2.compress(query))] += 1
 
         estimated[q['estimated_cost']] += 1
@@ -588,8 +495,8 @@ def analyze_tpch(database):
         headers=["table_cluster"], workload='tpch')
 
     for name, values in zip(
-        ['lengths', 'compressed lengths', 'logops', 'physops', 'distinct ops', 'string ops', 'distinct string ops', 'touch', 'estimated', 'which_tables'],
-        [lengths, compressed_lengths, logops, physops, distinct_ops, str_ops, distinct_str_ops, touch, estimated, which_tables]):
+        ['compressed lengths', 'string ops', 'distinct string ops', 'estimated'],
+        [compressed_lengths, str_ops, distinct_str_ops, estimated]):
         print_table(sorted(
             values.iteritems(),
             key=lambda t: t[0]),
@@ -617,12 +524,8 @@ def analyze_sqlshare(database):
     print '#Total string distinct queries:', len(queries)
     print '#Total queries considering all constants the same:', query_with_same_plan[0]['count']
 
-    lengths = Counter()
     comp_lengths = Counter()
     ops = Counter()
-    distinct_ops = Counter()
-    physical_ops = Counter()
-    distinct_physical_ops = Counter()
     exp_lengths = Counter()
     exp_ops = Counter()
     exp_distinct_ops = Counter()
@@ -633,21 +536,15 @@ def analyze_sqlshare(database):
     distinct_str_ops = Counter()
     exp_str_ops = Counter()
     exp_distinct_str_ops = Counter()
-    touch = Counter()
-    table_count = Counter()
     #time_taken = Counter()
     dataset_touch = Counter()
     keywords_count = Counter()
-    logical_ops_count = Counter()
-    physical_ops_count = Counter()
     table_coverage = {}
 
     tables_seen_so_far = []
     tables_in_query = {}
 
     for i, q in enumerate(queries):
-        length = len(q['query'])
-        lengths[length] += 1
         comp_length = len(bz2.compress(q['query']))
         comp_lengths[comp_length] += 1
         # if q['isView'] == 0:
@@ -696,15 +593,6 @@ def analyze_sqlshare(database):
         exp_lengths[len(expanded_query)] += 1
         comp_exp_lengths[len(bz2.compress(expanded_query))] += 1
         ops[len(q_ops)] += 1
-        distinct_ops[len(set(q_ops))] += 1
-        physical_ops[len(q_phy_ops)] += 1
-        distinct_physical_ops[len(set(q_phy_ops))] += 1
-
-        for op in q_ops:
-            logical_ops_count[op] += 1
-
-        for op in q_phy_ops:
-            physical_ops_count[op] += 1
 
 
         # if '--' in q['query']:
@@ -722,19 +610,13 @@ def analyze_sqlshare(database):
         plan = json.loads(q['plan'])
         tables = visit_operators(plan, visitor_tables)
         tables = set(tables)
-        touch[len(tables)] += 1
-        # if len(set(tables)) > 50 and len(set(tables)) < 75:
-        #     print q['id']
-        #     print set(tables)
-        for t in tables:
-            table_count[t] += 1
+
         tables_in_query[i] = tables
         for t in tables:
             if t not in tables_seen_so_far:
                 tables_seen_so_far.append(t)
 
         table_coverage[i] = len(tables_seen_so_far)
-
     # Calculating query graph.
     f = open('../results/sqlshare/query_connect.dot', 'w')
     f.write('Graph query_graph {\n')
@@ -758,23 +640,18 @@ def analyze_sqlshare(database):
             f.write("%d,%d\n"%(key, dict_obj[key]))
         f.close()
 
-    write_to_csv(lengths, 'length', 'count', '../results/sqlshare/lengths.csv')
     write_to_csv(comp_lengths, 'comp_length', 'count', '../results/sqlshare/comp_lengths.csv')
     write_to_csv(exp_lengths, 'exp_length', 'count', '../results/sqlshare/exp_lengths.csv')
     write_to_csv(comp_exp_lengths, 'comp_exp_length', 'count', '../results/sqlshare/comp_exp_lengths.csv')
     write_to_csv(ops, 'ops', 'count', '../results/sqlshare/ops.csv')
-    write_to_csv(distinct_ops, 'distinct_ops', 'count', '../results/sqlshare/distinct_ops.csv')
     write_to_csv(exp_ops, 'exp_ops', 'count', '../results/sqlshare/exp_ops.csv')
     write_to_csv(exp_distinct_ops, 'exp_distinct_ops', 'count', '../results/sqlshare/exp_distinct_ops.csv')
     # write_to_csv(str_ops, 'str_ops', 'count', '../results/sqlshare/str_ops.csv')
     # write_to_csv(distinct_str_ops, 'distinct_str_ops', 'count', '../results/sqlshare/distinct_str_ops.csv')
     # write_to_csv(exp_str_ops, 'exp_str_ops', 'count', '../results/sqlshare/exp_str_ops.csv')
     # write_to_csv(exp_distinct_str_ops, 'exp_distinct_str_ops', 'count', '../results/sqlshare/exp_distinct_str_ops.csv')
-    write_to_csv(touch, 'touch', 'count', '../results/sqlshare/touch.csv')
     write_to_csv(dataset_touch, 'dataset_touch', 'count', '../results/sqlshare/dataset_touch.csv')
     # write_to_csv(time_taken, 'time_taken', 'count', '../results/sqlshare/time_taken.csv')
-    write_to_csv(physical_ops, 'physical_ops', 'count', '../results/sqlshare/physical_ops.csv')
-    write_to_csv(distinct_physical_ops, 'distinct_physical_ops', 'count', '../results/sqlshare/distinct_physical_ops.csv')
     write_to_csv(exp_physical_ops, 'exp_physical_ops', 'count', '../results/sqlshare/exp_physical_ops.csv')
     write_to_csv(exp_distinct_physical_ops, 'exp_distinct_physical_ops', 'count', '../results/sqlshare/exp_distinct_physical_ops.csv')
     write_to_csv(table_coverage, 'query_id', 'tables', '../results/sqlshare/table_coverage.csv', to_reverse = False)
