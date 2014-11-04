@@ -506,7 +506,7 @@ def analyze_sqlshare(database):
     views = list(db.query('SELECT * FROM sqlshare_logs WHERE isview = false'))
     explicit_implicit_joins(queries)
     print '#Total queries with plan: ', len(all_queries)
-    query_with_same_plan = list(db.query('SELECT Count(*) as count from (SELECT * from sqlshare_logs where has_plan = true group by simple_plan) as foo'))
+    query_with_same_plan = list(db.query('SELECT Count(*) as count from (SELECT distinct simple_plan from sqlshare_logs where has_plan = true) as foo'))
     print '#Total string distinct queries:', len(queries)
     print '#Total queries considering all constants the same:', query_with_same_plan[0]['count']
 
