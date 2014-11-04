@@ -3,6 +3,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 import matplotlib as mpl
+import numpy as np
 
 
 workloads = ["tpch", "sdss", "sqlshare"]
@@ -17,6 +18,12 @@ colors = {
     'tpch': b,
     'sdss': g,
     'sqlshare': r
+}
+
+lines = {
+    'tpch': '-',
+    'sdss': '-',
+    'sqlshare': '-'
 }
 
 
@@ -35,9 +42,9 @@ def to_percent(y, position):
 formatter = FuncFormatter(to_percent)
 
 
-def load_data(metric):
+def load_data(metric, wls=workloads):
     data = {}
-    for workload in workloads:
+    for workload in wls:
         with open(metric + '/' + workload + '.csv') as f:
             data[workload] = np.recfromcsv(f)
     return data
@@ -50,18 +57,24 @@ def query_length():
     sns.set_style("whitegrid")
 
     for w in workloads:
-        sns.kdeplot(d[w], cumulative=True, label=labels[w],
-                    bw=1, color=colors[w])
+        c = d[w]['count'].astype(float)
+        c /= sum(c)
+        plt.plot(d[w]['char_length'], np.cumsum(c),
+                 label=labels[w], color=colors[w], linewidth=2, ls=lines[w])
+        # sns.kdeplot(d[w], cumulative=True, label=labels[w],
+        #             bw=1, color=colors[w])
 
     axes = plt.gca()
 
-    axes.set_xlim(0, 6000)
+    axes.set_ylim(0, 1)
+    axes.set_xlim(0, 1500)
 
     axes.yaxis.set_major_formatter(formatter)
 
     axes.set_xlabel('Query length in characters')
     axes.set_ylabel('% of queries')
 
+    plt.legend(loc=4)
     plt.tight_layout()
 
     plt.savefig('plot_length_cdf.pdf', format='pdf', transparent=True)
@@ -74,34 +87,64 @@ def table_touch():
     sns.set_context("paper", font_scale=1.3)
     sns.set_style("whitegrid")
 
-    f, axes = plt.subplots(1, 2, figsize=(7, 4), sharey=True)
-
-    a = {
-        'tpch': 0,
-        'sdss': 0,
-        'sqlshare': 1
-    }
     for w in workloads:
-        sns.kdeplot(d[w], cumulative=True, label=labels[w],
-                    bw=1, ax=axes[a[w]], color=colors[w])
+        # sns.kdeplot(d[w], cumulative=True, label=labels[w],
+        #             bw=1, ax=axes[a[w]], color=colors[w], gridsize=1000)
+        c = d[w]['count'].astype(float)
+        c /= sum(c)
+        plt.plot(d[w]['number'], np.cumsum(c),
+                 label=labels[w], color=colors[w], linewidth=2, ls=lines[w])
 
-    axes[0].set_xlim(0, 10)
-    axes[1].set_xlim(0, 400)
+    axes = plt.gca()
 
-    axes[0].yaxis.set_major_formatter(formatter)
+    axes.set_ylim(0, 1)
+    axes.set_xlim(0, 10)
 
-    axes[0].set_xlabel('Table touch')
-    axes[1].set_xlabel('Table touch')
-    axes[0].set_ylabel('% of queries')
+    axes.yaxis.set_major_formatter(formatter)
 
-    # f.text(0.5, 0.02, "Table touch", ha='center')
+    axes.set_xlabel('Table touch')
+    axes.set_ylabel('% of queries')
 
+    plt.legend(loc=4)
     plt.tight_layout()
 
-    f.savefig('plot_touch_cdf.pdf', format='pdf', transparent=True)
+    plt.savefig('plot_touch_cdf.pdf', format='pdf', transparent=True)
+    plt.show()
+
+
+def runtime():
+    ws = ["sdss", "sqlshare"]
+    d = load_data("runtime", ws)
+
+    sns.set_context("paper", font_scale=1.3)
+    sns.set_style("whitegrid")
+
+    for w in ws:
+        # sns.kdeplot(d[w], cumulative=True, label=labels[w],
+        #             color=colors[w])
+        c = d[w]['count'].astype(float)
+        c /= sum(c)
+        plt.plot(d[w]['runtime'], np.cumsum(c),
+                 label=labels[w], color=colors[w], linewidth=2, ls=lines[w])
+
+    axes = plt.gca()
+
+    axes.set_ylim(0, 1)
+    axes.set_xlim(0, 2)
+
+    axes.yaxis.set_major_formatter(formatter)
+
+    axes.set_xlabel('Runtime')
+    axes.set_ylabel('% of queries')
+
+    plt.legend(loc=4)
+    plt.tight_layout()
+
+    plt.savefig('plot_runtime_cdf.pdf', format='pdf', transparent=True)
     plt.show()
 
 
 if __name__ == '__main__':
-    query_length()
-    # table_touch()
+    # query_length()
+    table_touch()
+    # runtime()
