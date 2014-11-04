@@ -609,7 +609,7 @@ def analyze_sqlshare(database):
     f.write('Graph query_graph {\n')
     for i in range(len(queries)):
         f.write("%d [label=\"%d\"];\n"%(i,i))
-    query_graph = defaultdict(list)
+    #query_graph = defaultdict(list)
     edges = Counter();
     for i, q in enumerate(queries):
         for j in range(i+1, len(queries)):
@@ -620,8 +620,8 @@ def analyze_sqlshare(database):
                     edges["%d -- %d"%(j,i)] += 1
 
                 # f.write("%d -- %d;\n"%(i,j))
-                query_graph[i].append(j)
-                query_graph[j].append(i)
+                # query_graph[i].append(j)
+                # query_graph[j].append(i)
     
     for i,k in enumerate(edges.keys()):
         f.write("%s [label=\"%d\"]\n"%(k,edges[k]))
@@ -640,8 +640,13 @@ def analyze_sqlshare(database):
             ts_minus_t = ts
             ts_minus_t.remove(t)
             for t_dash in ts_minus_t:
-                edges["%d -- %d"%(tables_seen_so_far.index(t),tables_seen_so_far.index(t_dash))] +=1;
-                table_graph[t].append[t_dash]
+                t_id = tables_seen_so_far.index(t)
+                t_dash_id = tables_seen_so_far.index(t_dash)
+                if (edges["%d -- %d"%(t_dash_id,t_id)] == 0):
+                    edges["%d -- %d"%(t_id,t_dash_id)] +=1
+                else:
+                    edges["%d -- %d"%(t_dash_id,t_id)] +=1
+                # table_graph[t].append[t_dash]
 
     for i,k in enumerate(edges.keys()):
         f.write("%s [label=\"%d\"]\n"%(k,edges[k]))
@@ -672,17 +677,17 @@ def analyze_sqlshare(database):
     write_to_csv(exp_distinct_physical_ops, 'exp_distinct_physical_ops', 'count', '../results/sqlshare/exp_distinct_physical_ops.csv')
     write_to_csv(table_coverage, 'query_id', 'tables', '../results/sqlshare/table_coverage.csv', to_reverse = False)
 
-    f = open('../results/sqlshare/query_graph.txt', 'w')
-    f.write("%s,%s\n"%('query','edges'))
-    for key in query_graph:
-        f.write("%d|%s\n"%(key, ','.join([str(x) for x in query_graph[key]])))
-    f.close()
+    # f = open('../results/sqlshare/query_graph.txt', 'w')
+    # f.write("%s,%s\n"%('query','edges'))
+    # for key in query_graph:
+    #     f.write("%d|%s\n"%(key, ','.join([str(x) for x in query_graph[key]])))
+    # f.close()
 
-    f = open('../results/sqlshare/table_graph.txt', 'w')
-    f.write("%s,%s\n"%('query','edges'))
-    for key in table_graph:
-        f.write("%d|%s\n"%(key, ','.join([str(x) for x in table_graph[key]])))
-    f.close()
+    # f = open('../results/sqlshare/table_graph.txt', 'w')
+    # f.write("%s,%s\n"%('query','edges'))
+    # for key in table_graph:
+    #     f.write("%d|%s\n"%(key, ','.join([str(x) for x in table_graph[key]])))
+    # f.close()
 
     # f = open('../results/sqlshare/keywords_count.csv', 'w')
     # f.write("%s,%s\n"%('keyword','count'))
