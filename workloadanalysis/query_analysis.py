@@ -610,20 +610,25 @@ def analyze_sqlshare(database):
     for i in range(len(queries)):
         f.write("%d [label=\"%d\"];\n"%(i,i))
     query_graph = defaultdict(list)
+    edges = Counter();
     for i, q in enumerate(queries):
         for j in range(i+1, len(queries)):
             if len(tables_in_query[i].intersection(tables_in_query[j])) > 0:
-                f.write("%d -- %d;\n"%(i,j))
+                edges["%d -- %d"%(i,j)] += 1
+                # f.write("%d -- %d;\n"%(i,j))
                 query_graph[i].append(j)
                 query_graph[j].append(i)
+    
+    for i,k in enumerate(edges.keys()):
+        f.write("%s [label=\"%d\"]\n"%(k,edges[k]))
 
     f.write('}')
     f.close()
 
     f = open('../results/sqlshare/table_connect.dot', 'w')
     f.write('Graph tabke_graph {\n')
-    for t in tables_seen_so_far:
-        f.write("%s [label=\"%s\"];\n"%(t,t))
+    for i,t in enumerate(tables_seen_so_far):
+        f.write("%d [label=\"%d\"];\n"%(i,i))
     table_graph = defaultdict(list)
     edges = Counter();
     for i, ts in enumerate(tables_in_query):
@@ -631,11 +636,12 @@ def analyze_sqlshare(database):
             ts_minus_t = ts
             ts_minus_t.remove(t)
             for t_dash in ts_minus_t:
-                edges["%s -- %s"%(t,t_dash)] +=1;
+                edges["%d -- %d"%(tables_seen_so_far.index(t),tables_seen_so_far.index(t_dash))] +=1;
                 table_graph[t].append[t_dash]
 
     for i,k in enumerate(edges.keys()):
         f.write("%s [label=\"%d\"]\n"%(k,edges[k]))
+    
     f.write('}')
     f.close()
 
