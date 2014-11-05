@@ -50,39 +50,37 @@ def extract(db, query_table, tables_name, columns_name, logops_name, physops_nam
     physops = datasetdb[physops_name]
 
     try:
-        datasetdb.query("truncate table %s" % tables_name)
+        datasetdb.query("drop table %s" % tables_name)
     except sa.exc.ProgrammingError:
         pass
 
     try:
-        datasetdb.query("truncate table %s" % columns_name)
+        datasetdb.query("drop table %s" % columns_name)
     except sa.exc.ProgrammingError:
         pass
 
     try:
-        datasetdb.query("truncate table %s" % logops_name)
+        datasetdb.query("drop table %s" % logops_name)
     except sa.exc.ProgrammingError:
         pass
 
     try:
-        datasetdb.query("truncate table %s" % physops_name)
+        datasetdb.query("drop table %s" % physops_name)
     except sa.exc.ProgrammingError:
         pass
+
+    print "dropped tables"
 
     datasetdb.begin()
 
-    for query in queries:
+    for i, query in enumerate(queries):
         if not query['plan']:
             continue
+
+        if not i % 10000:
+            print "Went over", i
+
         plan = json.loads(query['plan'])
-
-        log_ops = visit_operators(plan, visitor_logical_ops)
-        logops.insert_many([
-            {'query_id': query['id'], 'log_operator': x} for x in log_ops])
-
-        phys_ops = visit_operators(plan, visitor_physical_ops)
-        physops.insert_many([
-            {'query_id': query['id'], 'phys_operator': x} for x in phys_ops])
 
         tables_ = visit_operators(plan, visitor_tables)
         tables.insert_many([
@@ -91,5 +89,13 @@ def extract(db, query_table, tables_name, columns_name, logops_name, physops_nam
         columns_ = visit_operators(plan, visitor_columns)
         columns.insert_many([
             {'query_id': query['id'], 'column': x['column'], 'table': x['table']} for x in columns_])
+
+        log_ops = visit_operators(plan, visitor_logical_ops)
+        logops.insert_many([
+            {'query_id': query['id'], 'log_operator': x} for x in log_ops])
+
+        phys_ops = visit_operators(plan, visitor_physical_ops)
+        physops.insert_many([
+            {'query_id': query['id'], 'phys_operator': x} for x in phys_ops])
 
     datasetdb.commit()
