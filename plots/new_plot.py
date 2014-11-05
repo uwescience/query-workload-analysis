@@ -171,6 +171,35 @@ def table_touch():
     plt.show()
 
 
+def column_touch():
+    d = load_data("column_touch")
+
+    sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
+    # sns.set_style("whitegrid")
+
+    for w in workloads:
+        c = d[w]['count'].astype(float)
+        c /= sum(c)
+        plt.plot(d[w]['number'], np.cumsum(c),
+                 label=labels[w], color=colors[w], ls=lines[w])
+
+    axes = plt.gca()
+
+    axes.set_ylim(0, 1)
+    axes.set_xlim(0, 400)
+
+    axes.yaxis.set_major_formatter(formatter)
+
+    axes.set_xlabel('Column touch')
+    axes.set_ylabel('% of queries')
+
+    plt.legend(loc=4)
+    plt.tight_layout()
+
+    plt.savefig('plot_column_touch_cdf.pdf', format='pdf')
+    plt.show()
+
+
 def runtime():
     ws = ["sdss", "sqlshare"]
     d = load_data("runtime", ws)
@@ -288,5 +317,6 @@ if __name__ == '__main__':
     # num_dist_ops()
     # query_length()
     # table_touch()
+    column_touch()
     # runtime()
-    new_tables()
+    # new_tables()
