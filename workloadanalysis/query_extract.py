@@ -77,7 +77,7 @@ def extract(db, query_table, tables_name, columns_name, logops_name, physops_nam
         if not query['plan']:
             continue
 
-        if not i % 100000:
+        if not i % 10000:
             print "Went over", i
 
         plan = json.loads(query['plan'])
