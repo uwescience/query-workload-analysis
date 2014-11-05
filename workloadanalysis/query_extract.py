@@ -50,26 +50,26 @@ def extract(db, query_table, tables_name, columns_name, logops_name, physops_nam
     physops = datasetdb[physops_name]
 
     try:
-        datasetdb.query("truncate table %s" % tables_name)
+        datasetdb.query("drop table %s" % tables_name)
     except sa.exc.ProgrammingError:
         pass
 
     try:
-        datasetdb.query("truncate table %s" % columns_name)
+        datasetdb.query("drop table %s" % columns_name)
     except sa.exc.ProgrammingError:
         pass
 
     try:
-        datasetdb.query("truncate table %s" % logops_name)
+        datasetdb.query("drop table %s" % logops_name)
     except sa.exc.ProgrammingError:
         pass
 
     try:
-        datasetdb.query("truncate table %s" % physops_name)
+        datasetdb.query("drop table %s" % physops_name)
     except sa.exc.ProgrammingError:
         pass
 
-    print "truncated tables"
+    print "dropped tables"
 
     datasetdb.begin()
 
