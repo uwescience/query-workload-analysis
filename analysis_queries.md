@@ -115,5 +115,23 @@ select class, operator, count(*) from expr_ops group by class, operator order by
 ### Dataset connect graph
 
 ```sql
-select t1.table || '--' || t2.table || '[label=' || count(*) || ']' from tpch_tables t1, tpch_tables t2 where t1.query_id = t2.query_id group by t1.table, t2.table;
+select t1.table || '--' || t2.table || ' [label=' || count(*) || '];' from sqlshare_tables_distinct t1, sqlshare_tables_distinct t2 where t1.query_id = t2.query_id and t1.table != t2.table group by t1.table, t2.table;
+```
+
+```bash
+sudo -u postgres psql -d sdsslogs -A -c "select distinct \"table\" || ' [label=\"'|| \"table\" || '\"];' from sqlshare_tables;" > results/table_connect_sqlshare.dot
+
+sudo -u postgres psql -d sdsslogs -A -c "select t1.table || '--' || t2.table || ' [label=' || count(*) || '];' from sqlshare_tables_distinct t1, sqlshare_tables_distinct t2 where t1.query_id = t2.query_id and t1.table != t2.table group by t1.table, t2.table;" >> results/table_connect_sqlshare.dot
+```
+
+### Query connect graph
+
+```sql
+select t1.query_id || '--' || t2.query_id || ' [label=' || count(*) || '];' from sqlshare_tables_distinct t1, sqlshare_tables_distinct t2 where t1.query_id != t2.query_id and t1.table = t2.table group by t1.query_id, t2.query_id;
+```
+
+```bash
+sudo -u postgres psql -d sdsslogs -A -c "select distinct query_id || ' [label=\"'|| query_id || '\"];' from sqlshare_tables;" > results/qConnectSQLShare.dot
+
+sudo -u postgres psql -d sdsslogs -A -c "select t1.query_id || '--' || t2.query_id || ' [label=' || count(*) || '];' from sqlshare_tables_distinct t1, sqlshare_tables_distinct t2 where t1.query_id != t2.query_id and t1.table = t2.table group by t1.query_id, t2.query_id;" >> results/qConnectSQLShare.dot
 ```
