@@ -49,8 +49,6 @@ def extract(db, query_table, tables_name, columns_name, logops_name, physops_nam
     logops = datasetdb[logops_name]
     physops = datasetdb[physops_name]
 
-    datasetdb.begin()
-
     try:
         datasetdb.query("drop table %s" % tables_name)
     except sa.exc.ProgrammingError:
@@ -72,6 +70,8 @@ def extract(db, query_table, tables_name, columns_name, logops_name, physops_nam
         pass
 
     print "dropped tables"
+
+    datasetdb.begin()
 
     for i, query in enumerate(queries):
         if not query['plan']:
