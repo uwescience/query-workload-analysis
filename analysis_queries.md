@@ -80,6 +80,19 @@ sudo -u postgres psql -d sdsslogs -A -F"," -c "select number, count(*) from (sel
 sudo -u postgres psql -d sdsslogs -A -F"," -c "select number, count(*) from (select query_id, count(distinct \"table\") as number from sqlshare_tables group by query_id) as foo group by number order by number asc" > results/table_touch/sqlshare.csv
 ```
 
+### Column touch
+
+```sql
+select number, count(*) from (select query_id, count(*) as number from tpch_columns group by query_id) as foo group by number order by number asc;
+select number, count(*) from (select query_id, count(distinct "column") as number from tpch_columns where "table" != 'None' group by query_id) as foo group by number order by number asc;
+```
+
+```bash
+sudo -u postgres psql -d sdsslogs -A -F"," -c "select number, count(*) from (select query_id, count(distinct \"column\") as number from tpch_columns where \"table\" != 'None' group by query_id) as foo group by number order by number asc" > results/column_touch/tpch.csv
+sudo -u postgres psql -d sdsslogs -A -F"," -c "select number, count(*) from (select query_id, count(distinct \"column\") as number from sdss_columns where \"table\" != 'None' group by query_id) as foo group by number order by number asc" > results/column_touch/sdss.csv
+sudo -u postgres psql -d sdsslogs -A -F"," -c "select number, count(*) from (select query_id, count(distinct \"column\") as number from sqlshare_columns where \"table\" != 'None' group by query_id) as foo group by number order by number asc" > results/column_touch/sqlshare.csv
+```
+
 ### List of physical operators ordered by number of occurrences
 
 ```sql

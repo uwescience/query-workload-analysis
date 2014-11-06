@@ -14,7 +14,7 @@ labels = {
     'sqlshare': "SQLShare"
 }
 
-cs = b, g, r = sns.color_palette("deep", 3)
+b, g, r = sns.color_palette("deep", 3)
 colors = {
     'tpch': b,
     'sdss': g,
@@ -28,7 +28,7 @@ lines = {
 }
 
 
-font_scale = 1.5
+font_scale = 1.7
 
 
 def to_percent(y, position):
@@ -186,7 +186,7 @@ def column_touch():
     axes = plt.gca()
 
     axes.set_ylim(0, 1)
-    axes.set_xlim(0, 400)
+    axes.set_xlim(0, 100)
 
     axes.yaxis.set_major_formatter(formatter)
 
@@ -317,6 +317,6 @@ if __name__ == '__main__':
     # num_dist_ops()
     # query_length()
     # table_touch()
-    column_touch()
+    # column_touch()
     # runtime()
     # new_tables()
