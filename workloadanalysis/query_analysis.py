@@ -90,7 +90,7 @@ def print_op_tree(tree, indent=0):
         print_op_tree(child, indent + 1)
 
 
-def find_recurring(queries, sdss=True):
+def find_recurring(queries, workload='sdss'):
     seen = {}
 
     # has to be list (mutable) so that we can modify it in sub-function
@@ -126,7 +126,7 @@ def find_recurring(queries, sdss=True):
 
     print_table(sorted(
                 savings.iteritems(),
-                key=lambda t: t[0]), ["savings", "count"], 'sdss')
+                key=lambda t: t[0]), ["savings", "count"], workload)
 
 
 def transformed(tree):
@@ -424,6 +424,10 @@ def analyze_tpch(database):
     not_yet_seen_tables = []
     tables_seen = set()
     last = 0
+
+    print "Find recurring subtrees in queries queries:"
+    find_recurring(queries, 'tpch')
+    find_recurring_subset(queries)
 
     for idx, q in enumerate(queries):
         last = idx

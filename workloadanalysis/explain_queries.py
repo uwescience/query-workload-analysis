@@ -154,7 +154,6 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
     datasetdb = None
     table = None
     ops_table = None
-    expressions = None
 
     query = "SELECT * from distinctlogs WHERE id %% {} = {} OFFSET {}".format(
         segments[1], segments[0], offset)
