@@ -496,14 +496,14 @@ def analyze_tpch(database):
 def analyze_sqlshare(database):
     db = dataset.connect(database)
 
-    # distinct_q = 'SELECT plan from sqlshare_logs where has_plan = 1 group by query'
+    distinct_q = 'SELECT plan from sqlshare_logs where has_plan = 1 group by query'
     # print "Find recurring subtrees in distinct queries:"
     # q = db.query(distinct_q)
     # find_recurring(q, sdss=False)
 
-    # print "Find recurring subtrees in distinct queries (using subset check):"
-    # q = db.query(distinct_q)
-    # find_recurring_subset(q)
+    print "Find recurring subtrees in distinct queries (using subset check):"
+    q = db.query(distinct_q)
+    find_recurring_subset(q)
 
     all_queries = list(db.query('SELECT * from sqlshare_logs where has_plan = true'))
     queries = list(db.query('SELECT query, plan, expanded_plan_ops_logical, expanded_plan_ops, ref_views from sqlshare_logs where has_plan = true group by query, plan, expanded_plan_ops_logical, expanded_plan_ops, ref_views'))
