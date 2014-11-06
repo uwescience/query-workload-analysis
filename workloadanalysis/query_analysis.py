@@ -585,19 +585,6 @@ def analyze_sqlshare(database):
         # comp_exp_lengths[len(bz2.compress(expanded_query))] += 1
         ops[len(q_ops)] += 1
 
-
-        # if '--' in q['query']:
-        #     pass
-        # else:
-        #     tokens = sqltokens.get_tokens(q['query'])
-        #     str_ops[len(tokens)] += 1
-        #     for keyword in tokens:
-        #         keywords_count[keyword] += 1
-        #     distinct_str_ops[len(set(tokens))] += 1
-        #     ex_tokens = sqltokens.get_tokens(expanded_query)
-        #     exp_str_ops[len(ex_tokens)] += 1
-        #     exp_distinct_str_ops[len(set(ex_tokens))] += 1
-
         plan = json.loads(q['plan'])
         tables = visit_operators(plan, visitor_tables)
         tables = set(tables)
@@ -608,57 +595,8 @@ def analyze_sqlshare(database):
                 tables_seen_so_far.append(t)
 
         table_coverage[i] = len(tables_seen_so_far)
-    # Calculating query graph.
-    f = open('../results/sqlshare/query_connect.dot', 'w')
-    f.write('Graph query_graph {\n')
-    for i in range(len(queries)):
-        f.write("%d [label=\"%d\"];\n"%(i,i))
-    #query_graph = defaultdict(list)
-    edges = Counter();
-    for i, q in enumerate(queries):
-        for j in range(i+1, len(queries)):
-            if len(tables_in_query[i].intersection(tables_in_query[j])) > 0:
-                if (edges["%d -- %d"%(j,i)] == 0): # checking if the edge in other direction already exists.
-                    edges["%d -- %d"%(i,j)] += 1
-                else:
-                    edges["%d -- %d"%(j,i)] += 1
 
-                # f.write("%d -- %d;\n"%(i,j))
-                # query_graph[i].append(j)
-                # query_graph[j].append(i)
-    
-    for i,k in enumerate(edges.keys()):
-        f.write("%s [label=\"%d\"]\n"%(k,edges[k]))
-
-    f.write('}')
-    f.close()
-
-    f = open('../results/sqlshare/table_connect.dot', 'w')
-    f.write('Graph tabke_graph {\n')
-    for i,t in enumerate(tables_seen_so_far):
-        f.write("%d [label=\"%d\"];\n"%(i,i))
-    table_graph = defaultdict(list)
-    edges = Counter();
-    for ts in tables_in_query:
-        for j, t in enumerate(tables_in_query[ts]):
-            ts_minus_t = tables_in_query[ts].copy()
-            ts_minus_t.remove(t)
-            for t_dash in ts_minus_t:
-                t_id = tables_seen_so_far.index(t)
-                t_dash_id = tables_seen_so_far.index(t_dash)
-                if (edges["%d -- %d"%(t_dash_id,t_id)] == 0):
-                    edges["%d -- %d"%(t_id,t_dash_id)] +=1
-                else:
-                    edges["%d -- %d"%(t_dash_id,t_id)] +=1
-                # table_graph[t].append[t_dash]
-
-    for i,k in enumerate(edges.keys()):
-        f.write("%s [label=\"%d\"]\n"%(k,edges[k]))
-    
-    f.write('}')
-    f.close()
-
-    def write_to_csv(dict_obj, col1, col2, filename, to_reverse = True):
+    def write_to_csv(dict_obj, col1, col2, filename, to_reverse=True):
         f = open(filename, 'w')
         f.write("%s,%s\n"%(col1,col2))
         for key in sorted(dict_obj, reverse=to_reverse):
@@ -680,24 +618,6 @@ def analyze_sqlshare(database):
     write_to_csv(exp_physical_ops, 'exp_physical_ops', 'count', '../results/sqlshare/exp_physical_ops.csv')
     write_to_csv(exp_distinct_physical_ops, 'exp_distinct_physical_ops', 'count', '../results/sqlshare/exp_distinct_physical_ops.csv')
     write_to_csv(table_coverage, 'query_id', 'tables', '../results/sqlshare/table_coverage.csv', to_reverse = False)
-
-    # f = open('../results/sqlshare/query_graph.txt', 'w')
-    # f.write("%s,%s\n"%('query','edges'))
-    # for key in query_graph:
-    #     f.write("%d|%s\n"%(key, ','.join([str(x) for x in query_graph[key]])))
-    # f.close()
-
-    # f = open('../results/sqlshare/table_graph.txt', 'w')
-    # f.write("%s,%s\n"%('query','edges'))
-    # for key in table_graph:
-    #     f.write("%d|%s\n"%(key, ','.join([str(x) for x in table_graph[key]])))
-    # f.close()
-
-    # f = open('../results/sqlshare/keywords_count.csv', 'w')
-    # f.write("%s,%s\n"%('keyword','count'))
-    # for key in sorted(keywords_count, key=keywords_count.get, reverse=True):
-    #     f.write("%s,%d\n"%(key.replace(',','``'), keywords_count[key]))
-    # f.close()
 
 
 if __name__ == '__main__':
