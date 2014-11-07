@@ -32,7 +32,11 @@ data = [[]]*M
 for i in range(M):
   filldata(i)
 
-toplot = dict([(k,v) for (k,v) in full_disjunction.items() if k[0] == "compare"])
+toplot = dict([(k,v) for (k,v) in full_disjunction.items() if k[0] == "intrinsic"])
+# toplot = dict([(k,v) for (k,v) in full_disjunction.items() if k[0] == "aggregate"])
+# toplot = dict([(k,v) for (k,v) in full_disjunction.items() if k[0] == "arithmetic"])
+# toplot = dict([(k,v) for (k,v) in full_disjunction.items() if k[0] == "compare"])
+# toplot = dict([(k,v) for (k,v) in full_disjunction.items() if k[0] == "logical"])
 
 # extract the values
 for i in range(M):
@@ -41,7 +45,7 @@ for i in range(M):
 
 # now plot it
 
-sns.set_context("paper", font_scale=1.5, rc={"lines.linewidth": 2.5})
+sns.set_context("paper", font_scale=1.7, rc={"lines.linewidth": 2.5})
 
 N = len(toplot.keys())
 ind = np.arange(N) + 0.125  # the x locations for the groups
@@ -63,7 +67,7 @@ labels = [k[1] for k in toplot.keys()]
 ax.set_xticklabels( labels )
 # ax.set_ylim((0,100))
 
-ax.legend( (rects1[0], rects2[0], rects3[0]), ["TPC-H", "SDSS", "SQLShare"], loc=1)
+ax.legend( (rects1[0], rects2[0], rects3[0]), ["TPC-H", "SDSS", "SQLShare"], loc=2)
 
 def autolabel(rects):
     # attach some text labels
@@ -80,5 +84,9 @@ locs, labels = plt.xticks()
 plt.setp(labels, rotation=45)
 
 plt.tight_layout()
-plt.savefig('../plot_compares.pdf', format='pdf')
+plt.savefig('../plot_intrinsic.eps', format='eps')
+# plt.savefig('../plot_aggregates.eps', format='eps')
+# plt.savefig('../plot_arithmetics.eps', format='eps')
+# plt.savefig('../plot_compares.eps', format='eps')
+# plt.savefig('../plot_logical.eps', format='eps')
 plt.show()

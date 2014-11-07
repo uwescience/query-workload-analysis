@@ -73,13 +73,16 @@ def num_ops():
 
     axes.yaxis.set_major_formatter(formatter)
 
+    plt.title("CDF of number of operators per query")
     axes.set_xlabel('Number of physical operators')
     axes.set_ylabel('% of queries')
+
+    axes.title.set_position((axes.title._x, 1.04))
 
     plt.legend(loc=4)
     plt.tight_layout()
 
-    plt.savefig('plot_num_physops_cdf.pdf', format='pdf')
+    plt.savefig('plot_num_physops_cdf.eps', format='eps')
     plt.show()
 
 
@@ -102,13 +105,16 @@ def num_dist_ops():
 
     axes.yaxis.set_major_formatter(formatter)
 
+    plt.title("CDF of number of distinct operators per query")
     axes.set_xlabel('Number of distinct physical operators')
     axes.set_ylabel('% of queries')
+
+    axes.title.set_position((axes.title._x, 1.04))
 
     plt.legend(loc=4)
     plt.tight_layout()
 
-    plt.savefig('plot_num_dist_physops_cdf.pdf', format='pdf')
+    plt.savefig('plot_num_dist_physops_cdf.eps', format='eps')
     plt.show()
 
 
@@ -132,13 +138,16 @@ def query_length():
 
     axes.yaxis.set_major_formatter(formatter)
 
+    plt.title("CDF of query length")
     axes.set_xlabel('Query length in characters')
     axes.set_ylabel('% of queries')
+
+    axes.title.set_position((axes.title._x, 1.04))
 
     plt.legend(loc=4)
     plt.tight_layout()
 
-    plt.savefig('plot_length_cdf.pdf', format='pdf')
+    plt.savefig('plot_length_cdf.eps', format='eps')
     plt.show()
 
 
@@ -161,13 +170,16 @@ def table_touch():
 
     axes.yaxis.set_major_formatter(formatter)
 
+    plt.title("CDF of table touch")
     axes.set_xlabel('Table touch')
     axes.set_ylabel('% of queries')
+
+    axes.title.set_position((axes.title._x, 1.04))
 
     plt.legend(loc=4)
     plt.tight_layout()
 
-    plt.savefig('plot_touch_cdf.pdf', format='pdf')
+    plt.savefig('plot_touch_cdf.eps', format='eps')
     plt.show()
 
 
@@ -190,13 +202,16 @@ def column_touch():
 
     axes.yaxis.set_major_formatter(formatter)
 
+    plt.title("CDF of column touch")
     axes.set_xlabel('Column touch')
     axes.set_ylabel('% of queries')
+
+    axes.title.set_position((axes.title._x, 1.04))
 
     plt.legend(loc=4)
     plt.tight_layout()
 
-    plt.savefig('plot_column_touch_cdf.pdf', format='pdf')
+    plt.savefig('plot_column_touch_cdf.eps', format='eps')
     plt.show()
 
 
@@ -220,13 +235,16 @@ def runtime():
 
     axes.yaxis.set_major_formatter(formatter)
 
+    plt.title("CDF of query runtime")
     axes.set_xlabel('Runtime')
     axes.set_ylabel('% of queries')
+
+    axes.title.set_position((axes.title._x, 1.04))
 
     plt.legend(loc=4)
     plt.tight_layout()
 
-    plt.savefig('plot_runtime_cdf.pdf', format='pdf')
+    plt.savefig('plot_runtime_cdf.eps', format='eps')
     plt.show()
 
 
@@ -247,6 +265,7 @@ def ops():
         ypos = np.arange(len(data['phys_operator']))
         ppl.barh(ax, ypos, c, yticklabels=data['phys_operator'], grid='x', annotate=True, color=colors[w])
 
+        plt.title("Types of operators in {}".format(labels[w]))
         #ax.set_ylabel('Physical operator')
         ax.set_xlabel('% of queries')
 
@@ -255,10 +274,11 @@ def ops():
 
         #plt.subplots_adjust(bottom=.2, left=.3, right=.99, top=.9, hspace=.35)
 
+        ax.title.set_position((ax.title._x, 1.04))
         fig.tight_layout(rect=[0.03, 0, 1, 1])
         fig.text(0.02, 0.55, 'Physical operator', rotation=90, va='center')
 
-        plt.savefig('plot_ops_%s.pdf' % w, format='pdf')
+        plt.savefig('plot_ops_%s.eps' % w, format='eps')
         plt.show()
 
 
@@ -299,16 +319,19 @@ def new_tables():
     ax.yaxis.set_major_formatter(formatter)
     ax.xaxis.set_major_formatter(formatter)
 
+    plt.title("CDF of new tables")
     ax.set_xlabel('% of queries')
     ax.set_ylabel('% of newly used table')
 
     ax.set_ylim(0, 1.01)
     ax.set_xlim(-0.01, 1)
 
+    ax.title.set_position((ax.title._x, 1.04))
+
     plt.legend(loc=4)
     plt.tight_layout()
 
-    plt.savefig('table_coverage.pdf', format='pdf')
+    plt.savefig('plot_table_coverage.eps', format='eps')
     plt.show()
 
 if __name__ == '__main__':
