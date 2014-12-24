@@ -5,6 +5,7 @@ Usage:
     qwla (sdss|sqlshare) summarize [-d DATABASE]
     qwla (sdss|sqlshare|tpch) explain CONFIG [-q] [-d DATABASE] [--dry] [--second] [-s SEGMENT NUMBER] [-o OFFSET]
     qwla (sdss|sqlshare|tpch) extract [-d DATABASE]
+    qwla (sdss|sqlshare|tpch) calcsimilarity [-d DATABASE]
     qwla (sdss|sqlshare|tpch) analyze [-d DATABASE] [--recurring]
     qwla (-h | --help)
     qwla --version
@@ -33,6 +34,7 @@ import consume_logs
 import explain_queries
 import query_analysis
 import query_extract
+import calculatejoinsimilarity
 import summary
 
 
@@ -90,6 +92,10 @@ def main():
             query_analysis.analyze_tpch(db)
         else:
             query_analysis.analyze_sqlshare(db)
+
+    if arguments['calcsimilarity']:
+        if arguments['sqlshare']:
+            calculatejoinsimilarity.calculate(db)
 
 
 if __name__ == '__main__':
