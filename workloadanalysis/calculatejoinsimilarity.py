@@ -31,13 +31,13 @@ def calculate(database):
 		similarityi = []
 		for j in range(len(tables)):
 			if i==j:
-				similarityi[j] = 1
+				similarityi.append(1)
 				continue
 			tablei = tables[i]
 			tablej = tables[j]
 			col_i = tablei['columns'].split(',')
 			col_j = tablej['columns'].split(',')
-			similarityi[j] = counter_cosine_similarity(Counter(col_i), Counter(col_j))
+			similarityi.append(counter_cosine_similarity(Counter(col_i), Counter(col_j)))
 		similarity.append(similarityi);
 	print similarity
 
