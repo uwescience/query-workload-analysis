@@ -26,17 +26,17 @@ def calculate(database):
 	tables = list(db.query(
 		'SELECT username, tablename, string_agg(columnname, \',\') AS columns FROM sqlshare_columns_all GROUP BY username, tablename;'
 		))
-	similarity = [];
+	similarity = []
 	for i in range(len(tables)):
 		similarityi = []
 		for j in range(len(tables)):
 			if i==j:
 				similarityi[j] = 1
 				continue
-			tablei = tables[i];
-			tablej = tables[j];
-			col_i = tablei['columns'].split(',');
-			col_j = tablej['columns'].split(',');
+			tablei = tables[i]
+			tablej = tables[j]
+			col_i = tablei['columns'].split(',')
+			col_j = tablej['columns'].split(',')
 			similarityi[j] = counter_cosine_similarity(Counter(col_i), Counter(col_j))
 		similarity.append(similarityi);
 	print similarity
