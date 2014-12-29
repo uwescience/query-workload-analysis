@@ -42,7 +42,8 @@ def calculate(database):
 		for j, similarityi_j in enumerate(similarityi):
 			if similarityi_j != 0:
 				similarity.append([i,j,similarityi_j]);
-	print similarity
+	for data_point in similarity:
+		print data_point[0] + " " + data_point[1] + " " + data_point[2] + "\n"
 
 def counter_cosine_similarity(c1, c2):
 	# Calculates cosine similarity of two counters. 
