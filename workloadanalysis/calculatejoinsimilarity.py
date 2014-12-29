@@ -38,7 +38,10 @@ def calculate(database):
 			col_i = tablei['columns'].split(',')
 			col_j = tablej['columns'].split(',')
 			similarityi.append(counter_cosine_similarity(Counter(col_i), Counter(col_j)))
-		similarity.append(similarityi);
+		
+		for j, similarityi_j in enumerate(similarityi):
+			if similarityi_j != 0:
+				similarity.append([i,j,similarityi_j]]);
 	print similarity
 
 def counter_cosine_similarity(c1, c2):
