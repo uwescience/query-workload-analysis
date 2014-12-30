@@ -29,6 +29,8 @@ def calculate(database):
 		'SELECT username, tablename, string_agg(columnname, \',\') AS columns FROM sqlshare_columns_all GROUP BY username, tablename;'
 		))
 	
+	tables = tables[-100:] # smaller subset for testing.
+	
 	similarity = []
 	for i in range(len(tables)):
 		similarityi = []
