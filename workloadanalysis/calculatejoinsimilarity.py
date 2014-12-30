@@ -49,7 +49,7 @@ def calculate(database):
 				datapoint_j.append(j)
 				all_similarity_i_j.append(similarityi_j)
 
-	plt.pcolormesh(datapoint_i, datapoint_j, all_similarity_i_j)
+	plt.pcolormesh(np.array(datapoint_i), np.array(datapoint_j), np.array(all_similarity_i_j))
 	plt.savefig('similaritymap.png',format='png', transparent=True)	
 	
 	for k in len(datapoint_i):
