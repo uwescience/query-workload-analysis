@@ -28,9 +28,8 @@ def calculate(database):
 	tables = list(db.query(
 		'SELECT username, tablename, string_agg(columnname, \',\') AS columns FROM sqlshare_columns_all GROUP BY username, tablename;'
 		))
-	datapoint_i = []
-	datapoint_j = []
-	all_similarity_i_j = []
+	
+	similarity = []
 	for i in range(len(tables)):
 		similarityi = []
 		for j in range(len(tables)):
@@ -42,18 +41,15 @@ def calculate(database):
 			col_i = tablei['columns'].split(',')
 			col_j = tablej['columns'].split(',')
 			similarityi.append(counter_cosine_similarity(Counter(col_i), Counter(col_j)))
-		
-		for j, similarityi_j in enumerate(similarityi):
-			if similarityi_j != 0:
-				datapoint_i.append(i)
-				datapoint_j.append(j)
-				all_similarity_i_j.append(similarityi_j)
+		similarity.append(similarityi)
 
-	plt.pcolormesh(np.array(datapoint_i), np.array(datapoint_j), np.array(all_similarity_i_j))
+	plt.pcolormesh(np.array(similarity))
 	plt.savefig('similaritymap.png',format='png', transparent=True)	
 	
-	for k in len(datapoint_i):
-		print datapoint_i[k] , " " , datapoint_j[k] , " " , all_similarity_i_j[k] , "\n"
+	for i, s_i in enumerate(similarity):
+		for j, s_i_j in enumerate(s_i):
+			if s_i_j != 0:
+				print i, " ", j, " ", s_i_j, "\n"
 
 def counter_cosine_similarity(c1, c2):
 	# Calculates cosine similarity of two counters. 
