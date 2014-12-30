@@ -29,7 +29,7 @@ def calculate(database):
 		'SELECT username, tablename, string_agg(columnname, \',\') AS columns FROM sqlshare_columns_all GROUP BY username, tablename;'
 		))
 	
-	tables = tables[-100:] # smaller subset for testing.
+	tables = tables[-1000:] # smaller subset for testing.
 	
 	similarity = []
 	for i in range(len(tables)):
@@ -45,7 +45,7 @@ def calculate(database):
 			similarityi.append(counter_cosine_similarity(Counter(col_i), Counter(col_j)))
 		similarity.append(similarityi)
 
-	plt.pcolormesh(np.array(similarity), cmap=plt.cm.Greens, edgecolors='w')
+	plt.pcolormesh(np.array(similarity), cmap=plt.cm.Blues, edgecolors='w')
 	plt.savefig('similaritymap.png',format='png', transparent=True)	
 	
 	for i, s_i in enumerate(similarity):
