@@ -15,7 +15,9 @@ nothing continued to happen."
 """
 
 from docopt import docopt
+import matplotlib.pyplot as plt
 import math
+import numpy as np
 import dataset
 import sqlalchemy as sa
 from collections import Counter
@@ -26,7 +28,9 @@ def calculate(database):
 	tables = list(db.query(
 		'SELECT username, tablename, string_agg(columnname, \',\') AS columns FROM sqlshare_columns_all GROUP BY username, tablename;'
 		))
-	similarity = []
+	datapoint_i = []
+	datapoint_j = []
+	all_similarity_i_j = []
 	for i in range(len(tables)):
 		similarityi = []
 		for j in range(len(tables)):
@@ -41,9 +45,15 @@ def calculate(database):
 		
 		for j, similarityi_j in enumerate(similarityi):
 			if similarityi_j != 0:
-				similarity.append([i,j,similarityi_j]);
-	for data_point in similarity:
-		print data_point[0] + " " + data_point[1] + " " + data_point[2] + "\n"
+				datapoint_i.append(i)
+				datapoint_j.append(j)
+				all_similarity_i_j.append(similarityi_j)
+
+	plt.pcolormesh(datapoint_i, datapoint_j, all_similarity_i_j)
+	plt.savefig('similaritymap.png',format='png', transparent=True)	
+	
+	for k in len(datapoint_i):
+		print datapoint_i[k] , " " , datapoint_j[k] , " " , all_similarity_i_j[k] , "\n"
 
 def counter_cosine_similarity(c1, c2):
 	# Calculates cosine similarity of two counters. 
