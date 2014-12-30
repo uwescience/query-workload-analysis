@@ -45,7 +45,7 @@ def calculate(database):
 			similarityi.append(counter_cosine_similarity(Counter(col_i), Counter(col_j)))
 		similarity.append(similarityi)
 
-	plt.pcolormesh(np.array(similarity), cmap=plt.cm.Greens, edgecolors='k')
+	plt.pcolormesh(np.array(similarity), cmap=plt.cm.Greens, edgecolors='w')
 	plt.savefig('similaritymap.png',format='png', transparent=True)	
 	
 	for i, s_i in enumerate(similarity):
