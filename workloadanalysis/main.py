@@ -34,7 +34,7 @@ import consume_logs
 import explain_queries
 import query_analysis
 import query_extract
-import calculatejoinsimilarity
+import attributesimilarity
 import summary
 
 
