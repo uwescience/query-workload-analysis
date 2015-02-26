@@ -283,56 +283,58 @@ def ops():
 
 
 def new_tables():
-    sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
+    owners = ['billhowe', 'sr320@washington.edu', 'isaphan@washington.edu', 'emmats@washington.edu', 'koesterj@washington.edu', '']
+    for owner in owners:
+        sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
 
-    fig, ax = plt.subplots(1)
+        fig, ax = plt.subplots(1)
 
-    with open('../results/sdss/query_number_num_new_tables.csv') as f:
-        data = np.recfromcsv(f)
-    c = data['num_new_tables'].astype(float)
-    c /= sum(c)
-    q = data['query_number'].astype(float)
-    q /= q[-1]
-    ax.plot(q, np.cumsum(c), label="SDSS", color=colors['sdss'], linewidth=2, drawstyle='steps-post')
-    ax.scatter(q[0: -1], np.cumsum(c)[0: -1], color=colors['sdss'], marker="o", s=50, alpha=.7)
+        with open('../results/sdss/query_number_num_new_tables.csv') as f:
+            data = np.recfromcsv(f)
+        c = data['num_new_tables'].astype(float)
+        c /= sum(c)
+        q = data['query_number'].astype(float)
+        q /= q[-1]
+        ax.plot(q, np.cumsum(c), label="SDSS", color=colors['sdss'], linewidth=2, drawstyle='steps-post')
+        ax.scatter(q[0: -1], np.cumsum(c)[0: -1], color=colors['sdss'], marker="o", s=50, alpha=.7)
 
-    with open('../results/tpch/query_number_num_new_tables.csv') as f:
-        data = np.recfromcsv(f)
-    c = data['num_new_tables'].astype(float)
-    c /= sum(c)
-    q = data['query_number'].astype(float)
-    q /= q[-1]
-    ax.plot(q, np.cumsum(c), label="TPC-H", color=colors['tpch'], linewidth=2, drawstyle='steps-post')
-    ax.scatter(q[0: -1], np.cumsum(c)[0: -1], color=colors['tpch'], marker="o", s=50, alpha=.7)
+        with open('../results/tpch/query_number_num_new_tables.csv') as f:
+            data = np.recfromcsv(f)
+        c = data['num_new_tables'].astype(float)
+        c /= sum(c)
+        q = data['query_number'].astype(float)
+        q /= q[-1]
+        ax.plot(q, np.cumsum(c), label="TPC-H", color=colors['tpch'], linewidth=2, drawstyle='steps-post')
+        ax.scatter(q[0: -1], np.cumsum(c)[0: -1], color=colors['tpch'], marker="o", s=50, alpha=.7)
 
-    sns.rugplot([0.1, 0.2, 10, 100], ax=ax)
+        sns.rugplot([0.1, 0.2, 10, 100], ax=ax)
 
-    with open('../results/sqlshare/table_coverage.csv') as f:
-        data = np.recfromcsv(f)
-    c = data['tables'].astype(float)
-    c /= c[-1]
-    q = data['query_id'].astype(float)
-    q /= q[-1]
-    ax.plot(q, c, label="SQLShare", color=colors['sqlshare'], linewidth=2, drawstyle='steps-post')
-    # ax.scatter(q[0: -1], c[0: -1], color=colors['sqlshare'], marker="o", s=20, alpha=.01)
+        with open('../results/sqlshare/'+owner+'_table_coverage.csv') as f:
+            data = np.recfromcsv(f)
+        c = data['tables'].astype(float)
+        c /= c[-1]
+        q = data['query_id'].astype(float)
+        q /= q[-1]
+        ax.plot(q, c, label="SQLShare", color=colors['sqlshare'], linewidth=2, drawstyle='steps-post')
+        # ax.scatter(q[0: -1], c[0: -1], color=colors['sqlshare'], marker="o", s=20, alpha=.01)
 
-    ax.yaxis.set_major_formatter(formatter)
-    ax.xaxis.set_major_formatter(formatter)
+        ax.yaxis.set_major_formatter(formatter)
+        ax.xaxis.set_major_formatter(formatter)
 
-    plt.title("CDF of new tables")
-    ax.set_xlabel('% of queries')
-    ax.set_ylabel('% of newly used table')
+        plt.title("CDF of new tables")
+        ax.set_xlabel('% of queries')
+        ax.set_ylabel('% of newly used table')
 
-    ax.set_ylim(0, 1.01)
-    ax.set_xlim(-0.01, 1)
+        ax.set_ylim(0, 1.01)
+        ax.set_xlim(-0.01, 1)
 
-    ax.title.set_position((ax.title._x, 1.04))
+        ax.title.set_position((ax.title._x, 1.04))
 
-    plt.legend(loc=4)
-    plt.tight_layout()
+        plt.legend(loc=4)
+        plt.tight_layout()
 
-    plt.savefig('plot_table_coverage.eps', format='eps')
-    plt.show()
+        plt.savefig('plot_table_coverage_'+owner+'.eps', format='eps')
+        plt.show()
 
 if __name__ == '__main__':
     # ops()
@@ -342,4 +344,4 @@ if __name__ == '__main__':
     # table_touch()
     # column_touch()
     # runtime()
-    # new_tables()
+    new_tables()
