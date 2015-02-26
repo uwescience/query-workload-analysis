@@ -493,131 +493,146 @@ def analyze_tpch(database):
             headers=[name, "counts"], workload='tpch')
 
 
-def analyze_sqlshare(database):
+def analyze_sqlshare(database, all_owners = True):
     db = dataset.connect(database)
+    owners = [''];
+    if not all_owners:
+        top_owners = db.query('select owner from sqlshare_logs group by owner order by count(*) desc limit 5')
+        for result in top_owners:
+            owners.append(result['owner'])
 
-    distinct_q = 'SELECT plan from sqlshare_logs where has_plan = 1 group by query'
-    # print "Find recurring subtrees in distinct queries:"
-    # q = db.query(distinct_q)
-    # find_recurring(q, sdss=False)
+    for owner in owners:
+        if owner == '':
+            distinct_q = 'SELECT plan from sqlshare_logs where has_plan = 1 group by query'
+            all_queries_q = 'SELECT * from sqlshare_logs where has_plan = true'
+            queries_q = 'SELECT query, plan, expanded_plan_ops_logical, expanded_plan_ops, ref_views from sqlshare_logs where has_plan = true group by query, plan, expanded_plan_ops_logical, expanded_plan_ops, ref_views'
+            views_q = 'SELECT * FROM sqlshare_logs WHERE isview = false'
+            query_with_same_plan_q = 'SELECT Count(*) as count from (SELECT distinct simple_plan from sqlshare_logs where has_plan = true) as foo'
+        else:
+            owner_condition = 'owner = "' + owner +'"'
+            distinct_q = 'SELECT plan from sqlshare_logs where has_plan = 1 and '+ owner_condition +' group by query'
+            all_queries_q = 'SELECT * from sqlshare_logs where has_plan = true and '+ owner_condition +' ' 
+            queries_q = 'SELECT query, plan, expanded_plan_ops_logical, expanded_plan_ops, ref_views from sqlshare_logs where has_plan = true and '+ owner_condition +'  group by query, plan, expanded_plan_ops_logical, expanded_plan_ops, ref_views'
+            views_q = 'SELECT * FROM sqlshare_logs WHERE isview = false and ' + owner_condition  
+            query_with_same_plan_q = 'SELECT Count(*) as count from (SELECT distinct simple_plan from sqlshare_logs where has_plan = true and '+ owner_condition +' ) as foo'
 
-    print "Find recurring subtrees in distinct queries (using subset check):"
-    q = db.query(distinct_q)
-    find_recurring_subset(q)
+        print "Find recurring subtrees in distinct queries (using subset check):"
+        q = db.query(distinct_q)
+        find_recurring_subset(q)
 
-    all_queries = list(db.query('SELECT * from sqlshare_logs where has_plan = true'))
-    queries = list(db.query('SELECT query, plan, expanded_plan_ops_logical, expanded_plan_ops, ref_views from sqlshare_logs where has_plan = true group by query, plan, expanded_plan_ops_logical, expanded_plan_ops, ref_views'))
-    views = list(db.query('SELECT * FROM sqlshare_logs WHERE isview = false'))
-    explicit_implicit_joins(queries)
-    print '#Total queries with plan: ', len(all_queries)
-    query_with_same_plan = list(db.query('SELECT Count(*) as count from (SELECT distinct simple_plan from sqlshare_logs where has_plan = true) as foo'))
-    print '#Total string distinct queries:', len(queries)
-    print '#Total queries considering all constants the same:', query_with_same_plan[0]['count']
+        all_queries = list(db.query(all_queries_q))
+        queries = list(db.query(queries_q))
+        views = list(db.query(views_q))
+        query_with_same_plan = list(db.query(query_with_same_plan_q))
+        print '#Total queries with plan: ', len(all_queries)
+        print '#Total string distinct queries:', len(queries)
+        explicit_implicit_joins(queries)
+        print '#Total queries considering all constants the same:', query_with_same_plan[0]['count']
 
-    #comp_lengths = Counter()
-    ops = Counter()
-    exp_lengths = Counter()
-    exp_ops = Counter()
-    exp_distinct_ops = Counter()
-    exp_physical_ops = Counter()
-    exp_distinct_physical_ops = Counter()
-    # comp_exp_lengths = Counter()
-    str_ops = Counter()
-    distinct_str_ops = Counter()
-    exp_str_ops = Counter()
-    exp_distinct_str_ops = Counter()
-    #time_taken = Counter()
-    dataset_touch = Counter()
-    keywords_count = Counter()
-    table_coverage = {}
+        #comp_lengths = Counter()
+        ops = Counter()
+        exp_lengths = Counter()
+        exp_ops = Counter()
+        exp_distinct_ops = Counter()
+        exp_physical_ops = Counter()
+        exp_distinct_physical_ops = Counter()
+        # comp_exp_lengths = Counter()
+        str_ops = Counter()
+        distinct_str_ops = Counter()
+        exp_str_ops = Counter()
+        exp_distinct_str_ops = Counter()
+        #time_taken = Counter()
+        dataset_touch = Counter()
+        keywords_count = Counter()
+        table_coverage = {}
 
-    tables_seen_so_far = []
-    tables_in_query = {}
-    tables = []
+        tables_seen_so_far = []
+        tables_in_query = {}
+        tables = []
 
-    for i, q in enumerate(queries):
-        # comp_length = len(bz2.compress(q['query']))
-        # comp_lengths[comp_length] += 1
-        # if q['isView'] == 0:
-        #     time_taken[q['runtime']] += 1
+        for i, q in enumerate(queries):
+            # comp_length = len(bz2.compress(q['query']))
+            # comp_lengths[comp_length] += 1
+            # if q['isView'] == 0:
+            #     time_taken[q['runtime']] += 1
 
-        expanded_query = q['query']
-        # calculating dataset touch and expanded query now.
-        ref_views = {}
-        while(True):
-            previousLength = len(expanded_query)
-            prev_ref_views = ref_views
+            expanded_query = q['query']
+            # calculating dataset touch and expanded query now.
             ref_views = {}
-            for view in views:
-                if view['view'] in expanded_query:
-                    ref_views[view['view']] = view['query']
-            for v in ref_views:
-                expanded_query = expanded_query.replace(v, '(' + ref_views[v] + ')')
+            while(True):
+                previousLength = len(expanded_query)
+                prev_ref_views = ref_views
+                ref_views = {}
+                for view in views:
+                    if view['view'] in expanded_query:
+                        ref_views[view['view']] = view['query']
+                for v in ref_views:
+                    expanded_query = expanded_query.replace(v, '(' + ref_views[v] + ')')
 
-            if (len(expanded_query) == previousLength):
-                dataset_touch[len(prev_ref_views)] += 1
-                # this is wrong, count referenced datasets at each level, not just the final one.
-                break
+                if (len(expanded_query) == previousLength):
+                    dataset_touch[len(prev_ref_views)] += 1
+                    # this is wrong, count referenced datasets at each level, not just the final one.
+                    break
 
-        q_ex_ops = q['expanded_plan_ops_logical'].split(',')
-        exp_ops[len(q_ex_ops)] += 1
-        exp_distinct_ops[len(set(q_ex_ops))] += 1
+            q_ex_ops = q['expanded_plan_ops_logical'].split(',')
+            exp_ops[len(q_ex_ops)] += 1
+            exp_distinct_ops[len(set(q_ex_ops))] += 1
 
-        q_ex_phy_ops = q['expanded_plan_ops'].split(',')
-        exp_physical_ops[len(q_ex_phy_ops)]
-        exp_distinct_physical_ops[len(set(q_ex_phy_ops))]
+            q_ex_phy_ops = q['expanded_plan_ops'].split(',')
+            exp_physical_ops[len(q_ex_phy_ops)]
+            exp_distinct_physical_ops[len(set(q_ex_phy_ops))]
 
-        q_ops = q_ex_ops
-        q_phy_ops = q_ex_phy_ops
-        referenced_views = [x for x in q['ref_views'].split(',') if x != '']
-        for ref_view in referenced_views:
-            view = list(db.query('SELECT * from sqlshare_logs where id = {}'.format(ref_view)))
-            if view[0]['expanded_plan_ops_logical']:
-                for op in view[0]['expanded_plan_ops_logical'].split(','):
-                    if op in q_ops:
-                        q_ops.remove(op)
-            if view[0]['expanded_plan_ops']:
-                for op in view[0]['expanded_plan_ops'].split(','):
-                    if op in q_phy_ops:
-                        q_phy_ops.remove(op)
+            q_ops = q_ex_ops
+            q_phy_ops = q_ex_phy_ops
+            referenced_views = [x for x in q['ref_views'].split(',') if x != '']
+            for ref_view in referenced_views:
+                view = list(db.query('SELECT * from sqlshare_logs where id = {}'.format(ref_view)))
+                if view[0]['expanded_plan_ops_logical']:
+                    for op in view[0]['expanded_plan_ops_logical'].split(','):
+                        if op in q_ops:
+                            q_ops.remove(op)
+                if view[0]['expanded_plan_ops']:
+                    for op in view[0]['expanded_plan_ops'].split(','):
+                        if op in q_phy_ops:
+                            q_phy_ops.remove(op)
 
-        exp_lengths[len(expanded_query)] += 1
-        # comp_exp_lengths[len(bz2.compress(expanded_query))] += 1
-        ops[len(q_ops)] += 1
+            exp_lengths[len(expanded_query)] += 1
+            # comp_exp_lengths[len(bz2.compress(expanded_query))] += 1
+            ops[len(q_ops)] += 1
 
-        plan = json.loads(q['plan'])
-        tables = visit_operators(plan, visitor_tables)
-        tables = set(tables)
+            plan = json.loads(q['plan'])
+            tables = visit_operators(plan, visitor_tables)
+            tables = set(tables)
 
-        tables_in_query[i] = tables
-        for t in tables:
-            if t not in tables_seen_so_far:
-                tables_seen_so_far.append(t)
+            tables_in_query[i] = tables
+            for t in tables:
+                if t not in tables_seen_so_far:
+                    tables_seen_so_far.append(t)
 
-        table_coverage[i] = len(tables_seen_so_far)
+            table_coverage[i] = len(tables_seen_so_far)
 
-    def write_to_csv(dict_obj, col1, col2, filename, to_reverse=True):
-        f = open(filename, 'w')
-        f.write("%s,%s\n"%(col1,col2))
-        for key in sorted(dict_obj, reverse=to_reverse):
-            f.write("%d,%d\n"%(key, dict_obj[key]))
-        f.close()
+        def write_to_csv(dict_obj, col1, col2, filename, to_reverse=True):
+            f = open(filename, 'w')
+            f.write("%s,%s\n"%(col1,col2))
+            for key in sorted(dict_obj, reverse=to_reverse):
+                f.write("%d,%d\n"%(key, dict_obj[key]))
+            f.close()
 
-    # write_to_csv(comp_lengths, 'comp_length', 'count', '../results/sqlshare/comp_lengths.csv')
-    write_to_csv(exp_lengths, 'exp_length', 'count', '../results/sqlshare/exp_lengths.csv')
-    # write_to_csv(comp_exp_lengths, 'comp_exp_length', 'count', '../results/sqlshare/comp_exp_lengths.csv')
-    write_to_csv(ops, 'ops', 'count', '../results/sqlshare/ops.csv')
-    write_to_csv(exp_ops, 'exp_ops', 'count', '../results/sqlshare/exp_ops.csv')
-    write_to_csv(exp_distinct_ops, 'exp_distinct_ops', 'count', '../results/sqlshare/exp_distinct_ops.csv')
-    # write_to_csv(str_ops, 'str_ops', 'count', '../results/sqlshare/str_ops.csv')
-    # write_to_csv(distinct_str_ops, 'distinct_str_ops', 'count', '../results/sqlshare/distinct_str_ops.csv')
-    # write_to_csv(exp_str_ops, 'exp_str_ops', 'count', '../results/sqlshare/exp_str_ops.csv')
-    # write_to_csv(exp_distinct_str_ops, 'exp_distinct_str_ops', 'count', '../results/sqlshare/exp_distinct_str_ops.csv')
-    write_to_csv(dataset_touch, 'dataset_touch', 'count', '../results/sqlshare/dataset_touch.csv')
-    # write_to_csv(time_taken, 'time_taken', 'count', '../results/sqlshare/time_taken.csv')
-    write_to_csv(exp_physical_ops, 'exp_physical_ops', 'count', '../results/sqlshare/exp_physical_ops.csv')
-    write_to_csv(exp_distinct_physical_ops, 'exp_distinct_physical_ops', 'count', '../results/sqlshare/exp_distinct_physical_ops.csv')
-    write_to_csv(table_coverage, 'query_id', 'tables', '../results/sqlshare/table_coverage.csv', to_reverse = False)
+        # write_to_csv(comp_lengths, 'comp_length', 'count', '../results/sqlshare/'+owner+'_comp_lengths.csv')
+        write_to_csv(exp_lengths, 'exp_length', 'count', '../results/sqlshare/'+owner+'_exp_lengths.csv')
+        # write_to_csv(comp_exp_lengths, 'comp_exp_length', 'count', '../results/sqlshare/'+owner+'_comp_exp_lengths.csv')
+        write_to_csv(ops, 'ops', 'count', '../results/sqlshare/'+owner+'_ops.csv')
+        write_to_csv(exp_ops, 'exp_ops', 'count', '../results/sqlshare/'+owner+'_exp_ops.csv')
+        write_to_csv(exp_distinct_ops, 'exp_distinct_ops', 'count', '../results/sqlshare/'+owner+'_exp_distinct_ops.csv')
+        # write_to_csv(str_ops, 'str_ops', 'count', '../results/sqlshare/'+owner+'_str_ops.csv')
+        # write_to_csv(distinct_str_ops, 'distinct_str_ops', 'count', '../results/sqlshare/'+owner+'_distinct_str_ops.csv')
+        # write_to_csv(exp_str_ops, 'exp_str_ops', 'count', '../results/sqlshare/'+owner+'_exp_str_ops.csv')
+        # write_to_csv(exp_distinct_str_ops, 'exp_distinct_str_ops', 'count', '../results/sqlshare/'+owner+'_exp_distinct_str_ops.csv')
+        write_to_csv(dataset_touch, 'dataset_touch', 'count', '../results/sqlshare/'+owner+'_dataset_touch.csv')
+        # write_to_csv(time_taken, 'time_taken', 'count', '../results/sqlshare/'+owner+'_time_taken.csv')
+        write_to_csv(exp_physical_ops, 'exp_physical_ops', 'count', '../results/sqlshare/'+owner+'_exp_physical_ops.csv')
+        write_to_csv(exp_distinct_physical_ops, 'exp_distinct_physical_ops', 'count', '../results/sqlshare/'+owner+'_exp_distinct_physical_ops.csv')
+        write_to_csv(table_coverage, 'query_id', 'tables', '../results/sqlshare/'+owner+'_table_coverage.csv', to_reverse = False)
 
 
 if __name__ == '__main__':
