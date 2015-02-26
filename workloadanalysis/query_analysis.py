@@ -7,6 +7,7 @@ import sqltokens
 import csv
 import hashlib
 import copy
+import re
 
 from utils import format_tabulate as ft
 
@@ -496,6 +497,8 @@ def analyze_tpch(database):
 def analyze_sqlshare(database, all_owners = True):
     db = dataset.connect(database)
     owners = [''];
+    p = re.compile(ur'^(\w+\.(csv|txt))[A-F0-9]{5}$') #regular expression to match table names of the form *.(txt|csv)_____ <- these are all 1 table
+
     if not all_owners:
         owners = []
         top_owners = db.query('select owner from sqlshare_logs group by owner order by count(*) desc limit 12')
@@ -611,8 +614,13 @@ def analyze_sqlshare(database, all_owners = True):
 
             tables_in_query[i] = tables
             for t in tables:
-                if t not in tables_seen_so_far:
-                    tables_seen_so_far.append(t)
+                short_name = re.findall(p,t)
+                if len(short_name) == 0:
+                    if t not in tables_seen_so_far:
+                        tables_seen_so_far.append(t)
+                else:
+                    if short_name[0] not in tables_seen_so_far:
+                        tables_seen_so_far.append(short_name[0])                
 
             table_coverage[i] = len(tables_seen_so_far)
             dataset_coverage[i] = len(datasets_seen_so_far)
