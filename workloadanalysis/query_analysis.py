@@ -552,7 +552,7 @@ def analyze_sqlshare(database, all_owners = True):
         
         datasets_seen_so_far = []
         tables_seen_so_far = []
-        tables_in_query = {}
+        tables_in_query = Counter()
         tables = []
 
         for i, q in enumerate(queries):
@@ -623,7 +623,7 @@ def analyze_sqlshare(database, all_owners = True):
                     if short_name[0] not in tables_seen_so_far:
                         tables_seen_so_far.append(short_name[0])                
 
-            tables_in_query[i] = len(set(logical_tables))
+            tables_in_query[len(set(logical_tables))] += 1 
             table_coverage[i] = len(tables_seen_so_far)
             dataset_coverage[i] = len(datasets_seen_so_far)
 
@@ -645,7 +645,7 @@ def analyze_sqlshare(database, all_owners = True):
         # write_to_csv(exp_str_ops, 'exp_str_ops', 'count', '../results/sqlshare/'+owner+'exp_str_ops.csv')
         # write_to_csv(exp_distinct_str_ops, 'exp_distinct_str_ops', 'count', '../results/sqlshare/'+owner+'exp_distinct_str_ops.csv')
         write_to_csv(dataset_touch, 'dataset_touch', 'count', '../results/sqlshare/'+owner+'dataset_touch.csv')
-        write_to_csv(tables_in_query, 'table_touch', 'count', '../results/sqlshare/'+owner+'table_touch.csv')
+        write_to_csv(tables_in_query, 'number', 'count', '../results/sqlshare/'+owner+'table_touch.csv')
         # write_to_csv(time_taken, 'time_taken', 'count', '../results/sqlshare/'+owner+'time_taken.csv')
         write_to_csv(exp_physical_ops, 'exp_physical_ops', 'count', '../results/sqlshare/'+owner+'_exp_physical_ops.csv')
         write_to_csv(exp_distinct_physical_ops, 'exp_distinct_physical_ops', 'count', '../results/sqlshare/'+owner+'exp_distinct_physical_ops.csv')
