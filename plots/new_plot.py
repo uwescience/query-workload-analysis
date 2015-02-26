@@ -310,7 +310,7 @@ def new_tables():
 
         sns.rugplot([0.1, 0.2, 10, 100], ax=ax)
 
-        with open('../results/sqlshare/'+owner+'_table_coverage.csv') as f:
+        with open('../results/sqlshare/'+owner+'table_coverage.csv') as f:
             data = np.recfromcsv(f)
         c = data['tables'].astype(float)
         c /= c[-1]
