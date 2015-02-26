@@ -611,16 +611,19 @@ def analyze_sqlshare(database, all_owners = True):
             tables = visit_operators(plan, visitor_tables)
             tables = set(tables)
 
-            tables_in_query[i] = tables
+            logical_tables = []
             for t in tables:
                 short_name = re.findall(p,t)
                 if len(short_name) == 0:
+                    logical_tables.append(t)
                     if t not in tables_seen_so_far:
                         tables_seen_so_far.append(t)
                 else:
+                    logical_tables.append(short_name[0])
                     if short_name[0] not in tables_seen_so_far:
                         tables_seen_so_far.append(short_name[0])                
 
+            tables_in_query[i] = len(set(logical_tables))
             table_coverage[i] = len(tables_seen_so_far)
             dataset_coverage[i] = len(datasets_seen_so_far)
 
@@ -631,22 +634,23 @@ def analyze_sqlshare(database, all_owners = True):
                 f.write("%d,%d\n"%(key, dict_obj[key]))
             f.close()
 
-        # write_to_csv(comp_lengths, 'comp_length', 'count', '../results/sqlshare/'+owner+'_comp_lengths.csv')
-        write_to_csv(exp_lengths, 'exp_length', 'count', '../results/sqlshare/'+owner+'_exp_lengths.csv')
-        # write_to_csv(comp_exp_lengths, 'comp_exp_length', 'count', '../results/sqlshare/'+owner+'_comp_exp_lengths.csv')
-        write_to_csv(ops, 'ops', 'count', '../results/sqlshare/'+owner+'_ops.csv')
-        write_to_csv(exp_ops, 'exp_ops', 'count', '../results/sqlshare/'+owner+'_exp_ops.csv')
-        write_to_csv(exp_distinct_ops, 'exp_distinct_ops', 'count', '../results/sqlshare/'+owner+'_exp_distinct_ops.csv')
-        # write_to_csv(str_ops, 'str_ops', 'count', '../results/sqlshare/'+owner+'_str_ops.csv')
-        # write_to_csv(distinct_str_ops, 'distinct_str_ops', 'count', '../results/sqlshare/'+owner+'_distinct_str_ops.csv')
-        # write_to_csv(exp_str_ops, 'exp_str_ops', 'count', '../results/sqlshare/'+owner+'_exp_str_ops.csv')
-        # write_to_csv(exp_distinct_str_ops, 'exp_distinct_str_ops', 'count', '../results/sqlshare/'+owner+'_exp_distinct_str_ops.csv')
-        write_to_csv(dataset_touch, 'dataset_touch', 'count', '../results/sqlshare/'+owner+'_dataset_touch.csv')
-        # write_to_csv(time_taken, 'time_taken', 'count', '../results/sqlshare/'+owner+'_time_taken.csv')
+        # write_to_csv(comp_lengths, 'comp_length', 'count', '../results/sqlshare/'+owner+'comp_lengths.csv')
+        write_to_csv(exp_lengths, 'exp_length', 'count', '../results/sqlshare/'+owner+'exp_lengths.csv')
+        # write_to_csv(comp_exp_lengths, 'comp_exp_length', 'count', '../results/sqlshare/'+owner+'comp_exp_lengths.csv')
+        write_to_csv(ops, 'ops', 'count', '../results/sqlshare/'+owner+'ops.csv')
+        write_to_csv(exp_ops, 'exp_ops', 'count', '../results/sqlshare/'+owner+'exp_ops.csv')
+        write_to_csv(exp_distinct_ops, 'exp_distinct_ops', 'count', '../results/sqlshare/'+owner+'exp_distinct_ops.csv')
+        # write_to_csv(str_ops, 'str_ops', 'count', '../results/sqlshare/'+owner+'str_ops.csv')
+        # write_to_csv(distinct_str_ops, 'distinct_str_ops', 'count', '../results/sqlshare/'+owner+'distinct_str_ops.csv')
+        # write_to_csv(exp_str_ops, 'exp_str_ops', 'count', '../results/sqlshare/'+owner+'exp_str_ops.csv')
+        # write_to_csv(exp_distinct_str_ops, 'exp_distinct_str_ops', 'count', '../results/sqlshare/'+owner+'exp_distinct_str_ops.csv')
+        write_to_csv(dataset_touch, 'dataset_touch', 'count', '../results/sqlshare/'+owner+'dataset_touch.csv')
+        write_to_csv(tables_in_query, 'table_touch', 'count', '../results/sqlshare/'+owner+'table_touch.csv')
+        # write_to_csv(time_taken, 'time_taken', 'count', '../results/sqlshare/'+owner+'time_taken.csv')
         write_to_csv(exp_physical_ops, 'exp_physical_ops', 'count', '../results/sqlshare/'+owner+'_exp_physical_ops.csv')
-        write_to_csv(exp_distinct_physical_ops, 'exp_distinct_physical_ops', 'count', '../results/sqlshare/'+owner+'_exp_distinct_physical_ops.csv')
-        write_to_csv(table_coverage, 'query_id', 'tables', '../results/sqlshare/'+owner+'_table_coverage.csv', to_reverse = False)
-        write_to_csv(dataset_coverage, 'query_id', 'tables', '../results/sqlshare/'+owner+'_dataset_coverage.csv', to_reverse = False)
+        write_to_csv(exp_distinct_physical_ops, 'exp_distinct_physical_ops', 'count', '../results/sqlshare/'+owner+'exp_distinct_physical_ops.csv')
+        write_to_csv(table_coverage, 'query_id', 'tables', '../results/sqlshare/'+owner+'table_coverage.csv', to_reverse = False)
+        write_to_csv(dataset_coverage, 'query_id', 'tables', '../results/sqlshare/'+owner+'dataset_coverage.csv', to_reverse = False)
 
 
 if __name__ == '__main__':
