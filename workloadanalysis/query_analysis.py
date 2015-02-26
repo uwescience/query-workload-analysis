@@ -503,14 +503,14 @@ def analyze_sqlshare(database, all_owners = True):
 
     for owner in owners:
         if owner == '':
-            distinct_q = 'SELECT plan from sqlshare_logs where has_plan = true group by query'
+            distinct_q = 'SELECT plan from sqlshare_logs where has_plan = true group by plan'
             all_queries_q = 'SELECT * from sqlshare_logs where has_plan = true'
             queries_q = 'SELECT query, plan, expanded_plan_ops_logical, expanded_plan_ops, ref_views from sqlshare_logs where has_plan = true group by query, plan, expanded_plan_ops_logical, expanded_plan_ops, ref_views'
             views_q = 'SELECT * FROM sqlshare_logs WHERE isview = false'
             query_with_same_plan_q = 'SELECT Count(*) as count from (SELECT distinct simple_plan from sqlshare_logs where has_plan = true) as foo'
         else:
             owner_condition = 'owner = "' + owner +'"'
-            distinct_q = 'SELECT plan from sqlshare_logs where has_plan = true and '+ owner_condition +' group by query'
+            distinct_q = 'SELECT plan from sqlshare_logs where has_plan = true and '+ owner_condition +' group by plan'
             all_queries_q = 'SELECT * from sqlshare_logs where has_plan = true and '+ owner_condition +' ' 
             queries_q = 'SELECT query, plan, expanded_plan_ops_logical, expanded_plan_ops, ref_views from sqlshare_logs where has_plan = true and '+ owner_condition +'  group by query, plan, expanded_plan_ops_logical, expanded_plan_ops, ref_views'
             views_q = 'SELECT * FROM sqlshare_logs WHERE isview = false and ' + owner_condition  
