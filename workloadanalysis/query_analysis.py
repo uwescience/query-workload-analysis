@@ -546,7 +546,9 @@ def analyze_sqlshare(database, all_owners = True):
         dataset_touch = Counter()
         keywords_count = Counter()
         table_coverage = {}
-
+        dataset_coverage = {}
+        
+        datasets_seen_so_far = []
         tables_seen_so_far = []
         tables_in_query = {}
         tables = []
@@ -572,7 +574,9 @@ def analyze_sqlshare(database, all_owners = True):
 
                 if (len(expanded_query) == previousLength):
                     dataset_touch[len(prev_ref_views)] += 1
-                    # this is wrong, count referenced datasets at each level, not just the final one.
+                    for d in prev_ref_views:
+                        if d not in datasets_seen_so_far:
+                            datasets_seen_so_far.append(d)
                     break
 
             q_ex_ops = q['expanded_plan_ops_logical'].split(',')
@@ -611,6 +615,7 @@ def analyze_sqlshare(database, all_owners = True):
                     tables_seen_so_far.append(t)
 
             table_coverage[i] = len(tables_seen_so_far)
+            dataset_coverage[i] = len(datasets_seen_so_far)
 
         def write_to_csv(dict_obj, col1, col2, filename, to_reverse=True):
             f = open(filename, 'w')
@@ -634,6 +639,7 @@ def analyze_sqlshare(database, all_owners = True):
         write_to_csv(exp_physical_ops, 'exp_physical_ops', 'count', '../results/sqlshare/'+owner+'_exp_physical_ops.csv')
         write_to_csv(exp_distinct_physical_ops, 'exp_distinct_physical_ops', 'count', '../results/sqlshare/'+owner+'_exp_distinct_physical_ops.csv')
         write_to_csv(table_coverage, 'query_id', 'tables', '../results/sqlshare/'+owner+'_table_coverage.csv', to_reverse = False)
+        write_to_csv(dataset_coverage, 'query_id', 'tables', '../results/sqlshare/'+owner+'_dataset_coverage.csv', to_reverse = False)
 
 
 if __name__ == '__main__':
