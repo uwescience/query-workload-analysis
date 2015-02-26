@@ -91,7 +91,7 @@ def main():
         elif arguments['tpch']:
             query_analysis.analyze_tpch(db)
         else:
-            query_analysis.analyze_sqlshare(db)
+            query_analysis.analyze_sqlshare(db, False)
 
     if arguments['calcsimilarity']:
         if arguments['sqlshare']:
