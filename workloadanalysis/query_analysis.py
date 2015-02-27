@@ -586,8 +586,8 @@ def analyze_sqlshare(database, all_owners = True):
             exp_distinct_ops[len(set(q_ex_ops))] += 1
 
             q_ex_phy_ops = q['expanded_plan_ops'].split(',')
-            exp_physical_ops[len(q_ex_phy_ops)]
-            exp_distinct_physical_ops[len(set(q_ex_phy_ops))]
+            exp_physical_ops[len(q_ex_phy_ops)] += 1
+            exp_distinct_physical_ops[len(set(q_ex_phy_ops))] += 1
 
             q_ops = q_ex_ops
             q_phy_ops = q_ex_phy_ops
@@ -651,6 +651,41 @@ def analyze_sqlshare(database, all_owners = True):
         write_to_csv(exp_distinct_physical_ops, 'exp_distinct_physical_ops', 'count', '../results/sqlshare/'+owner+'exp_distinct_physical_ops.csv')
         write_to_csv(table_coverage, 'query_id', 'tables', '../results/sqlshare/'+owner+'table_coverage.csv', to_reverse = False)
         write_to_csv(dataset_coverage, 'query_id', 'tables', '../results/sqlshare/'+owner+'dataset_coverage.csv', to_reverse = False)
+
+        touch_by_time = {}
+        q_ops_by_time = {}
+        q_distinct_ops_by_time = {}
+        q_logops_by_time = {}
+        q_distinct_logops_by_time = {}
+
+        for i, q in enumerate(queries):
+            q_ex_ops = q['expanded_plan_ops_logical'].split(',')
+            q_logops_by_time[i] = len(q_ex_ops)
+            q_distinct_logops_by_time[i] = len(set(q_ex_ops))
+
+            q_ex_phy_ops = q['expanded_plan_ops'].split(',')
+            q_ops_by_time[i] = len(q_ex_phy_ops)
+            q_distinct_ops_by_time[i] = len(set(q_ex_phy_ops))
+            
+            plan = json.loads(q['plan'])
+            tables = visit_operators(plan, visitor_tables)
+            tables = set(tables)
+
+            logical_tables = []
+            for t in tables:
+                short_name = re.findall(p,t)
+                if len(short_name) == 0:
+                    logical_tables.append(t)
+                else:
+                    logical_tables.append(short_name[0])
+
+            touch_by_time[i] = len(set(logical_tables)) 
+
+        write_to_csv(q_ops_by_time, 'query_id', 'count', '../results/sqlshare/'+owner+'exp_ops_by_time.csv')
+        write_to_csv(q_distinct_ops_by_time, 'query_id', 'count', '../results/sqlshare/'+owner+'exp_distinct_ops_by_time.csv')
+        write_to_csv(q_logops_by_time, 'query_id', 'count', '../results/sqlshare/'+owner+'exp_physical_ops_by_time.csv')
+        write_to_csv(q_distinct_logops_by_time, 'query_id', 'count', '../results/sqlshare/'+owner+'exp_distinct_physical_ops_by_time.csv')
+        write_to_csv(touch_by_time, 'query_id', 'count', '../results/sqlshare/'+owner+'table_touch_by_time.csv')
 
 
 if __name__ == '__main__':
