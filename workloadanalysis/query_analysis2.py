@@ -32,7 +32,7 @@ def analyse2(database):
 	lifetime = {}
 	for i,t in enumerate(tables):
 		timestamps = list(db.query(
-			'select time_start from sqlshare_logs where id in (select query_id from sqlshare_tables where "table" = \''+t['table']+'\') order by time_start desc'
+			'select time_start from sqlshare_logs where id in (select query_id from sqlshare_tables where "table" = "'+t['table']+'") order by time_start desc'
 			))
 		if len(timestamps) == 0:
 			lifetime[i] = 0
