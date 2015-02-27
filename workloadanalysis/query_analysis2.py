@@ -20,7 +20,7 @@ import math
 import numpy as np
 import dataset
 import sqlalchemy as sa
-from datatime import datetime
+from datetime import datetime
 from collections import Counter
 
 def analyse2(database):
