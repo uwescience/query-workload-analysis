@@ -34,7 +34,7 @@ def analyse2(database):
 	for i,t in enumerate(tables):
 		try:
 			timestamps = list(db.query(
-				'select to_timestamp(time_start, \'MM/DD/YYYY HH12:MI:SS am\') as start from sqlshare_logs where id in (select query_id from sqlshare_tables where "table" = $$'+t['table']+'$$) order by start desc'
+				'select time_start from sqlshare_logs where id in (select query_id from sqlshare_tables where "table" = $$'+t['table']+'$$) order by to_timestamp(time_start, \'MM/DD/YYYY HH12:MI:SS am\') desc'
 				))
 			if len(timestamps) <= 1:
 				lifetime[i] = 0
