@@ -31,13 +31,13 @@ def analyse2(database):
 	lifetime = {}
 	for i,t in enumerate(tables):
 		timestamps = list(db.query(
-			'select time_start from sqlshare_logs where id in (select query_id from sqlshare_tables where "table" = \''+t+'\') order by time_start desc'
+			'select time_start from sqlshare_logs where id in (select query_id from sqlshare_tables where "table" = \''+t['table']+'\') order by time_start desc'
 			))
 		if len(timestamps) == 0:
 			lifetime[i] = 0
 		else:
-			start = datetime.strptime(timestamps[-1],"%m/%d/%Y %I:%M:%S %p")
-			end = datetime.strptime(timestamps[0],"%m/%d/%Y %I:%M:%S %p")
+			start = datetime.strptime(timestamps[-1]['time_start'],"%m/%d/%Y %I:%M:%S %p")
+			end = datetime.strptime(timestamps[0]['time_start'],"%m/%d/%Y %I:%M:%S %p")
 			lifetime[i] = (end - start).total_seconds
 
 	def write_to_csv(dict_obj, col1, col2, filename, to_reverse=True):
