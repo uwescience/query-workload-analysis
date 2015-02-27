@@ -32,7 +32,7 @@ def analyse2(database):
 	lifetime = {}
 	for i,t in enumerate(tables):
 		timestamps = list(db.query(
-			'select time_start from sqlshare_logs where id in (select query_id from sqlshare_tables where "table" = "'+t['table']+'") order by time_start desc'
+			"select time_start from sqlshare_logs where id in (select query_id from sqlshare_tables where \"table\" = \'"+t['table'].replace("'", "\\'")+"\') order by time_start desc"
 			))
 		if len(timestamps) == 0:
 			lifetime[i] = 0
@@ -48,7 +48,7 @@ def analyse2(database):
 			f.write("%d,%d\n"%(key, dict_obj[key]))
 		f.close()
 
-	write_to_csv(lifetime, 'query_id', 'lifetime', '../results/sqlshare/'+owner+'exp_lengths.csv')
+	write_to_csv(lifetime, 'query_id', 'lifetime', '../results/sqlshare/'+owner+'query_lifetime.csv')
 
 def main():
 	arguments = docopt(__doc__, version='SDSS Tools 0.0.1')
