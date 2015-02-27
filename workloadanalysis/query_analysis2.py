@@ -45,8 +45,8 @@ def analyse2(database):
 		except:
 			ecount += 1
 			pass
-	print 'done with' + ecount + 'errors'
-	
+	print 'done with' + str(ecount) + 'errors'
+
 	def write_to_csv(dict_obj, col1, col2, filename, to_reverse=True):
 		f = open(filename, 'w')
 		f.write("%s,%s\n"%(col1,col2))
