@@ -28,9 +28,9 @@ def analyse2(database):
 	query = "select distinct(t.\"table\") from sqlshare_tables t, sqlshare_logs l where l.id = t.query_id and t.\"table\" != 'None' and l.owner = '%s'"
 
 	owners =[]	
-    top_owners = db.query('select owner from sqlshare_logs group by owner order by count(*) desc limit 12')
-    for result in top_owners:
-        owners.append(result['owner'])
+	top_owners = db.query('select owner from sqlshare_logs group by owner order by count(*) desc limit 12')
+	for result in top_owners:
+		owners.append(result['owner'])
 	
 	for owner in owners:
 		tables = list(db.query(query % owner))
