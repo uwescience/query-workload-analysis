@@ -7,6 +7,7 @@ Usage:
     qwla (sdss|sqlshare|tpch) extract [-d DATABASE]
     qwla (sdss|sqlshare|tpch) calcsimilarity [-d DATABASE]
     qwla (sdss|sqlshare|tpch) analyze [-d DATABASE] [--recurring]
+    qwla (sdss|sqlshare|tpch) analyze2 [-d DATABASE]
     qwla (-h | --help)
     qwla --version
 
@@ -33,6 +34,7 @@ from docopt import docopt
 import consume_logs
 import explain_queries
 import query_analysis
+import query_analysis2
 import query_extract
 import attributesimilarity
 import summary
@@ -92,6 +94,10 @@ def main():
             query_analysis.analyze_tpch(db)
         else:
             query_analysis.analyze_sqlshare(db, False)
+
+    if arguments['analyze2']:
+        if arguments['sqlshare']:
+            query_analysis2.analyse2(db)
 
     if arguments['calcsimilarity']:
         if arguments['sqlshare']:

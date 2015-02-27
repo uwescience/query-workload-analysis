@@ -647,7 +647,7 @@ def analyze_sqlshare(database, all_owners = True):
         write_to_csv(dataset_touch, 'dataset_touch', 'count', '../results/sqlshare/'+owner+'dataset_touch.csv')
         write_to_csv(tables_in_query, 'number', 'count', '../results/sqlshare/'+owner+'table_touch.csv')
         # write_to_csv(time_taken, 'time_taken', 'count', '../results/sqlshare/'+owner+'time_taken.csv')
-        write_to_csv(exp_physical_ops, 'exp_physical_ops', 'count', '../results/sqlshare/'+owner+'_exp_physical_ops.csv')
+        write_to_csv(exp_physical_ops, 'exp_physical_ops', 'count', '../results/sqlshare/'+owner+'exp_physical_ops.csv')
         write_to_csv(exp_distinct_physical_ops, 'exp_distinct_physical_ops', 'count', '../results/sqlshare/'+owner+'exp_distinct_physical_ops.csv')
         write_to_csv(table_coverage, 'query_id', 'tables', '../results/sqlshare/'+owner+'table_coverage.csv', to_reverse = False)
         write_to_csv(dataset_coverage, 'query_id', 'tables', '../results/sqlshare/'+owner+'dataset_coverage.csv', to_reverse = False)
