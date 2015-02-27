@@ -41,7 +41,7 @@ def analyse2(database):
 			else:
 				start = datetime.strptime(timestamps[-1]['time_start'],"%m/%d/%Y %I:%M:%S %p")
 				end = datetime.strptime(timestamps[0]['time_start'],"%m/%d/%Y %I:%M:%S %p")
-				lifetime[i] = (end - start).total_seconds
+				lifetime[i] = (end - start).days
 		except:
 			ecount += 1
 			pass
