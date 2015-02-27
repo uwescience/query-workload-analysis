@@ -31,6 +31,7 @@ def analyse2(database):
 	#tables = tables[-1200:] # smaller subset for testing.
 	lifetime = {}
 	for i,t in enumerate(tables):
+		print i
 		timestamps = list(db.query(
 			'select time_start from sqlshare_logs where id in (select query_id from sqlshare_tables where "table" = $$'+t['table']+'$$) order by time_start desc'
 			))
