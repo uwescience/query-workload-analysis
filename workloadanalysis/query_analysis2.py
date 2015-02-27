@@ -54,7 +54,7 @@ def analyse2(database):
 			f.write("%d,%d\n"%(key, dict_obj[key]))
 		f.close()
 
-	write_to_csv(lifetime, 'query_id', 'lifetime', '../results/sqlshare/'+owner+'query_lifetime.csv')
+	write_to_csv(lifetime, 'query_id', 'lifetime', '../results/sqlshare/query_lifetime.csv')
 
 def main():
 	arguments = docopt(__doc__, version='SDSS Tools 0.0.1')
