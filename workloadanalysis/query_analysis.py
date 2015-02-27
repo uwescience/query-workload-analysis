@@ -501,7 +501,7 @@ def analyze_sqlshare(database, all_owners = True):
 
     if not all_owners:
         owners = []
-        top_owners = db.query('select owner from sqlshare_logs group by owner order by count(*) desc limit 1')
+        top_owners = db.query('select owner from sqlshare_logs group by owner order by count(*) desc limit 12')
         for result in top_owners:
             owners.append(result['owner'])
 
