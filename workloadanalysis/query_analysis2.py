@@ -41,13 +41,13 @@ def analyse2(database):
 			lifetime[i] = (end - start).total_seconds
 
 	def write_to_csv(dict_obj, col1, col2, filename, to_reverse=True):
-        f = open(filename, 'w')
-        f.write("%s,%s\n"%(col1,col2))
-        for key in sorted(dict_obj, reverse=to_reverse):
-            f.write("%d,%d\n"%(key, dict_obj[key]))
-        f.close()
+		f = open(filename, 'w')
+		f.write("%s,%s\n"%(col1,col2))
+		for key in sorted(dict_obj, reverse=to_reverse):
+			f.write("%d,%d\n"%(key, dict_obj[key]))
+		f.close()
 
-    write_to_csv(lifetime, 'query_id', 'lifetime', '../results/sqlshare/'+owner+'exp_lengths.csv')
+	write_to_csv(lifetime, 'query_id', 'lifetime', '../results/sqlshare/'+owner+'exp_lengths.csv')
 
 def main():
 	arguments = docopt(__doc__, version='SDSS Tools 0.0.1')
