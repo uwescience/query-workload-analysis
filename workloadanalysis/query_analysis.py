@@ -500,7 +500,8 @@ def analyze_sqlshare(database, all_owners = True):
     p = re.compile(ur'^(\w+\.(csv|txt))[A-F0-9]{5}$') #regular expression to match table names of the form *.(txt|csv)_____ <- these are all 1 table
 
     if not all_owners:
-        top_owners = db.query('select owner from sqlshare_logs group by owner order by count(*) desc limit 12')
+        owners = []
+        top_owners = db.query('select owner from sqlshare_logs group by owner order by count(*) desc limit 1')
         for result in top_owners:
             owners.append(result['owner'])
 
