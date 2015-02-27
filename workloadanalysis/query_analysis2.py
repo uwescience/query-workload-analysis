@@ -30,19 +30,23 @@ def analyse2(database):
 
 	#tables = tables[-1200:] # smaller subset for testing.
 	lifetime = {}
+	ecount = 0;
 	for i,t in enumerate(tables):
-		print i
-		print t
-		timestamps = list(db.query(
-			'select time_start from sqlshare_logs where id in (select query_id from sqlshare_tables where "table" = $$'+t['table']+'$$) order by time_start desc'
-			))
-		if len(timestamps) <= 1:
-			lifetime[i] = 0
-		else:
-			start = datetime.strptime(timestamps[-1]['time_start'],"%m/%d/%Y %I:%M:%S %p")
-			end = datetime.strptime(timestamps[0]['time_start'],"%m/%d/%Y %I:%M:%S %p")
-			lifetime[i] = (end - start).total_seconds
-
+		try:
+			timestamps = list(db.query(
+				'select time_start from sqlshare_logs where id in (select query_id from sqlshare_tables where "table" = $$'+t['table']+'$$) order by time_start desc'
+				))
+			if len(timestamps) <= 1:
+				lifetime[i] = 0
+			else:
+				start = datetime.strptime(timestamps[-1]['time_start'],"%m/%d/%Y %I:%M:%S %p")
+				end = datetime.strptime(timestamps[0]['time_start'],"%m/%d/%Y %I:%M:%S %p")
+				lifetime[i] = (end - start).total_seconds
+		except:
+			ecount += 1
+			pass
+	print 'done with' + ecount + 'errors'
+	
 	def write_to_csv(dict_obj, col1, col2, filename, to_reverse=True):
 		f = open(filename, 'w')
 		f.write("%s,%s\n"%(col1,col2))
