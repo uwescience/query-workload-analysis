@@ -34,7 +34,7 @@ def analyse2(database):
 	for i,t in enumerate(tables):
 		try:
 			timestamps = list(db.query(
-				'select time_start from sqlshare_logs where id in (select query_id from sqlshare_tables where "table" = $$'+t['table']+'$$) order by time_start desc'
+				'select to_timestamp(time_start, \'MM/DD/YYYY HH12:MI:SS am\') as start from sqlshare_logs where id in (select query_id from sqlshare_tables where "table" = $$'+t['table']+'$$) order by start desc'
 				))
 			if len(timestamps) <= 1:
 				lifetime[i] = 0
@@ -45,7 +45,7 @@ def analyse2(database):
 		except:
 			ecount += 1
 			pass
-	print 'done with' + str(ecount) + 'errors'
+	print 'done with ' + str(ecount) + ' errors'
 
 	def write_to_csv(dict_obj, col1, col2, filename, to_reverse=True):
 		f = open(filename, 'w')
