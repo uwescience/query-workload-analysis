@@ -565,19 +565,20 @@ def analyze_sqlshare(database, all_owners = True):
             expanded_query = q['query']
             # calculating dataset touch and expanded query now.
             ref_views = {}
+            total_ref_views = {}
             while(True):
                 previousLength = len(expanded_query)
-                prev_ref_views = ref_views
                 ref_views = {}
                 for view in views:
                     if view['view'] in expanded_query:
                         ref_views[view['view']] = view['query']
+                        total_ref_views[view['view']] = view['query']
                 for v in ref_views:
                     expanded_query = expanded_query.replace(v, '(' + ref_views[v] + ')')
 
                 if (len(expanded_query) == previousLength):
-                    dataset_touch[len(prev_ref_views)] += 1
-                    for d in prev_ref_views:
+                    dataset_touch[len(total_ref_views)] += 1
+                    for d in total_ref_views:
                         if d not in datasets_seen_so_far:
                             datasets_seen_so_far.append(d)
                     break

@@ -8,6 +8,7 @@ Usage:
     qwla (sdss|sqlshare|tpch) calcsimilarity [-d DATABASE]
     qwla (sdss|sqlshare|tpch) analyze [-d DATABASE] [--recurring]
     qwla (sdss|sqlshare|tpch) analyze2 [-d DATABASE]
+    qwla (sdss|sqlshare|tpch) getmetrics [-d DATABASE]
     qwla (-h | --help)
     qwla --version
 
@@ -35,6 +36,7 @@ import consume_logs
 import explain_queries
 import query_analysis
 import query_analysis2
+import get_complexity_metrics
 import query_extract
 import attributesimilarity
 import summary
@@ -98,6 +100,10 @@ def main():
     if arguments['analyze2']:
         if arguments['sqlshare']:
             query_analysis2.analyse2(db)
+    
+    if arguments['getmetrics']:
+        if arguments['sqlshare']:
+            get_complexity_metrics.getmetrics(db)
 
     if arguments['calcsimilarity']:
         if arguments['sqlshare']:
