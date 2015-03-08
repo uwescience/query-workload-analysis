@@ -37,7 +37,9 @@ def getmetrics(database):
 	views = list(db.query(views_q))
 	queries = list(db.query(queries_q))
 	f = open('../results/sqlshare/query_comp_metrics.csv', 'w')
-	f.write("id, length, expanded_length, runtime, tables, columns, expressions, log_ops, ref_views, query\n")
+	f2 = open('../results/sqlshare/query_comp_metrics_with_q.csv', 'w')
+	f.write("id, length, expanded_length, runtime, tables, columns, expressions, log_ops, ref_views\n")
+	f2.write("id, length, expanded_length, runtime, tables, columns, expressions, log_ops, ref_views, query\n")
 	for i, q in enumerate(queries):
 		expanded_query = q['query']
 		# calculating dataset touch and expanded query now.
@@ -55,8 +57,10 @@ def getmetrics(database):
 			
 			if (len(expanded_query) == previousLength):
 				break
-		f.write("%d, %d, %d, %d, %d, %d, %d, %d, %d, %s\n"%(q['id'],q['length'],len(expanded_query), q['runtime'], q['tables'], q['columns'], q['expressions'], q['log_ops'], len(set(total_ref_views)), q['query'].replace(',', '!')))
+		f2.write("%d, %d, %d, %d, %d, %d, %d, %d, %d, %s\n"%(q['id'], len(q['length']),len(expanded_query), q['runtime'], q['tables'], q['columns'], q['expressions'], q['log_ops'], len(set(total_ref_views)), q['query'].replace(',', '!')))
+		f.write("%d, %d, %d, %d, %d, %d, %d, %d, %d\n"%(q['id'], len(q['length']),len(expanded_query), q['runtime'], q['tables'], q['columns'], q['expressions'], q['log_ops'], len(set(total_ref_views))))
 	f.close()
+	f2.close()
 
 def main():
 	arguments = docopt(__doc__, version='SDSS Tools 0.0.1')
