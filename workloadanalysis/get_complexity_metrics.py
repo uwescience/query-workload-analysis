@@ -57,8 +57,8 @@ def getmetrics(database):
 			
 			if (len(expanded_query) == previousLength):
 				break
-		f2.write("%d, %d, %d, %d, %d, %d, %d, %d, %d, %s\n"%(q['id'], len(q['length']),len(expanded_query), q['runtime'], q['tables'], q['columns'], q['expressions'], q['log_ops'], len(set(total_ref_views)), q['query'].replace(',', '!')))
-		f.write("%d, %d, %d, %d, %d, %d, %d, %d, %d\n"%(q['id'], len(q['length']),len(expanded_query), q['runtime'], q['tables'], q['columns'], q['expressions'], q['log_ops'], len(set(total_ref_views))))
+		f2.write("%d, %d, %d, %d, %d, %d, %d, %d, %d, %s\n"%(q['id'], len(q['query']),len(expanded_query), q['runtime'], q['tables'], q['columns'], q['expressions'], q['log_ops'], len(set(total_ref_views)), q['query'].replace(',', '!')))
+		f.write("%d, %d, %d, %d, %d, %d, %d, %d, %d\n"%(q['id'], len(q['query']),len(expanded_query), q['runtime'], q['tables'], q['columns'], q['expressions'], q['log_ops'], len(set(total_ref_views))))
 	f.close()
 	f2.close()
 
