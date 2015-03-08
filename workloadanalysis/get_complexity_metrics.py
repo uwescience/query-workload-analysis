@@ -27,9 +27,8 @@ def getmetrics(database):
 	db = dataset.connect(database);
 	queries_q = '''with t as (select query_id as id, count("table") as tables from sqlshare_tables where query_id in (select * from qids) group by query_id),
 				c as (select query_id as id, count("column") as columns, count(distinct("column")) as dis_columns from sqlshare_columns where query_id in (select * from qids) group by query_id),
-				ex as (select query as id, count(operator) as expressions from ops_table where query in (select * from qids) group by query),
-				lgop as (select query_id as id, count(log_operator) as log_ops from sqlshare_logops where query_id in (select * from qids) group by query_id)
-				
+				ex as (select query as id, count(operator) as expressions, count(distinct(operator)) as dis_expr from ops_table where query in (select * from qids) group by query),
+				lgop as (select query_id as id, count(log_operator) as log_ops, count(distinct(log_operator)) as dis_log_ops from sqlshare_logops where query_id in (select * from qids) group by query_id)
 				select s.query, s.id, s.length, s.runtime, t.tables, c.columns, c.dis_columns ex.expressions, lgop.log_ops 
 				from sqlshare_logs s, qids, ex, t, c, lgop where 
 				s.id = qids.id and ex.id = s.id and s.id = t.id and s.id = c.id and lgop.id = s.id and runtime != -1 order by s.id;'''
@@ -38,8 +37,8 @@ def getmetrics(database):
 	queries = list(db.query(queries_q))
 	f = open('../results/sqlshare/query_comp_metrics.csv', 'w')
 	f2 = open('../results/sqlshare/query_comp_metrics_with_q.csv', 'w')
-	f.write("id, length, expanded_length, runtime, tables, columns, distinct_columns, expressions, log_ops, ref_views\n")
-	f2.write("id, length, expanded_length, runtime, tables, columns, distinct_columns, expressions, log_ops, ref_views, query\n")
+	f.write("id, length, expanded_length, runtime, tables, columns, distinct_columns, expressions, log_ops, distinct_expr, distinct_ops, ref_views\n")
+	f2.write("id, length, expanded_length, runtime, tables, columns, distinct_columns, expressions, log_ops, distinct_expr, distinct_ops, ref_views, query\n")
 	for i, q in enumerate(queries):
 		expanded_query = q['query']
 		# calculating dataset touch and expanded query now.
@@ -57,8 +56,8 @@ def getmetrics(database):
 			
 			if (len(expanded_query) == previousLength):
 				break
-		f2.write("%d, %d, %d, %d, %d, %d, %d, %d, %d, %s\n"%(q['id'], len(q['query']),len(expanded_query), q['runtime'], q['tables'], q['columns'], q['dis_columns'], q['expressions'], q['log_ops'], len(set(total_ref_views)), q['query'].replace(',', '!')))
-		f.write("%d, %d, %d, %d, %d, %d, %d, %d, %d\n"%(q['id'], len(q['query']),len(expanded_query), q['runtime'], q['tables'], q['columns'], q['dis_columns'], q['expressions'], q['log_ops'], len(set(total_ref_views))))
+		f2.write("%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %s\n"%(q['id'], len(q['query']),len(expanded_query), q['runtime'], q['tables'], q['columns'], q['dis_columns'], q['expressions'], q['log_ops'], q['distinct_expr'], q['distinct_ops'], len(set(total_ref_views)), q['query'].replace(',', '!')))
+		f.write("%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d\n"%(q['id'], len(q['query']),len(expanded_query), q['runtime'], q['tables'], q['columns'], q['dis_columns'], q['expressions'], q['log_ops'], q['distinct_expr'], q['distinct_ops'], len(set(total_ref_views))))
 	f.close()
 	f2.close()
 
