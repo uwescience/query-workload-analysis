@@ -29,7 +29,7 @@ def getmetrics(database):
 				c as (select query_id as id, count("column") as columns, count(distinct("column")) as dis_columns from sqlshare_columns where query_id in (select * from qids) group by query_id),
 				ex as (select query as id, count(operator) as expressions, count(distinct(operator)) as dis_expr from ops_table where query in (select * from qids) group by query),
 				lgop as (select query_id as id, count(log_operator) as log_ops, count(distinct(log_operator)) as dis_log_ops from sqlshare_logops where query_id in (select * from qids) group by query_id)
-				select s.query, s.id, s.length, s.runtime, t.tables, c.columns, c.dis_columns ex.expressions, lgop.log_ops 
+				select s.query, s.id, s.length, s.runtime, t.tables, c.columns, c.dis_columns, ex.dis_expr, ex.expressions, lgop.log_ops, lgop.dis_log_ops
 				from sqlshare_logs s, qids, ex, t, c, lgop where 
 				s.id = qids.id and ex.id = s.id and s.id = t.id and s.id = c.id and lgop.id = s.id and runtime != -1 order by s.id;'''
 	views_q = 'SELECT * FROM sqlshare_logs WHERE isview = false'
@@ -56,8 +56,8 @@ def getmetrics(database):
 			
 			if (len(expanded_query) == previousLength):
 				break
-		f2.write("%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %s\n"%(q['id'], len(q['query']),len(expanded_query), q['runtime'], q['tables'], q['columns'], q['dis_columns'], q['expressions'], q['log_ops'], q['distinct_expr'], q['distinct_ops'], len(set(total_ref_views)), q['query'].replace(',', '!')))
-		f.write("%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d\n"%(q['id'], len(q['query']),len(expanded_query), q['runtime'], q['tables'], q['columns'], q['dis_columns'], q['expressions'], q['log_ops'], q['distinct_expr'], q['distinct_ops'], len(set(total_ref_views))))
+		f2.write("%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %s\n"%(q['id'], len(q['query']),len(expanded_query), q['runtime'], q['tables'], q['columns'], q['dis_columns'], q['expressions'], q['log_ops'], q['dis_expr'], q['dis_log_ops'], len(set(total_ref_views)), q['query'].replace(',', '!')))
+		f.write("%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d\n"%(q['id'], len(q['query']),len(expanded_query), q['runtime'], q['tables'], q['columns'], q['dis_columns'], q['expressions'], q['log_ops'], q['dis_expr'], q['dis_log_ops'], len(set(total_ref_views))))
 	f.close()
 	f2.close()
 
