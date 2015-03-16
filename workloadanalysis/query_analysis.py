@@ -508,8 +508,6 @@ def analyze_sqlshare(database, all_owners = True):
         columns_count[q['id']] = q['columns']
     for q in expressions:
         expr_count[q['id']] = q['expressions']
-    del columns
-    del expressions
 
     if not all_owners:
         owners = []
@@ -524,7 +522,6 @@ def analyze_sqlshare(database, all_owners = True):
             queries_q = 'SELECT id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views from sqlshare_logs where has_plan = true group by id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start order by to_timestamp(time_start, \'MM/DD/YYYY HH12:MI:SS am\')'
             views_q = 'SELECT * FROM sqlshare_logs WHERE isview = false'
             query_with_same_plan_q = 'SELECT Count(*) as count from (SELECT distinct simple_plan from sqlshare_logs where has_plan = true) as foo'
-
         else:
             owner_condition = 'owner = \'' + owner +'\''
             distinct_q = 'SELECT plan from sqlshare_logs where has_plan = true and '+ owner_condition +' group by plan'
@@ -535,7 +532,7 @@ def analyze_sqlshare(database, all_owners = True):
 
         print "Find recurring subtrees in distinct queries (using subset check):"
         q = db.query(distinct_q)
-        #find_recurring_subset(q)
+        find_recurring_subset(q)
 
         all_queries = list(db.query(all_queries_q))
         queries = list(db.query(queries_q))
@@ -544,7 +541,7 @@ def analyze_sqlshare(database, all_owners = True):
 
         print '#Total queries with plan: ', len(all_queries)
         print '#Total string distinct queries:', len(queries)
-        #explicit_implicit_joins(queries)
+        explicit_implicit_joins(queries)
         print '#Total queries considering all constants the same:', query_with_same_plan[0]['count']
 
 
