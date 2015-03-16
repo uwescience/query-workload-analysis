@@ -501,13 +501,11 @@ def analyze_sqlshare(database, all_owners = True):
     columns_q = "SELECT query_id as id, count(\"column\") as columns, count(distinct(\"column\")) as dis_columns from sqlshare_columns group by query_id"
     expressions_q = 'SELECT query as id, count(operator) as expressions from ops_table group by query'
     columns_count = {}
-    dis_columns_count = {}
     expr_count = {}
     columns = db.query(columns_q)
     expressions = db.query(expressions_q)
     for q in columns:
         columns_count[q['id']] = q['columns']
-        dis_columns_count[q['id']] = q['dis_columns']
     for q in expressions:
         expr_count[q['id']] = q['expressions']
     del columns
