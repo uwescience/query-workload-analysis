@@ -532,19 +532,19 @@ def analyze_sqlshare(database, all_owners = True):
             queries_q = 'SELECT id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views from sqlshare_logs where has_plan = true and '+ owner_condition +'  group by id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start order by to_timestamp(time_start, \'MM/DD/YYYY HH12:MI:SS am\')'
             query_with_same_plan_q = 'SELECT Count(*) as count from (SELECT distinct simple_plan from sqlshare_logs where has_plan = true and '+ owner_condition +' ) as foo'
 
-        print "Find recurring subtrees in distinct queries (using subset check):"
+        #print "Find recurring subtrees in distinct queries (using subset check):"
         q = db.query(distinct_q)
-        find_recurring_subset(q)
+        #find_recurring_subset(q)
 
         all_queries = list(db.query(all_queries_q))
         queries = list(db.query(queries_q))
         views = list(db.query(views_q))
         query_with_same_plan = list(db.query(query_with_same_plan_q))
 
-        print '#Total queries with plan: ', len(all_queries)
-        print '#Total string distinct queries:', len(queries)
-        explicit_implicit_joins(queries)
-        print '#Total queries considering all constants the same:', query_with_same_plan[0]['count']
+        # print '#Total queries with plan: ', len(all_queries)
+        # print '#Total string distinct queries:', len(queries)
+        # explicit_implicit_joins(queries)
+        # print '#Total queries considering all constants the same:', query_with_same_plan[0]['count']
 
 
         #comp_lengths = Counter()
