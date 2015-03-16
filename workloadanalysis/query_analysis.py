@@ -683,12 +683,7 @@ def analyze_sqlshare(database, all_owners = True):
                     logical_tables.append(short_name[0])
 
             touch_by_time[i] = len(set(logical_tables))
-            q_complexity_by_time[i] = (-0.00248) * touch_by_time[i]
-                                        + 0.000168 * q['columns']
-                                        + 0.001571 * q['length']
-                                        + 0.012903 * q_logops_by_time[i]
-                                        + 0.000355 * q['expressions']
-                                        + 0.000000896 * q['runtime']
+            q_complexity_by_time[i] = (-0.00248) * touch_by_time[i] + 0.000168 * q['columns'] + 0.001571 * q['length'] + 0.012903 * q_logops_by_time[i] + 0.000355 * q['expressions'] + 0.000000896 * q['runtime']
 
         write_to_csv(q_ops_by_time, 'query_id', 'count', '../results/sqlshare/'+owner+'exp_ops_by_time.csv')
         write_to_csv(q_distinct_ops_by_time, 'query_id', 'count', '../results/sqlshare/'+owner+'exp_distinct_ops_by_time.csv')
