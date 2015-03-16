@@ -509,6 +509,8 @@ def analyze_sqlshare(database, all_owners = True):
     for q in expressions:
         expr_count[q['id']] = q['expressions']
 
+    print columns_count, expr_count
+
     views_q = 'SELECT * FROM sqlshare_logs WHERE isview = true'
 
     if not all_owners:
