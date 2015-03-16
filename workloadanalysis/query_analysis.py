@@ -498,14 +498,25 @@ def analyze_sqlshare(database, all_owners = True):
     db = dataset.connect(database)
     owners = [''];
     p = re.compile(ur'^(\w+\.(csv|txt))[A-F0-9]{5}$') #regular expression to match table names of the form *.(txt|csv)_____ <- these are all 1 table
+    columns_q = "SELECT query_id as id, count(\"column\") as columns, count(distinct(\"column\")) as dis_columns from sqlshare_columns group by query_id"
+    expressions_q = 'SELECT query as id, count(operator) as expressions from ops_table group by query'
+    columns_count = {}
+    dis_columns_count = {}
+    expr_count = {}
+    for q in columns:
+        columns_count[q['id']] = q['columns']
+        dis_columns_count[q['id']] = q['dis_columns']
+    for q in expressions:
+        expr_count[q['id']] = q['expressions']
+    del columns
+    del expressions
 
     if not all_owners:
         owners = []
         top_owners = db.query('select owner from sqlshare_logs group by owner order by count(*) desc limit 12')
         for result in top_owners:
             owners.append(result['owner'])
-        columns_q = "SELECT query_id as id, count(\"column\") as columns, count(distinct(\"column\")) as dis_columns from sqlshare_columns group by query_id"
-        expressions_q = 'SELECT query as id, count(operator) as expressions from ops_table group by query'
+
     for owner in owners:
         if owner == '':
             distinct_q = 'SELECT plan from sqlshare_logs where has_plan = true group by plan'
@@ -536,16 +547,7 @@ def analyze_sqlshare(database, all_owners = True):
         print '#Total string distinct queries:', len(queries)
         #explicit_implicit_joins(queries)
         print '#Total queries considering all constants the same:', query_with_same_plan[0]['count']
-        columns_count = {}
-        dis_columns_count = {}
-        expr_count = {}
-        for q in columns:
-            columns_count[q['id']] = q['columns']
-            dis_columns_count[q['id']] = q['dis_columns']
-        for q in expressions:
-            expr_count[q['id']] = q['expressions']
-        del columns
-        del expressions
+
 
         #comp_lengths = Counter()
         ops = Counter()
