@@ -247,6 +247,38 @@ def runtime():
     plt.savefig('plot_runtime_cdf.eps', format='eps')
     plt.show()
 
+def complexity():
+    w = 'sqlshare'
+    owners = ['billhowe', 'sr320@washington.edu', 'isaphan@washington.edu', 'emmats@washington.edu', 'koesterj@washington.edu', 'micaela@washington.edu',
+              'bifxcore@gmail.com', 'sism06@comcast.net', 'koenigk92@gmail.com', 'rkodner', 'erin.s1964@gmail.com', 'fridayharboroceanographers@gmail.com']
+    for owner in owners:
+        with open('../results/sqlshare/'+owner+'complexity_by_time.csv') as f:
+            d = np.recfromcsv(f)
+
+        sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
+        # sns.set_style("whitegrid")
+
+        plt.plot(d['query_id'], d['complexity'].astype(float),
+                 label=labels[w], color=colors[w], ls=lines[w])
+
+        axes = plt.gca()
+
+        # axes.set_ylim(0, 1)
+        # axes.set_xlim(-0.005, max(d['query_id'])+10)
+
+        # axes.yaxis.set_major_formatter(formatter)
+
+        plt.title("Query complexity over time")
+        axes.set_xlabel('Query_number')
+        axes.set_ylabel('Query Complexity')
+
+        axes.title.set_position((axes.title._x, 1.04))
+
+        plt.legend(loc=4)
+        plt.tight_layout()
+
+        plt.savefig(owner + 'plot_complexity_cdf.eps', format='eps')
+        plt.show()
 
 def ops():
     for w in workloads:
@@ -345,4 +377,5 @@ if __name__ == '__main__':
     # table_touch()
     # column_touch()
     # runtime()
-    new_tables()
+    # new_tables()
+    complexity()
