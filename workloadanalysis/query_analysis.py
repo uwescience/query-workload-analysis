@@ -503,6 +503,8 @@ def analyze_sqlshare(database, all_owners = True):
     columns_count = {}
     dis_columns_count = {}
     expr_count = {}
+    columns = db.query(columns_q)
+    expressions = db.query(expressions_q)
     for q in columns:
         columns_count[q['id']] = q['columns']
         dis_columns_count[q['id']] = q['dis_columns']
@@ -541,8 +543,7 @@ def analyze_sqlshare(database, all_owners = True):
         queries = list(db.query(queries_q))
         views = list(db.query(views_q))
         query_with_same_plan = list(db.query(query_with_same_plan_q))
-        columns = db.query(columns_q)
-        expressions = db.query(expressions_q)
+
         print '#Total queries with plan: ', len(all_queries)
         print '#Total string distinct queries:', len(queries)
         #explicit_implicit_joins(queries)
