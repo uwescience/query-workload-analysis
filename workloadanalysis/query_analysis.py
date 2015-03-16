@@ -701,13 +701,13 @@ def analyze_sqlshare(database, all_owners = True):
                 col_c = columns_count[q['id']]
             except:
                 col_c = 0
-                print 'Columns count defaulting to 0 for id' + q['id']
+                print 'Columns count defaulting to 0 for %d' % q['id']
 
             try:
                 expr_c = expr_count[q['id']]
             except:
                 expr_c = 0
-                print 'Expr count defaulting to 0 for id' + q['id']
+                print 'Expr count defaulting to 0 for %d' % q['id']
 
             q_complexity_by_time[i] = (-0.00248) * touch_by_time[i] + 0.000168 * col_c + 0.001571 * q['length'] + 0.012903 * q_logops_by_time[i] + 0.000355 * expr_c + 0.000000896 * q['runtime']
 
