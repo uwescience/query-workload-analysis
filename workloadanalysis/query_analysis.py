@@ -633,7 +633,7 @@ def analyze_sqlshare(database, all_owners = True):
             f = open(filename, 'w')
             f.write("%s,%s\n"%(col1,col2))
             for key in sorted(dict_obj, reverse=to_reverse):
-                f.write("%d,%d\n"%(key, dict_obj[key]))
+                f.write("%s,%s\n"%(key, dict_obj[key]))
             f.close()
 
         # write_to_csv(comp_lengths, 'comp_length', 'count', '../results/sqlshare/'+owner+'comp_lengths.csv')
@@ -690,7 +690,7 @@ def analyze_sqlshare(database, all_owners = True):
         write_to_csv(q_logops_by_time, 'query_id', 'count', '../results/sqlshare/'+owner+'exp_physical_ops_by_time.csv')
         write_to_csv(q_distinct_logops_by_time, 'query_id', 'count', '../results/sqlshare/'+owner+'exp_distinct_physical_ops_by_time.csv')
         write_to_csv(touch_by_time, 'query_id', 'count', '../results/sqlshare/'+owner+'table_touch_by_time.csv')
-        write_to_csv(q_complexity_by_time, 'query_id', 'complexity', '../results/sqlshare/'+owner+'complexity_by_time.csv')
+        write_to_csv(q_complexity_by_time, 'query_id', 'complexity', '../results/sqlshare/'+owner+'complexity_by_time.csv', False)
 
 
 if __name__ == '__main__':

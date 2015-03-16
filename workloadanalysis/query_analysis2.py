@@ -27,11 +27,11 @@ def analyse2(database):
 	db = dataset.connect(database);
 	query = "select distinct(t.\"table\") from sqlshare_tables t, sqlshare_logs l where l.id = t.query_id and t.\"table\" != 'None' and l.owner = '%s'"
 
-	owners =[]	
+	owners =[]
 	top_owners = db.query('select owner from sqlshare_logs group by owner order by count(*) desc limit 12')
 	for result in top_owners:
 		owners.append(result['owner'])
-	
+
 	for owner in owners:
 		tables = list(db.query(query % owner))
 		lifetime = {}
@@ -56,7 +56,7 @@ def analyse2(database):
 			f = open(filename, 'w')
 			f.write("%s,%s\n"%(col1,col2))
 			for key in sorted(dict_obj, reverse=to_reverse):
-				f.write("%d,%d\n"%(key, dict_obj[key]))
+				f.write("%s,%s\n"%(key, dict_obj[key]))
 			f.close()
 
 		write_to_csv(lifetime, 'table_id', 'lifetime', '../results/sqlshare/'+owner+'query_lifetime.csv')
