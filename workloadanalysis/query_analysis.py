@@ -498,7 +498,7 @@ def analyze_sqlshare(database, all_owners = True):
     db = dataset.connect(database)
     owners = [''];
     p = re.compile(ur'^(\w+\.(csv|txt))[A-F0-9]{5}$') #regular expression to match table names of the form *.(txt|csv)_____ <- these are all 1 table
-    columns_q = "SELECT query_id as id, count(\"column\") as columns, count(distinct(\"column\")) as dis_columns from sqlshare_columns group by query_id"
+    columns_q = "SELECT query_id as id, count(\"column\") as columns from sqlshare_columns group by query_id"
     expressions_q = 'SELECT query as id, count(operator) as expressions from ops_table group by query'
     columns_count = {}
     expr_count = {}
@@ -509,7 +509,7 @@ def analyze_sqlshare(database, all_owners = True):
     for q in expressions:
         expr_count[q['id']] = q['expressions']
 
-    print columns_count, expr_count
+    # print columns_count, expr_count
 
     views_q = 'SELECT * FROM sqlshare_logs WHERE isview = true'
 
@@ -697,7 +697,19 @@ def analyze_sqlshare(database, all_owners = True):
                     logical_tables.append(short_name[0])
 
             touch_by_time[i] = len(set(logical_tables))
-            q_complexity_by_time[i] = (-0.00248) * touch_by_time[i] + 0.000168 * columns_count[q['id']] + 0.001571 * q['length'] + 0.012903 * q_logops_by_time[i] + 0.000355 * expr_count[q['id']] + 0.000000896 * q['runtime']
+            try:
+                col_c = columns_count[q['id']]
+            except:
+                col_c = 0
+                print 'Columns count defaulting to 0 for id' + q['id']
+
+            try:
+                expr_c = expr_count[q['id']]
+            except:
+                expr_c = 0
+                print 'Expr count defaulting to 0 for id' + q['id']
+
+            q_complexity_by_time[i] = (-0.00248) * touch_by_time[i] + 0.000168 * col_c + 0.001571 * q['length'] + 0.012903 * q_logops_by_time[i] + 0.000355 * expr_c + 0.000000896 * q['runtime']
 
         write_to_csv(q_ops_by_time, 'query_id', 'count', '../results/sqlshare/'+owner+'exp_ops_by_time.csv')
         write_to_csv(q_distinct_ops_by_time, 'query_id', 'count', '../results/sqlshare/'+owner+'exp_distinct_ops_by_time.csv')
