@@ -509,15 +509,15 @@ def analyze_sqlshare(database, all_owners = True):
         if owner == '':
             distinct_q = 'SELECT plan from sqlshare_logs where has_plan = true group by plan'
             all_queries_q = 'SELECT * from sqlshare_logs where has_plan = true'
-            queries_q = 'SELECT query, plan, expanded_plan_ops_logical, expanded_plan_ops, ref_views from sqlshare_logs where has_plan = true group by query, plan, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start order by to_timestamp(time_start, \'MM/DD/YYYY HH12:MI:SS am\')'
+            queries_q = 'with cols as (select query_id as id, count("column") as columns, count(distinct("column")) as dis_columns from sqlshare_columns group by query_id), ex as (select query as id, count(operator) as expressions from ops_table where query in (select * from qids) group by query) \n SELECT query, plan, length, runtime, expanded_plan_ops_logical, expressions, expanded_plan_ops, ref_views, columns, dis_columns from sqlshare_logs a, cols, ex where a.id = cols.id and ex.id = a.id and has_plan = true group by query, plan, columns, dis_columns, expressions, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start order by to_timestamp(time_start, \'MM/DD/YYYY HH12:MI:SS am\')'
             views_q = 'SELECT * FROM sqlshare_logs WHERE isview = false'
             query_with_same_plan_q = 'SELECT Count(*) as count from (SELECT distinct simple_plan from sqlshare_logs where has_plan = true) as foo'
         else:
             owner_condition = 'owner = \'' + owner +'\''
             distinct_q = 'SELECT plan from sqlshare_logs where has_plan = true and '+ owner_condition +' group by plan'
-            all_queries_q = 'SELECT * from sqlshare_logs where has_plan = true and '+ owner_condition +' ' 
-            queries_q = 'SELECT query, plan, expanded_plan_ops_logical, expanded_plan_ops, ref_views from sqlshare_logs where has_plan = true and '+ owner_condition +'  group by query, plan, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start order by to_timestamp(time_start, \'MM/DD/YYYY HH12:MI:SS am\')'
-            views_q = 'SELECT * FROM sqlshare_logs WHERE isview = false and ' + owner_condition  
+            all_queries_q = 'SELECT * from sqlshare_logs where has_plan = true and '+ owner_condition +' '
+            queries_q = 'with cols as (select query_id as id, count("column") as columns, count(distinct("column")) as dis_columns from sqlshare_columns group by query_id), ex as (select query as id, count(operator) as expressions from ops_table where query in (select * from qids) group by query) \n SELECT query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, columns, dis_columns from sqlshare_logs a, cols, ex where a.id = cols.id and ex.id = a.id and has_plan = true and '+ owner_condition +'  group by query, plan, length, columns, dis_columns, expressions, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start order by to_timestamp(time_start, \'MM/DD/YYYY HH12:MI:SS am\')'
+            views_q = 'SELECT * FROM sqlshare_logs WHERE isview = false and ' + owner_condition
             query_with_same_plan_q = 'SELECT Count(*) as count from (SELECT distinct simple_plan from sqlshare_logs where has_plan = true and '+ owner_condition +' ) as foo'
 
         print "Find recurring subtrees in distinct queries (using subset check):"
@@ -550,7 +550,7 @@ def analyze_sqlshare(database, all_owners = True):
         keywords_count = Counter()
         table_coverage = {}
         dataset_coverage = {}
-        
+
         datasets_seen_so_far = []
         tables_seen_so_far = []
         tables_in_query = Counter()
@@ -623,9 +623,9 @@ def analyze_sqlshare(database, all_owners = True):
                 else:
                     logical_tables.append(short_name[0])
                     if short_name[0] not in tables_seen_so_far:
-                        tables_seen_so_far.append(short_name[0])                
+                        tables_seen_so_far.append(short_name[0])
 
-            tables_in_query[len(set(logical_tables))] += 1 
+            tables_in_query[len(set(logical_tables))] += 1
             table_coverage[i] = len(tables_seen_so_far)
             dataset_coverage[i] = len(datasets_seen_so_far)
 
@@ -659,6 +659,7 @@ def analyze_sqlshare(database, all_owners = True):
         q_distinct_ops_by_time = {}
         q_logops_by_time = {}
         q_distinct_logops_by_time = {}
+        q_complexity_by_time = {}
 
         for i, q in enumerate(queries):
             q_ex_ops = q['expanded_plan_ops_logical'].split(',')
@@ -668,7 +669,7 @@ def analyze_sqlshare(database, all_owners = True):
             q_ex_phy_ops = q['expanded_plan_ops'].split(',')
             q_ops_by_time[i] = len(q_ex_phy_ops)
             q_distinct_ops_by_time[i] = len(set(q_ex_phy_ops))
-            
+
             plan = json.loads(q['plan'])
             tables = visit_operators(plan, visitor_tables)
             tables = set(tables)
@@ -681,13 +682,20 @@ def analyze_sqlshare(database, all_owners = True):
                 else:
                     logical_tables.append(short_name[0])
 
-            touch_by_time[i] = len(set(logical_tables)) 
+            touch_by_time[i] = len(set(logical_tables))
+            q_complexity_by_time[i] = (-0.00248) * touch_by_time[i]
+                                        + 0.000168 * q['columns']
+                                        + 0.001571 * q['length']
+                                        + 0.012903 * q_logops_by_time[i]
+                                        + 0.000355 * q['expressions']
+                                        + 0.000000896 * q['runtime']
 
         write_to_csv(q_ops_by_time, 'query_id', 'count', '../results/sqlshare/'+owner+'exp_ops_by_time.csv')
         write_to_csv(q_distinct_ops_by_time, 'query_id', 'count', '../results/sqlshare/'+owner+'exp_distinct_ops_by_time.csv')
         write_to_csv(q_logops_by_time, 'query_id', 'count', '../results/sqlshare/'+owner+'exp_physical_ops_by_time.csv')
         write_to_csv(q_distinct_logops_by_time, 'query_id', 'count', '../results/sqlshare/'+owner+'exp_distinct_physical_ops_by_time.csv')
         write_to_csv(touch_by_time, 'query_id', 'count', '../results/sqlshare/'+owner+'table_touch_by_time.csv')
+        write_to_csv(q_complexity_by_time, 'query_id', 'complexity', '../results/sqlshare/'+owner+'complexity_by_time.csv')
 
 
 if __name__ == '__main__':
