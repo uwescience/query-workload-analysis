@@ -504,19 +504,21 @@ def analyze_sqlshare(database, all_owners = True):
         top_owners = db.query('select owner from sqlshare_logs group by owner order by count(*) desc limit 12')
         for result in top_owners:
             owners.append(result['owner'])
-
+        columns_q = "SELECT query_id as id, count(\"column\") as columns, count(distinct(\"column\")) as dis_columns from sqlshare_columns group by query_id"
+        expressions_q = 'SELECT query as id, count(operator) as expressions from ops_table group by query'
     for owner in owners:
         if owner == '':
             distinct_q = 'SELECT plan from sqlshare_logs where has_plan = true group by plan'
             all_queries_q = 'SELECT * from sqlshare_logs where has_plan = true'
-            queries_q = 'with cols as (select query_id as id, count("column") as columns, count(distinct("column")) as dis_columns from sqlshare_columns group by query_id), ex as (select query as id, count(operator) as expressions from ops_table where query in (select * from qids) group by query) \n SELECT query, plan, length, runtime, expanded_plan_ops_logical, expressions, expanded_plan_ops, ref_views, columns, dis_columns from sqlshare_logs a, cols, ex where a.id = cols.id and ex.id = a.id and has_plan = true group by query, plan, columns, dis_columns, expressions, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start order by to_timestamp(time_start, \'MM/DD/YYYY HH12:MI:SS am\')'
+            queries_q = 'SELECT id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views from sqlshare_logs where has_plan = true group by id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start order by to_timestamp(time_start, \'MM/DD/YYYY HH12:MI:SS am\')'
             views_q = 'SELECT * FROM sqlshare_logs WHERE isview = false'
             query_with_same_plan_q = 'SELECT Count(*) as count from (SELECT distinct simple_plan from sqlshare_logs where has_plan = true) as foo'
+
         else:
             owner_condition = 'owner = \'' + owner +'\''
             distinct_q = 'SELECT plan from sqlshare_logs where has_plan = true and '+ owner_condition +' group by plan'
             all_queries_q = 'SELECT * from sqlshare_logs where has_plan = true and '+ owner_condition +' '
-            queries_q = 'with cols as (select query_id as id, count("column") as columns, count(distinct("column")) as dis_columns from sqlshare_columns group by query_id), ex as (select query as id, count(operator) as expressions from ops_table where query in (select * from qids) group by query) \n SELECT query, plan, length, runtime, expanded_plan_ops_logical, expressions, expanded_plan_ops, ref_views, columns, dis_columns from sqlshare_logs a, cols, ex where a.id = cols.id and ex.id = a.id and has_plan = true and '+ owner_condition +'  group by query, plan, length, columns, dis_columns, expressions, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start order by to_timestamp(time_start, \'MM/DD/YYYY HH12:MI:SS am\')'
+            queries_q = 'SELECT id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views from sqlshare_logs where has_plan = true and '+ owner_condition +'  group by id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start order by to_timestamp(time_start, \'MM/DD/YYYY HH12:MI:SS am\')'
             views_q = 'SELECT * FROM sqlshare_logs WHERE isview = false and ' + owner_condition
             query_with_same_plan_q = 'SELECT Count(*) as count from (SELECT distinct simple_plan from sqlshare_logs where has_plan = true and '+ owner_condition +' ) as foo'
 
@@ -528,10 +530,22 @@ def analyze_sqlshare(database, all_owners = True):
         queries = list(db.query(queries_q))
         views = list(db.query(views_q))
         query_with_same_plan = list(db.query(query_with_same_plan_q))
+        columns = db.query(columns_q)
+        expressions = db.query(expressions_q)
         print '#Total queries with plan: ', len(all_queries)
         print '#Total string distinct queries:', len(queries)
         #explicit_implicit_joins(queries)
         print '#Total queries considering all constants the same:', query_with_same_plan[0]['count']
+        columns_count = {}
+        dis_columns_count = {}
+        expr_count = {}
+        for q in columns:
+            columns_count[q['id']] = q['columns']
+            dis_columns_count[q['id']] = q['dis_columns']
+        for q in expressions:
+            expr_count[q['id']] = q['expressions']
+        del columns
+        del expressions
 
         #comp_lengths = Counter()
         ops = Counter()
@@ -683,7 +697,7 @@ def analyze_sqlshare(database, all_owners = True):
                     logical_tables.append(short_name[0])
 
             touch_by_time[i] = len(set(logical_tables))
-            q_complexity_by_time[i] = (-0.00248) * float(touch_by_time[i]) + 0.000168 * float(q['columns']) + 0.001571 * float(q['length']) + 0.012903 * float(q_logops_by_time[i]) + 0.000355 * float(q['expressions']) + 0.000000896 * float(q['runtime'])
+            q_complexity_by_time[i] = (-0.00248) * touch_by_time[i] + 0.000168 * columns_count[q['id']] + 0.001571 * q['length'] + 0.012903 * q_logops_by_time[i] + 0.000355 * expr_count[q['id']] + 0.000000896 * q['runtime']
 
         write_to_csv(q_ops_by_time, 'query_id', 'count', '../results/sqlshare/'+owner+'exp_ops_by_time.csv')
         write_to_csv(q_distinct_ops_by_time, 'query_id', 'count', '../results/sqlshare/'+owner+'exp_distinct_ops_by_time.csv')
