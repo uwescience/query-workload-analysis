@@ -675,6 +675,8 @@ def analyze_sqlshare(database, all_owners = True):
         q_distinct_logops_by_time = {}
         q_complexity_by_time = {}
 
+        f_highcomplexity_queries = open('../results/sqlshare/high_complexity_queries.txt', w)
+        f_lowcomplexity_queries = open('../results/sqlshare/low_complexity_queries.txt', w)
         for i, q in enumerate(queries):
             q_ex_ops = q['expanded_plan_ops_logical'].split(',')
             q_logops_by_time[i] = len(q_ex_ops)
@@ -710,7 +712,13 @@ def analyze_sqlshare(database, all_owners = True):
                 print 'Expr count defaulting to 0 for %d' % q['id']
 
             q_complexity_by_time[i] = (-0.00248) * touch_by_time[i] + 0.000168 * col_c + 0.001571 * q['length'] + 0.012903 * q_logops_by_time[i] + 0.000355 * expr_c + 0.000000896 * q['runtime']
+            if q_complexity_by_time[i] > 7:
+                f_highcomplexity_queries.write("%s \n\n\n"%q['query'])
+            if q_complexity_by_time[i] < 1:
+                f_lowcomplexity_queries.write("%s \n\n\n"%q['query'])
 
+        f_lowcomplexity_queries.close()
+        f_highcomplexity_queries.close()
         write_to_csv(q_ops_by_time, 'query_id', 'count', '../results/sqlshare/'+owner+'exp_ops_by_time.csv')
         write_to_csv(q_distinct_ops_by_time, 'query_id', 'count', '../results/sqlshare/'+owner+'exp_distinct_ops_by_time.csv')
         write_to_csv(q_logops_by_time, 'query_id', 'count', '../results/sqlshare/'+owner+'exp_physical_ops_by_time.csv')
