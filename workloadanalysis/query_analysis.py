@@ -569,7 +569,7 @@ def analyze_sqlshare(database, all_owners = True):
         tables_seen_so_far = []
         tables_in_query = Counter()
         tables = []
-        cummu_q_table_by_time = open('../results/sqlshare/'+owner+'cummu_q_table_by_time.csv',w)
+        cummu_q_table_by_time = open('../results/sqlshare/'+owner+'cummu_q_table_by_time.csv','w')
 
         for i, q in enumerate(queries):
             # comp_length = len(bz2.compress(q['query']))
