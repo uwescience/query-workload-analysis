@@ -523,13 +523,13 @@ def analyze_sqlshare(database, all_owners = True):
         if owner == '':
             distinct_q = 'SELECT plan from sqlshare_logs where has_plan = true group by plan'
             all_queries_q = 'SELECT * from sqlshare_logs where has_plan = true'
-            queries_q = 'SELECT id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views from sqlshare_logs where has_plan = true group by id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start order by to_timestamp(time_start, \'MM/DD/YYYY HH12:MI:SS am\')'
+            queries_q = 'SELECT id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start from sqlshare_logs where has_plan = true group by id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start order by to_timestamp(time_start, \'MM/DD/YYYY HH12:MI:SS am\')'
             query_with_same_plan_q = 'SELECT Count(*) as count from (SELECT distinct simple_plan from sqlshare_logs where has_plan = true) as foo'
         else:
             owner_condition = 'owner = \'' + owner +'\''
             distinct_q = 'SELECT plan from sqlshare_logs where has_plan = true and '+ owner_condition +' group by plan'
             all_queries_q = 'SELECT * from sqlshare_logs where has_plan = true and '+ owner_condition +' '
-            queries_q = 'SELECT id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views from sqlshare_logs where has_plan = true and '+ owner_condition +'  group by id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start order by to_timestamp(time_start, \'MM/DD/YYYY HH12:MI:SS am\')'
+            queries_q = 'SELECT id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start from sqlshare_logs where has_plan = true and '+ owner_condition +'  group by id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start order by to_timestamp(time_start, \'MM/DD/YYYY HH12:MI:SS am\')'
             query_with_same_plan_q = 'SELECT Count(*) as count from (SELECT distinct simple_plan from sqlshare_logs where has_plan = true and '+ owner_condition +' ) as foo'
 
         #print "Find recurring subtrees in distinct queries (using subset check):"
@@ -569,6 +569,7 @@ def analyze_sqlshare(database, all_owners = True):
         tables_seen_so_far = []
         tables_in_query = Counter()
         tables = []
+        cummu_q_table_by_time = open('../results/sqlshare/'+owner+'cummu_q_table_by_time.csv',w)
 
         for i, q in enumerate(queries):
             # comp_length = len(bz2.compress(q['query']))
@@ -642,6 +643,9 @@ def analyze_sqlshare(database, all_owners = True):
             tables_in_query[len(set(logical_tables))] += 1
             table_coverage[i] = len(tables_seen_so_far)
             dataset_coverage[i] = len(datasets_seen_so_far)
+            cummu_q_table_by_time.write("%d, %d, %s"%(i,len(tables_seen_so_far),q['time_start']))
+
+        cummu_q_table_by_time.close()
 
         def write_to_csv(dict_obj, col1, col2, filename, to_reverse=True):
             f = open(filename, 'w')
