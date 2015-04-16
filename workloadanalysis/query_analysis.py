@@ -675,8 +675,8 @@ def analyze_sqlshare(database, all_owners = True):
         q_distinct_logops_by_time = {}
         q_complexity_by_time = {}
 
-        f_highcomplexity_queries = open('../results/sqlshare/high_complexity_queries.txt', w)
-        f_lowcomplexity_queries = open('../results/sqlshare/low_complexity_queries.txt', w)
+        f_highcomplexity_queries = open('../results/sqlshare/high_complexity_queries.txt', 'a')
+        f_lowcomplexity_queries = open('../results/sqlshare/low_complexity_queries.txt', 'a')
         for i, q in enumerate(queries):
             q_ex_ops = q['expanded_plan_ops_logical'].split(',')
             q_logops_by_time[i] = len(q_ex_ops)
