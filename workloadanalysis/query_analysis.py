@@ -716,9 +716,9 @@ def analyze_sqlshare(database, all_owners = True):
 
             q_complexity_by_time[i] = (-0.00248) * touch_by_time[i] + 0.000168 * col_c + 0.001571 * q['length'] + 0.012903 * q_logops_by_time[i] + 0.000355 * expr_c + 0.000000896 * q['runtime']
             if q_complexity_by_time[i] > 7:
-                f_highcomplexity_queries.write("complexity: %f \n Query: \n %s \n\n\n"%(q_complexity_by_time[i], q['query']))
+                f_highcomplexity_queries.write("complexity: %f \n Query: \n %s \n\n\n"%(q_complexity_by_time[i], q['query'].encode('utf-8')))
             if q_complexity_by_time[i] < 1:
-                f_lowcomplexity_queries.write("complexity: %f \n Query: \n %s \n\n\n"%(q_complexity_by_time[i], q['query']))
+                f_lowcomplexity_queries.write("complexity: %f \n Query: \n %s \n\n\n"%(q_complexity_by_time[i], q['query'].encode('utf-8')))
 
         f_lowcomplexity_queries.close()
         f_highcomplexity_queries.close()
