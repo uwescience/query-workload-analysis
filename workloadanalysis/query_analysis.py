@@ -674,6 +674,7 @@ def analyze_sqlshare(database, all_owners = True):
         q_logops_by_time = {}
         q_distinct_logops_by_time = {}
         q_complexity_by_time = {}
+        q_length_by_time ={}
 
         f_highcomplexity_queries = open('../results/sqlshare/high_complexity_queries.txt', 'a')
         f_lowcomplexity_queries = open('../results/sqlshare/low_complexity_queries.txt', 'a')
@@ -711,6 +712,8 @@ def analyze_sqlshare(database, all_owners = True):
                 expr_c = 0
                 print 'Expr count defaulting to 0 for %d' % q['id']
 
+            q_length_by_time[i] = len(q['query'])
+
             q_complexity_by_time[i] = (-0.00248) * touch_by_time[i] + 0.000168 * col_c + 0.001571 * q['length'] + 0.012903 * q_logops_by_time[i] + 0.000355 * expr_c + 0.000000896 * q['runtime']
             if q_complexity_by_time[i] > 7:
                 f_highcomplexity_queries.write("complexity: %f \n Query: \n %s \n\n\n"%(q_complexity_by_time[i], q['query']))
@@ -725,6 +728,7 @@ def analyze_sqlshare(database, all_owners = True):
         write_to_csv(q_distinct_logops_by_time, 'query_id', 'count', '../results/sqlshare/'+owner+'exp_distinct_physical_ops_by_time.csv')
         write_to_csv(touch_by_time, 'query_id', 'count', '../results/sqlshare/'+owner+'table_touch_by_time.csv')
         write_to_csv(q_complexity_by_time, 'query_id', 'complexity', '../results/sqlshare/'+owner+'complexity_by_time.csv', False)
+        write_to_csv(q_length_by_time, 'query_id', 'length', '../results/sqlshare/'+owner+'length_by_time.csv', False)
 
 
 if __name__ == '__main__':
