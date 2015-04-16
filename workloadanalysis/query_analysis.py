@@ -643,7 +643,7 @@ def analyze_sqlshare(database, all_owners = True):
             tables_in_query[len(set(logical_tables))] += 1
             table_coverage[i] = len(tables_seen_so_far)
             dataset_coverage[i] = len(datasets_seen_so_far)
-            cummu_q_table_by_time.write("%d, %d, %s"%(i,len(tables_seen_so_far),q['time_start']))
+            cummu_q_table_by_time.write("%d, %d, %s\n"%(i,len(tables_seen_so_far),q['time_start']))
 
         cummu_q_table_by_time.close()
 
