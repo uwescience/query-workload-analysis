@@ -1,3 +1,4 @@
+from datetime import datetime
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -5,7 +6,7 @@ from matplotlib.ticker import FuncFormatter
 import matplotlib as mpl
 import numpy as np
 import prettyplotlib as ppl
-
+import matplotlib.dates as mdates
 
 workloads = ["tpch","sdss", "sqlshare"]
 labels = {
@@ -259,7 +260,7 @@ def complexity():
         sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
         # sns.set_style("whitegrid")
 
-        plt.plot(d['query_id']*100.0/max(d['query_id']), d['complexity'].astype(float), linewidth=0.5, color=colors[w], ls=lines[w])
+        plt.plot(d['query_id']*100.0/max(d['query_id']), d['complexity'].astype(float), linewidth=0.5, color=b, ls=lines[w])
 
         axes = plt.gca()
 
@@ -381,7 +382,7 @@ def new_tables_for_users():
         c /= c[-1]
         q = data['query_id'].astype(float)
         q /= q[-1]
-        ax.plot(q, c, color=colors['sqlshare'], linewidth=2, drawstyle='steps-post')
+        ax.plot(q, c, color=b, linewidth=2, drawstyle='steps-post')
         # ax.scatter(q[0: -1], c[0: -1], color=colors['sqlshare'], marker="o", s=20, alpha=.01)
 
         ax.yaxis.set_major_formatter(formatter)
@@ -411,15 +412,15 @@ def Q_vs_D():
         data = np.recfromcsv(f)
     D = data['d'].astype(float)
     Q = data['q'].astype(float)
-    ax.scatter(Q, D, color=colors['sqlshare'], marker="o", s=20, alpha=0.5)
+    ax.scatter(D, Q, color=b, marker="o", s=20, alpha=0.5)
     # ax.plot(Q, D, color=colors['sqlshare'], "0")
     # ax.scatter(q[0: -1], c[0: -1], color=colors['sqlshare'], marker="o", s=20, alpha=.01)
 
     ax.yaxis.set_major_formatter(formatter)
     ax.xaxis.set_major_formatter(formatter)
 
-    ax.set_ylim(0.5, 1000)
-    ax.set_xlim(0.5, 10000)
+    ax.set_ylim(0.5, 10000)
+    ax.set_xlim(0.5, 1000)
 
 
     ax.set_xscale('log')
@@ -446,7 +447,7 @@ def lifetime():
             data = np.recfromcsv(f)
         Lifetime = data['lifetime'].astype(float)
         query_id = data['query_id'].astype(float)
-        ax.plot(query_id, Lifetime, 'ro', alpha = 0.3)
+        ax.plot(query_id, Lifetime, color = b, marker = 'o', ls ='.', alpha = 0.3)
 
 
         plt.title("Lifetime of dataset in days")
@@ -458,16 +459,62 @@ def lifetime():
         plt.savefig('plot_query_lifetime'+owner+'.eps', format='eps')
         plt.show()
 
+def cumulative_q_t():
+    owners = ['billhowe', 'sr320@washington.edu', 'isaphan@washington.edu', 'emmats@washington.edu', 'koesterj@washington.edu', 'micaela@washington.edu',
+              'bifxcore@gmail.com', 'sism06@comcast.net', 'koenigk92@gmail.com', 'rkodner', 'erin.s1964@gmail.com', 'fridayharboroceanographers@gmail.com']
+    years    = mdates.YearLocator()   # every year
+    months   = mdates.MonthLocator()  # every month
+    yearsFmt = mdates.DateFormatter('%Y')
+    for owner in owners:
+        sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
+
+        fig, ax = plt.subplots(1)
+
+        with open('../results/sqlshare/q_t_bytime/'+owner+'cummu_q_table_by_time.csv') as f:
+            data = np.recfromcsv(f)
+        q = data['q'].astype(float)
+        t = data['t'].astype(float)
+        timestamp = data['timestamp'].astype(str)
+        hoursfromstart = []
+        start = datetime.strptime(timestamp[0].strip(),"%m/%d/%Y %I:%M:%S %p")
+        for i,ti in enumerate(timestamp):
+            hoursfromstart.append((datetime.strptime(ti.strip(),"%m/%d/%Y %I:%M:%S %p") - start).days)
+        ax.plot(hoursfromstart, q, color = b)
+        for tl in ax.get_yticklabels():
+            tl.set_color(b)
+        ax2 = ax.twinx()
+
+        ax2.plot(hoursfromstart, t, color = r)
+        for tl in ax2.get_yticklabels():
+            tl.set_color(r)
+        # ax.format_xdata = mdates.DateFormatter("%m/%d/%Y %I:%M:%S %p")
+        # ax.xaxis.set_major_locator(years)
+        # ax.xaxis.set_major_formatter(yearsFmt)
+        # ax.xaxis.set_minor_locator(months)
+        ax2.set_ylim(0, 1.1*max(q))
+        ax.set_ylim(0, 1.1*max(q))
+
+        plt.title("Number of Queries and Datasets over time")
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Cumulative Queries')
+        ax2.set_ylabel('Cumulative Datasets')
+
+        plt.tight_layout()
+
+        plt.savefig('plot_q_t_'+owner+'.eps', format='eps')
+        plt.show()
+
 if __name__ == '__main__':
-    ops()
-    num_ops()
-    num_dist_ops()
-    query_length()
-    table_touch()
-    column_touch()
-    runtime()
-    new_tables()
-    new_tables_for_users()
-    complexity()
-    Q_vs_D()
-    lifetime()
+    # ops()
+    # num_ops()
+    # num_dist_ops()
+    # query_length()
+    # table_touch()
+    # column_touch()
+    # runtime()
+    # new_tables()
+    # new_tables_for_users()
+    # complexity()
+    # Q_vs_D()
+    # lifetime()
+    cumulative_q_t()
