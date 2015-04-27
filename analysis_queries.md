@@ -148,3 +148,8 @@ sudo -u postgres psql -d sdsslogs -A -c "select distinct query_id || ' [label=\"
 
 sudo -u postgres psql -d sdsslogs -A -c "select t1.query_id || '--' || t2.query_id || ' [label=' || count(*) || '];' from sqlshare_tables_distinct t1, sqlshare_tables_distinct t2 where t1.query_id != t2.query_id and t1.table = t2.table group by t1.query_id, t2.query_id;" >> results/qConnectSQLShare.dot
 ```
+
+### Q vs D plot (Number of distinct datasets vs Number of distint Queries)
+```bash
+sudo -u postgres psql -d sdsslogs -A -F"," -c "with D as (SELECT owner, count(distinct(query)) as D from sqlshare_logs where has_plan = true and isview = true group by owner) select sqlshare_logs.owner, count(distinct(plan)) as Q, D.D from sqlshare_logs, D where D.owner = sqlshare_logs.owner group by sqlshare_logs.owner, D.D" > /home/shrainik/user_Q_D.csv
+```

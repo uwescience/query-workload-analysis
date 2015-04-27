@@ -7,9 +7,9 @@ import numpy as np
 import prettyplotlib as ppl
 
 
-workloads = ["tpch", "sdss", "sqlshare"]
+workloads = ["tpch","sdss", "sqlshare"]
 labels = {
-    'tpch': "TPC-H",
+    'tpch' : "TPC-H",
     'sdss': "SDSS",
     'sqlshare': "SQLShare"
 }
@@ -49,7 +49,7 @@ formatter = FuncFormatter(to_percent)
 def load_data(metric, wls=workloads):
     data = {}
     for workload in wls:
-        with open(metric + '/' + workload + '.csv') as f:
+        with open('../results/' + metric + '/' + workload + '.csv') as f:
             data[workload] = np.recfromcsv(f)
     return data
 
@@ -69,7 +69,8 @@ def num_ops():
     axes = plt.gca()
 
     axes.set_ylim(0, 1)
-    axes.set_xlim(0, 300)
+    # axes.set_xlim(0, 300)
+    axes.set_xscale('log')
 
     axes.yaxis.set_major_formatter(formatter)
 
@@ -101,7 +102,7 @@ def num_dist_ops():
     axes = plt.gca()
 
     axes.set_ylim(0, 1)
-    axes.set_xlim(0, 12)
+    # axes.set_xlim(0, 100)
 
     axes.yaxis.set_major_formatter(formatter)
 
@@ -249,7 +250,7 @@ def runtime():
 
 def complexity():
     w = 'sqlshare'
-    owners = ['billhowe', 'sr320@washington.edu', 'isaphan@washington.edu', 'emmats@washington.edu', 'koesterj@washington.edu', 'micaela@washington.edu',
+    owners = ['','billhowe', 'sr320@washington.edu', 'isaphan@washington.edu', 'emmats@washington.edu', 'koesterj@washington.edu', 'micaela@washington.edu',
               'bifxcore@gmail.com', 'sism06@comcast.net', 'koenigk92@gmail.com', 'rkodner', 'erin.s1964@gmail.com', 'fridayharboroceanographers@gmail.com']
     for owner in owners:
         with open('../results/sqlshare/'+owner+'complexity_by_time.csv') as f:
@@ -258,18 +259,17 @@ def complexity():
         sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
         # sns.set_style("whitegrid")
 
-        plt.plot(d['query_id'], d['complexity'].astype(float),
-                 label=labels[w], color=colors[w], ls=lines[w])
+        plt.plot(d['query_id']*100.0/max(d['query_id']), d['complexity'].astype(float), linewidth=0.5, color=colors[w], ls=lines[w])
 
         axes = plt.gca()
 
-        # axes.set_ylim(0, 1)
+        # axes.set_ylim(0, 15)
         # axes.set_xlim(-0.005, max(d['query_id'])+10)
 
         # axes.yaxis.set_major_formatter(formatter)
 
-        plt.title("Query complexity over time")
-        axes.set_xlabel('Query_number')
+        # plt.title(owner)
+        axes.set_xlabel('% Queries')
         axes.set_ylabel('Query Complexity')
 
         axes.title.set_position((axes.title._x, 1.04))
@@ -278,6 +278,7 @@ def complexity():
         plt.tight_layout()
 
         plt.savefig(owner + 'plot_complexity_cdf.eps', format='eps')
+        plt.savefig(owner + 'plot_complexity_cdf.pdf', format='pdf')
         plt.show()
 
 def ops():
@@ -315,6 +316,58 @@ def ops():
 
 
 def new_tables():
+    sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
+
+    fig, ax = plt.subplots(1)
+
+    with open('../results/sdss/query_number_num_new_tables.csv') as f:
+        data = np.recfromcsv(f)
+    c = data['num_new_tables'].astype(float)
+    c /= sum(c)
+    q = data['query_number'].astype(float)
+    q /= q[-1]
+    ax.plot(q, np.cumsum(c), label="SDSS", color=colors['sdss'], linewidth=2, drawstyle='steps-post')
+    # ax.scatter(q[0: -1], np.cumsum(c)[0: -1], color=colors['sdss'], marker="o", s=50, alpha=.7)
+
+    with open('../results/tpch/query_number_num_new_tables.csv') as f:
+        data = np.recfromcsv(f)
+    c = data['num_new_tables'].astype(float)
+    c /= sum(c)
+    q = data['query_number'].astype(float)
+    q /= q[-1]
+    ax.plot(q, np.cumsum(c), label="TPC-H", color=colors['tpch'], linewidth=2, drawstyle='steps-post')
+    # ax.scatter(q[0: -1], np.cumsum(c)[0: -1], color=colors['tpch'], marker="o", s=50, alpha=.7)
+
+    # sns.rugplot([0.1, 0.2, 10, 100], ax=ax)
+
+    with open('../results/sqlshare/table_coverage.csv') as f:
+        data = np.recfromcsv(f)
+    c = data['tables'].astype(float)
+    c /= c[-1]
+    q = data['query_id'].astype(float)
+    q /= q[-1]
+    ax.plot(q, c, label="SQLShare", color=colors['sqlshare'], linewidth=2, drawstyle='steps-post')
+    # ax.scatter(q[0: -1], c[0: -1], color=colors['sqlshare'], marker="o", s=20, alpha=.01)
+
+    ax.yaxis.set_major_formatter(formatter)
+    ax.xaxis.set_major_formatter(formatter)
+
+    plt.title("CDF of new tables")
+    ax.set_xlabel('% of queries')
+    ax.set_ylabel('% of newly used table')
+
+    ax.set_ylim(0, 1.01)
+    ax.set_xlim(-0.01, 1)
+
+    ax.title.set_position((ax.title._x, 1.04))
+
+    plt.legend(loc=4)
+    plt.tight_layout()
+
+    plt.savefig('plot_table_coverage.eps', format='eps')
+    plt.show()
+
+def new_tables_for_users():
     owners = ['billhowe', 'sr320@washington.edu', 'isaphan@washington.edu', 'emmats@washington.edu', 'koesterj@washington.edu', 'micaela@washington.edu',
               'bifxcore@gmail.com', 'sism06@comcast.net', 'koenigk92@gmail.com', 'rkodner', 'erin.s1964@gmail.com', 'fridayharboroceanographers@gmail.com']
     for owner in owners:
@@ -322,33 +375,13 @@ def new_tables():
 
         fig, ax = plt.subplots(1)
 
-        with open('../results/sdss/query_number_num_new_tables.csv') as f:
-            data = np.recfromcsv(f)
-        c = data['num_new_tables'].astype(float)
-        c /= sum(c)
-        q = data['query_number'].astype(float)
-        q /= q[-1]
-        ax.plot(q, np.cumsum(c), label="SDSS", color=colors['sdss'], linewidth=2, drawstyle='steps-post')
-        ax.scatter(q[0: -1], np.cumsum(c)[0: -1], color=colors['sdss'], marker="o", s=50, alpha=.7)
-
-        with open('../results/tpch/query_number_num_new_tables.csv') as f:
-            data = np.recfromcsv(f)
-        c = data['num_new_tables'].astype(float)
-        c /= sum(c)
-        q = data['query_number'].astype(float)
-        q /= q[-1]
-        ax.plot(q, np.cumsum(c), label="TPC-H", color=colors['tpch'], linewidth=2, drawstyle='steps-post')
-        ax.scatter(q[0: -1], np.cumsum(c)[0: -1], color=colors['tpch'], marker="o", s=50, alpha=.7)
-
-        sns.rugplot([0.1, 0.2, 10, 100], ax=ax)
-
         with open('../results/sqlshare/'+owner+'table_coverage.csv') as f:
             data = np.recfromcsv(f)
         c = data['tables'].astype(float)
         c /= c[-1]
         q = data['query_id'].astype(float)
         q /= q[-1]
-        ax.plot(q, c, label="SQLShare", color=colors['sqlshare'], linewidth=2, drawstyle='steps-post')
+        ax.plot(q, c, color=colors['sqlshare'], linewidth=2, drawstyle='steps-post')
         # ax.scatter(q[0: -1], c[0: -1], color=colors['sqlshare'], marker="o", s=20, alpha=.01)
 
         ax.yaxis.set_major_formatter(formatter)
@@ -369,6 +402,38 @@ def new_tables():
         plt.savefig('plot_table_coverage_'+owner+'.eps', format='eps')
         plt.show()
 
+def Q_vs_D():
+    sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
+
+    fig, ax = plt.subplots(1)
+
+    with open('../results/sqlshare/user_Q_D.csv') as f:
+        data = np.recfromcsv(f)
+    D = data['d'].astype(float)
+    Q = data['q'].astype(float)
+    ax.scatter(Q, D, color=colors['sqlshare'], marker="o", s=20, alpha=0.5)
+    # ax.plot(Q, D, color=colors['sqlshare'], "0")
+    # ax.scatter(q[0: -1], c[0: -1], color=colors['sqlshare'], marker="o", s=20, alpha=.01)
+
+    ax.yaxis.set_major_formatter(formatter)
+    ax.xaxis.set_major_formatter(formatter)
+
+    ax.set_ylim(0.5, 1000)
+    ax.set_xlim(0.5, 10000)
+
+
+    ax.set_xscale('log')
+    ax.set_yscale('log')
+
+    plt.title("High Variety in SQLShare Workload")
+    ax.set_xlabel('Distinct Datasets')
+    ax.set_ylabel('Distinct Queries')
+
+    plt.tight_layout()
+
+    plt.savefig('plot_Q_D.eps', format='eps')
+    plt.show()
+
 if __name__ == '__main__':
     # ops()
     # num_ops()
@@ -378,4 +443,6 @@ if __name__ == '__main__':
     # column_touch()
     # runtime()
     # new_tables()
-    complexity()
+    # new_tables_for_users()
+    # complexity()
+    Q_vs_D()
