@@ -434,15 +434,40 @@ def Q_vs_D():
     plt.savefig('plot_Q_D.eps', format='eps')
     plt.show()
 
+def lifetime():
+    owners = ['','billhowe', 'sr320@washington.edu', 'isaphan@washington.edu', 'emmats@washington.edu', 'koesterj@washington.edu', 'micaela@washington.edu',
+              'bifxcore@gmail.com', 'sism06@comcast.net', 'koenigk92@gmail.com', 'rkodner', 'erin.s1964@gmail.com', 'fridayharboroceanographers@gmail.com']
+    for owner in owners:
+        sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
+
+        fig, ax = plt.subplots(1)
+
+        with open('../results/sqlshare/'+owner+'query_lifetime.csv') as f:
+            data = np.recfromcsv(f)
+        Lifetime = data['lifetime'].astype(float)
+        query_id = data['query_id'].astype(float)
+        ax.plot(query_id, Lifetime, 'ro', alpha = 0.3)
+
+
+        plt.title("Lifetime of dataset in days")
+        ax.set_xlabel('Dataset')
+        ax.set_ylabel('Lifetime (in days)')
+
+        plt.tight_layout()
+
+        plt.savefig('plot_query_lifetime'+owner+'.eps', format='eps')
+        plt.show()
+
 if __name__ == '__main__':
-    # ops()
-    # num_ops()
-    # num_dist_ops()
-    # query_length()
-    # table_touch()
-    # column_touch()
-    # runtime()
-    # new_tables()
-    # new_tables_for_users()
-    # complexity()
+    ops()
+    num_ops()
+    num_dist_ops()
+    query_length()
+    table_touch()
+    column_touch()
+    runtime()
+    new_tables()
+    new_tables_for_users()
+    complexity()
     Q_vs_D()
+    lifetime()
