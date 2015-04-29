@@ -269,7 +269,7 @@ def complexity():
 
         # axes.yaxis.set_major_formatter(formatter)
 
-        # plt.title(owner)
+        plt.title('Query complexity over time for a SQLShare user')
         axes.set_xlabel('% Queries')
         axes.set_ylabel('Query Complexity')
 
@@ -388,7 +388,7 @@ def new_tables_for_users():
         ax.yaxis.set_major_formatter(formatter)
         ax.xaxis.set_major_formatter(formatter)
 
-        plt.title("CDF of new tables")
+        plt.title("CDF of new tables for a SQLShare user")
         ax.set_xlabel('% of queries')
         ax.set_ylabel('% of newly used table')
 
@@ -419,8 +419,8 @@ def Q_vs_D():
     ax.yaxis.set_major_formatter(formatter)
     ax.xaxis.set_major_formatter(formatter)
 
-    ax.set_ylim(0.5, 10000)
-    ax.set_xlim(0.5, 1000)
+    ax.set_ylim(0.5, 1500)
+    ax.set_xlim(0.5, 800)
 
 
     ax.set_xscale('log')
@@ -450,7 +450,7 @@ def lifetime():
         ax.plot(query_id, Lifetime, color = b, marker = 'o', ls ='.', alpha = 0.3)
 
 
-        plt.title("Lifetime of dataset in days")
+        plt.title("Lifetime of datasets (in days) for a SQLShare user")
         ax.set_xlabel('Dataset')
         ax.set_ylabel('Lifetime (in days)')
 
@@ -495,7 +495,7 @@ def cumulative_q_t():
         ax.set_ylim(0, 1.1*max(q))
 
         plt.title("Number of Queries and Datasets over time")
-        ax.set_xlabel('Time')
+        ax.set_xlabel('Time (in days)')
         ax.set_ylabel('Cumulative Queries')
         ax2.set_ylabel('Cumulative Datasets')
 
@@ -515,6 +515,6 @@ if __name__ == '__main__':
     # new_tables()
     # new_tables_for_users()
     # complexity()
-    # Q_vs_D()
+    Q_vs_D()
     # lifetime()
-    cumulative_q_t()
+    # cumulative_q_t()
