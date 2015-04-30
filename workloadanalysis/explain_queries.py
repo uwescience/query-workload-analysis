@@ -17,7 +17,6 @@ p.rerun, p.camcol, p.field, p.obj,
    WHERE n.objID=p.objID
 '''}]
 
-
 BATCH_SIZE = 50
 
 
@@ -62,7 +61,7 @@ def explain_sqlshare(config, database, quiet, first_pass, dry=False):
         return
 
     queries = list(db.query('SELECT * FROM sqlshare_logs where has_plan = false'))
-    #views = list(db.query('SELECT * FROM sqlshare_logs WHERE isview = 1'))
+    # views = list(db.query('SELECT * FROM sqlshare_logs WHERE isview = 1'))
 
     for i, query in enumerate(queries):
         print "Explain query", i
@@ -118,7 +117,7 @@ def explain_sqlshare(config, database, quiet, first_pass, dry=False):
             table.update(query, ['id'])
 
     print "Errors", errors
-    print "Error: {0} \%".format(len(errors)*100.0/len(queries))
+    print "Error: {0} \%".format(len(errors) * 100.0 / len(queries))
 
 
 def get_op_tree(tree, optree, indent=0):
@@ -131,11 +130,11 @@ def explain_sdss(config, database, quiet=False, segments=None, dry=False, offset
     """Explain queries and store the results in database
     """
     connection_string = 'mssql+pymssql://%s:%s@%s:%s/%s?charset=UTF-8' % (
-                        config['user'],
-                        config['password'],
-                        config['server'],
-                        config['port'],
-                        config['db'])
+        config['user'],
+        config['password'],
+        config['server'],
+        config['port'],
+        config['db'])
 
     db = sa.create_engine(connection_string, echo=(not quiet))
 
@@ -300,11 +299,11 @@ def explain_tpch(config, database, quiet=False, dry=False):
     """Explain queries and store the results in database
     """
     connection_string = 'mssql+pymssql://%s:%s@%s:%s/%s?charset=UTF-8' % (
-                        config['user'],
-                        config['password'],
-                        config['server'],
-                        config['port'],
-                        config['db'])
+        config['user'],
+        config['password'],
+        config['server'],
+        config['port'],
+        config['db'])
 
     db = sa.create_engine(connection_string, echo=(not quiet))
 
@@ -330,6 +329,7 @@ def explain_tpch(config, database, quiet=False, dry=False):
             print "Explain query", i
 
             import timeit
+
             start_time = timeit.default_timer()
             try:
                 res = connection.execute(query['query']).fetchall()[0]
@@ -401,7 +401,6 @@ def explain_tpch(config, database, quiet=False, dry=False):
 
             connection.execute('set showplan_xml off')
             connection.execute('set noexec off')
-
 
     print "Errors", errors
 

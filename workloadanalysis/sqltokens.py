@@ -2,7 +2,7 @@ import sqlparse
 
 
 def get_tokens(q):
-    q = q.replace('[','"').replace(']','"').lower().replace('union all',';').strip()
+    q = q.replace('[', '"').replace(']', '"').lower().replace('union all', ';').strip()
     if q[0] == '(':
         q = q.strip('(').strip(')')
     tokens = []

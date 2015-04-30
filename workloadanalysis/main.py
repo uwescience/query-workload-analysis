@@ -100,7 +100,7 @@ def main():
     if arguments['analyze2']:
         if arguments['sqlshare']:
             query_analysis2.analyse2(db)
-    
+
     if arguments['getmetrics']:
         if arguments['sqlshare']:
             get_complexity_metrics.getmetrics(db)

@@ -54,10 +54,10 @@ def get_query_plans(tree, cost=False, show_filters=False, consts=True):
     refs = tree.xpath('.//QueryPlan/ParameterList/ColumnReference')
     if consts:
         parameters = [(x.attrib['Column'],
-                      x.attrib['ParameterCompiledValue']) for x in refs]
+                       x.attrib['ParameterCompiledValue']) for x in refs]
     else:
         parameters = [(x.attrib['Column'],
-                      'CONST') for x in refs]
+                       'CONST') for x in refs]
         parameters.extend([(x.attrib['ConstValue'].strip("(").strip(")"), 'CONST') for x in tree.xpath('.//Const')])
 
     parameters.sort(key=lambda x: -len(x[0]))
@@ -106,10 +106,10 @@ def operator_tree(root, cost, show_filters, parameters):
 
         if show_filters:
             def repl(s):
-                    s = s.replace('(', '').replace(')', '')
-                    for p in parameters:
-                        s = s.replace(p[0], p[1], 2)
-                    return s.lower()
+                s = s.replace('(', '').replace(')', '')
+                for p in parameters:
+                    s = s.replace(p[0], p[1], 2)
+                return s.lower()
 
             # if the rel op is top, use the (constant) expression as filter
             if root.attrib['LogicalOp'] == "Top":
@@ -161,7 +161,8 @@ def operator_tree(root, cost, show_filters, parameters):
                     no_ref += pred.xpath('.//ColumnReference//ColumnReference')
 
                     for ref in list(set(ref) - set(no_ref)):
-                        if 'Column' in ref.attrib and ref.attrib['Column'].startswith('Const') and ref.xpath('.//ColumnReference'):
+                        if 'Column' in ref.attrib and ref.attrib['Column'].startswith('Const') and ref.xpath(
+                                './/ColumnReference'):
                             objects.append(ref.xpath('.//ColumnReference')[0].attrib['Column'])
                             continue
                         attribs = [v for k, v in ref.attrib.iteritems() if k != 'Alias']
