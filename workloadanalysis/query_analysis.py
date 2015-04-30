@@ -516,7 +516,7 @@ def analyze_sqlshare(database, all_owners=True):
 
     if not all_owners:
         owners = ['']
-        top_owners = db.query('select owner from sqlshare_logs group by owner order by count(*) desc limit 200')
+        top_owners = db.query('select owner from sqlshare_logs group by owner order by count(*) desc limit 700')
         for result in top_owners:
             owners.append(result['owner'])
     view_depth_breadth = open('../results/sqlshare/view_depth_breadth.csv', 'w')
@@ -657,7 +657,7 @@ def analyze_sqlshare(database, all_owners=True):
             # cummu_q_table_by_time.write("%d, %d, %s\n" % (i, len(tables_seen_so_far), q['time_start']))
 
         # cummu_q_table_by_time.close()
-        view_depth_breadth.write("%s,%f,%f\n" % (owner if owner != '' else 'all', max(view_depth), max(view_breadth)))
+        view_depth_breadth.write("%s,%d,%d\n" % (owner if owner != '' else 'all', 0 if len(view_depth) == 0 else max(view_depth), 0 if len(view_depth) == 0 else max(view_breadth)))
 
         # def write_to_csv(dict_obj, col1, col2, filename, to_reverse=True):
         #     f = open(filename, 'w')
