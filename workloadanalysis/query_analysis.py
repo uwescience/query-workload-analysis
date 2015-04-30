@@ -571,7 +571,8 @@ def analyze_sqlshare(database, all_owners=True):
         tables_seen_so_far = []
         tables_in_query = Counter()
         tables = []
-
+        view_depth = []
+        view_breadth = []
         cummu_q_table_by_time = open('../results/sqlshare/' + owner + 'cummu_q_table_by_time.csv', 'w')
 
         for i, q in enumerate(queries):
@@ -584,8 +585,8 @@ def analyze_sqlshare(database, all_owners=True):
             # calculating dataset touch and expanded query now.
             ref_views = {}
             total_ref_views = {}
-            view_depth = 0
-            view_breadth = 0
+            vd = 0
+            vb = 0
             while (True):
                 previousLength = len(expanded_query)
                 ref_views = {}
@@ -595,18 +596,18 @@ def analyze_sqlshare(database, all_owners=True):
                         total_ref_views[view['view']] = view['query']
                 for v in ref_views:
                     expanded_query = expanded_query.replace(v, '(' + ref_views[v] + ')')
-                if view_breadth < len(ref_views):
-                    view_breadth = len(ref_views)
+                if vb < len(ref_views):
+                    vb = len(ref_views)
                 if len(ref_views) > 0:
-                    view_depth +=1
+                    vd +=1
                 if (len(expanded_query) == previousLength):
                     dataset_touch[len(total_ref_views)] += 1
                     for d in total_ref_views:
                         if d not in datasets_seen_so_far:
                             datasets_seen_so_far.append(d)
                     break
-            view_depth_breadth.write("%s,%d,%d\n"%(owner, view_depth, view_breadth))
-
+            view_breadth.append(vb)
+            view_depth.append(vd)
             q_ex_ops = q['expanded_plan_ops_logical'].split(',')
             exp_ops[len(q_ex_ops)] += 1
             exp_distinct_ops[len(set(q_ex_ops))] += 1
@@ -655,6 +656,7 @@ def analyze_sqlshare(database, all_owners=True):
             cummu_q_table_by_time.write("%d, %d, %s\n" % (i, len(tables_seen_so_far), q['time_start']))
 
         cummu_q_table_by_time.close()
+        view_depth_breadth.write("%s,%f,%f\n" % (owner if owner != '' else 'all', sum(view_depth)*1.0/len(view_depth), sum(view_breadth)*1.0/len(view_breadth)))
 
         def write_to_csv(dict_obj, col1, col2, filename, to_reverse=True):
             f = open(filename, 'w')
