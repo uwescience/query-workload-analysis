@@ -7,6 +7,7 @@ import matplotlib as mpl
 import numpy as np
 import prettyplotlib as ppl
 import matplotlib.dates as mdates
+from scipy.interpolate import spline
 
 workloads = ["tpch","sdss", "sqlshare"]
 labels = {
@@ -251,20 +252,25 @@ def runtime():
 
 def complexity():
     w = 'sqlshare'
-    owners = ['','billhowe', 'sr320@washington.edu', 'isaphan@washington.edu', 'emmats@washington.edu', 'koesterj@washington.edu', 'micaela@washington.edu',
-              'bifxcore@gmail.com', 'sism06@comcast.net', 'koenigk92@gmail.com', 'rkodner', 'erin.s1964@gmail.com', 'fridayharboroceanographers@gmail.com']
+    # owners = ['','billhowe', 'sr320@washington.edu', 'isaphan@washington.edu', 'emmats@washington.edu', 'koesterj@washington.edu', 'micaela@washington.edu', 'bifxcore@gmail.com', 'sism06@comcast.net', 'koenigk92@gmail.com', 'rkodner', 'erin.s1964@gmail.com', 'fridayharboroceanographers@gmail.com']
+    owners = ['sr320@washington.edu', 'koesterj@washington.edu']
     for owner in owners:
         with open('../results/sqlshare/'+owner+'complexity_by_time.csv') as f:
             d = np.recfromcsv(f)
 
         sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
         # sns.set_style("whitegrid")
+        x = d['query_id']*100.0/max(d['query_id'])
+        y = d['complexity'].astype(float)
 
-        plt.plot(d['query_id']*100.0/max(d['query_id']), d['complexity'].astype(float), linewidth=0.5, color=b, ls=lines[w])
+        xnew = np.linspace(x.min(),x.max(),300)
 
+        power_smooth = spline(x,y,xnew)
+
+        plt.plot(xnew, power_smooth, linewidth=0.5, color=b, ls=lines[w])
         axes = plt.gca()
 
-        # axes.set_ylim(0, 15)
+        axes.set_ylim(0, max(d['complexity'])*1.2)
         # axes.set_xlim(-0.005, max(d['query_id'])+10)
 
         # axes.yaxis.set_major_formatter(formatter)
@@ -514,7 +520,7 @@ if __name__ == '__main__':
     # runtime()
     # new_tables()
     # new_tables_for_users()
-    # complexity()
-    Q_vs_D()
+    complexity()
+    # Q_vs_D()
     # lifetime()
     # cumulative_q_t()
