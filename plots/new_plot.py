@@ -263,7 +263,7 @@ def complexity():
         x = d['query_id']*100.0/max(d['query_id'])
         y = d['complexity'].astype(float)
 
-        xnew = np.linspace(x.min(),x.max(),300)
+        xnew = np.linspace(x.min(),x.max(),100)
 
         power_smooth = spline(x,y,xnew)
 
