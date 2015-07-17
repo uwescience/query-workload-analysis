@@ -153,3 +153,26 @@ sudo -u postgres psql -d sdsslogs -A -c "select t1.query_id || '--' || t2.query_
 ```bash
 sudo -u postgres psql -d sdsslogs -A -F"," -c "with D as (SELECT owner, count(distinct(query)) as D from sqlshare_logs where has_plan = true and isview = true group by owner) select sqlshare_logs.owner, count(distinct(plan)) as Q, D.D from sqlshare_logs, D where D.owner = sqlshare_logs.owner group by sqlshare_logs.owner, D.D" > /home/shrainik/user_Q_D.csv
 ```
+
+### More numbers: 
+Datasets with renamed columns, suggesting cleanup (might need more types):
+
+```sql
+select count(query) from sqlshare_logs where (lower(query) like '% as float%' or lower(query) like '% as int%' or lower(query) like '% as date%' or lower(query) like '% as real%' or lower(query) like '% as numeric%' or lower(query) like '% as bigint%' or lower(query) like '% as varchar%' or lower(query) like '% as time%') and isview = true;
+```
+
+Query to find trivial datasets: 
+
+```sql
+select count(*) from sqlshare_logs where isview=true and lower(query) not like 'select * from %.[table_%]';
+```
+
+Query to find all public and privately shared datasets from SQLShare:
+
+```sql
+select distinct(b.name + schema_name(b.schema_id)) from sys.syspermissions a, sys.views b where a.id = b.object_id 
+ 
+```
+grantee  == 0 implies a public dataset.
+grantee != 0 implies privately shared. 
+Run both queries (don't subtract the numbers!!!)

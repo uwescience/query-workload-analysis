@@ -44,11 +44,6 @@ def extract(db, query_table, tables_name, columns_name, logops_name, physops_nam
 
     queries = datasetdb[query_table]
 
-    tables = datasetdb[tables_name]
-    columns = datasetdb[columns_name]
-    logops = datasetdb[logops_name]
-    physops = datasetdb[physops_name]
-
     try:
         datasetdb.query("drop table %s" % tables_name)
     except sa.exc.ProgrammingError:
@@ -70,6 +65,12 @@ def extract(db, query_table, tables_name, columns_name, logops_name, physops_nam
         pass
 
     print "dropped tables"
+
+    tables = datasetdb[tables_name]
+    columns = datasetdb[columns_name]
+    logops = datasetdb[logops_name]
+    physops = datasetdb[physops_name]
+
 
     datasetdb.begin()
 

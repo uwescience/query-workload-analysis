@@ -3,28 +3,31 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
+from matplotlib.ticker import ScalarFormatter
 import matplotlib as mpl
 import numpy as np
 import prettyplotlib as ppl
 import matplotlib.dates as mdates
 from scipy.interpolate import spline
+import re
 
-workloads = ["tpch","sdss", "sqlshare"]
+# workloads = ["tpch","sdss", "sqlshare"]
+workloads = ["sdss", "sqlshare"]
 labels = {
-    'tpch' : "TPC-H",
+    # 'tpch' : "TPC-H",
     'sdss': "SDSS",
-    'sqlshare': "SQLShare"
+    'sqlshare': "TableShare"
 }
 
 b, g, r = sns.color_palette("deep", 3)
 colors = {
-    'tpch': b,
+    # 'tpch': b,
     'sdss': g,
     'sqlshare': r
 }
 
 lines = {
-    'tpch': '-',
+    # 'tpch': '-',
     'sdss': '-',
     'sqlshare': '-'
 }
@@ -63,6 +66,7 @@ def num_ops():
     # sns.set_style("whitegrid")
 
     for w in workloads:
+        d[w].sort(order='number')
         c = d[w]['count'].astype(float)
         c /= sum(c)
         plt.plot(d[w]['number'], np.cumsum(c),
@@ -79,6 +83,8 @@ def num_ops():
     plt.title("CDF of number of operators per query")
     axes.set_xlabel('Number of physical operators')
     axes.set_ylabel('% of queries')
+    axes.xaxis.grid(False)
+    axes.yaxis.grid(False)
 
     axes.title.set_position((axes.title._x, 1.04))
 
@@ -92,10 +98,12 @@ def num_ops():
 def num_dist_ops():
     d = load_data("num_dist_physops")
 
+
     sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
     # sns.set_style("whitegrid")
 
     for w in workloads:
+        d[w].sort(order='number')
         c = d[w]['count'].astype(float)
         c /= sum(c)
         plt.plot(d[w]['number'], np.cumsum(c),
@@ -103,7 +111,7 @@ def num_dist_ops():
 
     axes = plt.gca()
 
-    axes.set_ylim(0, 1)
+    axes.set_ylim(0, 1.1)
     # axes.set_xlim(0, 100)
 
     axes.yaxis.set_major_formatter(formatter)
@@ -113,6 +121,8 @@ def num_dist_ops():
     axes.set_ylabel('% of queries')
 
     axes.title.set_position((axes.title._x, 1.04))
+    axes.xaxis.grid(False)
+    axes.yaxis.grid(False)
 
     plt.legend(loc=4)
     plt.tight_layout()
@@ -136,8 +146,8 @@ def query_length():
 
     axes = plt.gca()
 
-    axes.set_ylim(0, 1)
-    axes.set_xlim(0, 1500)
+    axes.set_ylim(0, 1.1)
+    # axes.set_xlim(0, 1500)
 
     axes.yaxis.set_major_formatter(formatter)
 
@@ -146,6 +156,13 @@ def query_length():
     axes.set_ylabel('% of queries')
 
     axes.title.set_position((axes.title._x, 1.04))
+    axes.xaxis.grid(False)
+    axes.yaxis.grid(False)
+    axes.set_xscale('log')
+    for axis in [axes.xaxis, axes.yaxis]:
+        axis.set_major_formatter(ScalarFormatter())
+    # axes.set_xscale('log')
+
 
     plt.legend(loc=4)
     plt.tight_layout()
@@ -178,6 +195,8 @@ def table_touch():
     axes.set_ylabel('% of queries')
 
     axes.title.set_position((axes.title._x, 1.04))
+    axes.xaxis.grid(False)
+    axes.yaxis.grid(False)
 
     plt.legend(loc=4)
     plt.tight_layout()
@@ -208,6 +227,8 @@ def column_touch():
     plt.title("CDF of column touch")
     axes.set_xlabel('Column touch')
     axes.set_ylabel('% of queries')
+    axes.xaxis.grid(False)
+    axes.yaxis.grid(False)
 
     axes.title.set_position((axes.title._x, 1.04))
 
@@ -241,6 +262,8 @@ def runtime():
     plt.title("CDF of query runtime")
     axes.set_xlabel('Runtime')
     axes.set_ylabel('% of queries')
+    axes.xaxis.grid(False)
+    axes.yaxis.grid(False)
 
     axes.title.set_position((axes.title._x, 1.04))
 
@@ -280,6 +303,8 @@ def complexity():
         axes.set_ylabel('Query Complexity')
 
         axes.title.set_position((axes.title._x, 1.04))
+        axes.xaxis.grid(False)
+        axes.yaxis.grid(False)
 
         plt.legend(loc=4)
         plt.tight_layout()
@@ -305,11 +330,11 @@ def ops():
         ypos = np.arange(len(data['phys_operator']))
         ppl.barh(ax, ypos, c, yticklabels=data['phys_operator'], grid='x', annotate=True, color=colors[w])
 
-        plt.title("Types of operators in {}".format(labels[w]))
+        plt.title("Operator Frequency in {}".format(labels[w]))
         #ax.set_ylabel('Physical operator')
         ax.set_xlabel('% of queries')
 
-        ax.xaxis.grid(True)
+        ax.xaxis.grid(False)
         ax.yaxis.grid(False)
 
         #plt.subplots_adjust(bottom=.2, left=.3, right=.99, top=.9, hspace=.35)
@@ -377,37 +402,41 @@ def new_tables():
 def new_tables_for_users():
     owners = ['billhowe', 'sr320@washington.edu', 'isaphan@washington.edu', 'emmats@washington.edu', 'koesterj@washington.edu', 'micaela@washington.edu',
               'bifxcore@gmail.com', 'sism06@comcast.net', 'koenigk92@gmail.com', 'rkodner', 'erin.s1964@gmail.com', 'fridayharboroceanographers@gmail.com']
+    fig, ax = plt.subplots(1)
+    sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
     for owner in owners:
-        sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
-
-        fig, ax = plt.subplots(1)
-
         with open('../results/sqlshare/'+owner+'table_coverage.csv') as f:
             data = np.recfromcsv(f)
         c = data['tables'].astype(float)
         c /= c[-1]
         q = data['query_id'].astype(float)
         q /= q[-1]
-        ax.plot(q, c, color=b, linewidth=2, drawstyle='steps-post')
+        if owner == 'sr320@washington.edu':
+            ax.plot(q, c, color=r, linewidth=2, drawstyle='steps-post')
+        else:
+            ax.plot(q, c, color='grey', linewidth=2, drawstyle='steps-post')
+
         # ax.scatter(q[0: -1], c[0: -1], color=colors['sqlshare'], marker="o", s=20, alpha=.01)
 
-        ax.yaxis.set_major_formatter(formatter)
-        ax.xaxis.set_major_formatter(formatter)
+    ax.yaxis.set_major_formatter(formatter)
+    ax.xaxis.set_major_formatter(formatter)
 
-        plt.title("CDF of new tables for a SQLShare user")
-        ax.set_xlabel('% of queries')
-        ax.set_ylabel('% of newly used table')
+    plt.title("Query coverage of uploaded data for top 12 users")
+    ax.set_xlabel('% of queries')
+    ax.set_ylabel('% of newly used table')
 
-        ax.set_ylim(0, 1.01)
-        ax.set_xlim(-0.01, 1)
+    ax.set_ylim(0, 1.01)
+    ax.set_xlim(-0.01, 1)
+    ax.xaxis.grid(False)
+    ax.yaxis.grid(False)
 
-        ax.title.set_position((ax.title._x, 1.04))
+    ax.title.set_position((ax.title._x, 1.04))
 
-        plt.legend(loc=4)
-        plt.tight_layout()
+    plt.legend(loc=4)
+    plt.tight_layout()
 
-        plt.savefig('plot_table_coverage_'+owner+'.eps', format='eps')
-        plt.show()
+    plt.savefig('plot_table_coverage.eps', format='eps')
+    plt.show()
 
 def Q_vs_D():
     sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
@@ -432,9 +461,12 @@ def Q_vs_D():
     ax.set_xscale('log')
     ax.set_yscale('log')
 
-    plt.title("High Variety in SQLShare Workload")
+    plt.title("TableShare Usage Patterns")
     ax.set_xlabel('Distinct Datasets')
     ax.set_ylabel('Distinct Queries')
+    ax.xaxis.grid(False)
+    ax.yaxis.grid(False)
+
 
     plt.tight_layout()
 
@@ -442,28 +474,74 @@ def Q_vs_D():
     plt.show()
 
 def lifetime():
-    owners = ['','billhowe', 'sr320@washington.edu', 'isaphan@washington.edu', 'emmats@washington.edu', 'koesterj@washington.edu', 'micaela@washington.edu',
+    owners = ['billhowe', 'sr320@washington.edu', 'isaphan@washington.edu', 'emmats@washington.edu', 'koesterj@washington.edu', 'micaela@washington.edu',
               'bifxcore@gmail.com', 'sism06@comcast.net', 'koenigk92@gmail.com', 'rkodner', 'erin.s1964@gmail.com', 'fridayharboroceanographers@gmail.com']
-    for owner in owners:
-        sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
+    sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
 
-        fig, ax = plt.subplots(1)
+    fig, ax = plt.subplots(1)
+
+    for owner in owners:
 
         with open('../results/sqlshare/'+owner+'query_lifetime.csv') as f:
             data = np.recfromcsv(f)
+        data.sort(order = 'lifetime')
         Lifetime = data['lifetime'].astype(float)
-        query_id = data['query_id'].astype(float)
-        ax.plot(query_id, Lifetime, color = b, marker = 'o', ls ='.', alpha = 0.3)
+        query_id = np.arange(len(data['lifetime']))*100.0/len(data['lifetime'])
+        print query_id
+        # print query_id,Lifetime
+        # Lifetime = Lifetime[::-1]
+        # query_id = query_id[::-1]
+        
+        for i,l in enumerate(Lifetime):
+            if l == 0:
+                Lifetime[i] = 1
 
+        if owner == 'sr320@washington.edu':
+            ax.plot(query_id, Lifetime, color = r, marker = '.', ls ='-', alpha = 0.3)
+        else:
+            ax.plot(query_id, Lifetime, color = 'grey', marker = '.', ls ='-', alpha = 0.3)
 
-        plt.title("Lifetime of datasets (in days) for a SQLShare user")
-        ax.set_xlabel('Dataset')
-        ax.set_ylabel('Lifetime (in days)')
+    plt.title("Lifetime of datasets for top 12 users")
+    ax.set_xlabel('% of datasets')
+    ax.set_ylabel('Lifetime (in days)')
+    ax.set_yscale('log')
+    for axis in [ax.xaxis, ax.yaxis]:
+        axis.set_major_formatter(ScalarFormatter())
+    plt.tight_layout()
+    ax.set_xlim(0, 102)
 
-        plt.tight_layout()
+    ax.xaxis.grid(False)
+    ax.yaxis.grid(False)
 
-        plt.savefig('plot_query_lifetime'+owner+'.eps', format='eps')
-        plt.show()
+    plt.savefig('plot_query_lifetime.eps', format='eps')
+    plt.show()
+
+def viewdepth():
+    sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
+
+    fig, ax = plt.subplots(1)
+
+    with open('../results/sqlshare/view_depth.csv') as f:
+        data = np.recfromcsv(f)
+    data.sort(order='max_depth')
+
+    depth = data['max_depth'].astype(float)
+    users = data['user']
+    # depth = depth[::-1]
+    # users = users[::-1]
+    ax.plot(range(len(users)), depth, color = b, marker = 'o', ls ='.', alpha = 0.3)
+
+    plt.title("Max View Depth for top 100 users")
+    ax.set_xlabel('User index')
+    ax.set_ylabel('Maximum depth')
+    ax.set_ylim(0, 1.1*max(depth))
+    ax.set_xlim(-0.5, len(users)+ 1)
+    plt.tight_layout()
+    ax.xaxis.grid(False)
+    ax.yaxis.grid(False)
+
+    plt.savefig('plot_query_viewdepth.eps', format='eps')
+    plt.show()
 
 def cumulative_q_t():
     owners = ['billhowe', 'sr320@washington.edu', 'isaphan@washington.edu', 'emmats@washington.edu', 'koesterj@washington.edu', 'micaela@washington.edu',
@@ -504,23 +582,272 @@ def cumulative_q_t():
         ax.set_xlabel('Time (in days)')
         ax.set_ylabel('Cumulative Queries')
         ax2.set_ylabel('Cumulative Datasets')
+        ax.xaxis.grid(False)
+        ax.yaxis.grid(False)
 
         plt.tight_layout()
 
         plt.savefig('plot_q_t_'+owner+'.eps', format='eps')
         plt.show()
 
+def queries_per_table():
+    sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
+
+    with open('../results/sqlshare/queries_per_table.csv') as f:
+        data = np.recfromcsv(f)
+    num_queries = data['num_queries'].astype(float)
+    tables = data['table']
+    p = re.compile(ur'^.*[A-F0-9]{5}$')
+
+    logical_tables = []
+    for t in tables:
+        short_name = re.findall(p, t)
+        if len(short_name) == 0:
+            if t not in logical_tables:
+                logical_tables.append(t)
+        else:
+            if short_name[0][0:-5] not in logical_tables:
+                logical_tables.append(short_name[0][0:-5])
+    num_queries_lt = []
+    for lt in logical_tables:
+        max_num_queries = 0
+        for i,t in enumerate(tables):
+            if lt in t:
+                if num_queries[i] > max_num_queries:
+                    max_num_queries = num_queries[i]
+        num_queries_lt.append(max_num_queries)
+
+    c = [0,0,0,0,0]
+
+    for num in num_queries_lt:
+        if num == 1.0:
+            c[0] += 1
+        elif num == 2.0:
+            c[1] += 1
+        elif num == 3.0:
+            c[2] += 1
+        elif num == 4.0:
+            c[3] += 1
+        else:
+            c[4] += 1
+
+
+    fig, ax = plt.subplots(1, figsize=(8, 4))
+
+    ypos = np.arange(len(c))
+    ppl.barh(ax, ypos, c, yticklabels=['1', '2', '3', '4', '>=5'], grid='x', annotate=True, color=g)
+
+    plt.title("Number of queries per table")
+    ax.set_ylabel('Number of queries')
+    ax.set_xlabel('Number of tables')
+
+    ax.xaxis.grid(False)
+    ax.yaxis.grid(False)
+    plt.tight_layout()
+
+    plt.savefig('plot_queries_per_table.eps', format='eps')
+    plt.show()
+
+def query_entropy():
+    sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
+    fig, ax = plt.subplots(1, figsize=(8, 4))
+
+    data = [3, 0.3] 
+    data_sql = [96.18, 60.67]
+    xpos = np.arange(2)
+    # width = 0.2
+    margin = 0.1
+    width = (1.-2.*margin)/2
+
+    ticklabels=['% Distinct Queries', '% Distinct Query Templates']
+    
+    rects1 = ax.bar(xpos, data, width, color = colors['sdss'], label = 'SDSS')
+    rects2 = ax.bar(xpos+width, data_sql, width, color = colors['sqlshare'], label = 'TableShare')
+
+    # ppl.barh(ax, ypos, data, yticklabels=ticklabels, grid='x', annotate=True, color=g)
+
+    plt.title("Workload Entropy")
+    ax.set_ylabel('% of queries')
+    ax.set_xticks(xpos+width)
+    ax.set_xticklabels(ticklabels)
+    ax.xaxis.grid(False)
+    ax.yaxis.grid(False)
+    ax.set_ylim(0, 120)
+    ax.set_xlim(-0.5, 2.5)
+    plt.tight_layout()
+    plt.legend(loc = 1)
+    def autolabel(rects):
+    # attach some text labels
+        for rect in rects:
+            height = rect.get_height()
+            ax.text(rect.get_x()+rect.get_width()/2., 1.05*height, '%d'%int(height),
+                ha='center', va='bottom')
+
+    # autolabel(rects1)
+    # autolabel(rects2)
+    plt.savefig('plot_query_entropy.eps', format='eps')
+    plt.show()
+
+def num_dist_ops_hist():
+    d = load_data("num_dist_physops")
+    sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
+    fig, ax = plt.subplots(1, figsize=(8, 4))
+
+    sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
+
+    width = 0.2
+    xpos = {}
+    xpos['sdss'] = np.arange(3)
+    xpos['sqlshare'] = np.arange(3) + width
+    
+    ticklabels=['<4', '4-8', '>=8']
+
+    for w in workloads:
+        count = d[w]['count'].astype(float)
+        number = d[w]['number'].astype(float)
+        c = [0,0,0]
+        for i,num in enumerate(number):
+            if num < 4:
+                c[0] += count[i]
+            elif num < 8:
+                c[1] += count[i]
+            else:
+                c[2] += count[i]
+        sumc = sum(c)
+        c[0] = (c[0] * 100.0) / sumc
+        c[1] = (c[1] * 100.0) / sumc
+        c[2] = (c[2] * 100.0) / sumc
+        ax.bar(xpos[w], c, width, color = colors[w], label = labels[w])
+
+
+    plt.title("Distinct Operators in Queries")
+    ax.set_xlabel('Number of Distinct Operators')
+    ax.set_ylabel('% of queries')
+
+    ax.set_xticks(xpos['sdss']+width)
+    ax.set_xticklabels(ticklabels)
+    ax.xaxis.grid(False)
+    ax.yaxis.grid(False)
+    ax.set_ylim(0, 110)
+
+    plt.legend(loc=1)
+    plt.tight_layout()
+
+    plt.savefig('plot_num_dist_physops_cdf.eps', format='eps')
+    plt.show()
+
+def query_length_hist():
+    d = load_data("query_length")
+
+    sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
+    fig, ax = plt.subplots(1, figsize=(8, 4))
+
+    sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
+
+    width = 0.2
+    xpos = {}
+    xpos['sdss'] = np.arange(4)
+    xpos['sqlshare'] = np.arange(4) + width
+    
+    ticklabels=['<100','100-500','500-1000','>1000']
+
+    for w in workloads:
+        count = d[w]['count'].astype(float)
+        char_length = d[w]['char_length'].astype(float)
+        c = [0,0,0,0]
+        for i,length in enumerate(char_length):
+            if length < 100:
+                c[0] += count[i]
+            elif length < 500:
+                c[1] += count[i]
+            elif length < 1000:
+                c[2] += count[i]
+            else:
+                c[3] += count[i]
+        sumc = sum(c)
+        c[0] = (c[0] * 100.0) / sumc
+        c[1] = (c[1] * 100.0) / sumc
+        c[2] = (c[2] * 100.0) / sumc
+        c[3] = (c[3] * 100.0) / sumc
+        ax.bar(xpos[w], c, width, color = colors[w], label = labels[w])
+
+
+    plt.title("Query Length")
+
+    ax.set_xticks(xpos['sdss']+width)
+    ax.set_xticklabels(ticklabels)
+    ax.xaxis.grid(False)
+    ax.yaxis.grid(False)
+
+    
+    ax.set_xlabel('Query length in characters')
+    ax.set_ylabel('% of queries')
+    ax.set_ylim(0, 110)
+
+    plt.legend(loc=1)
+    plt.tight_layout()
+
+    plt.savefig('plot_length_cdf.eps', format='eps')
+    plt.show()
+
+def viewdepth_hist():
+    sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
+
+    fig, ax = plt.subplots(1)
+
+    with open('../results/sqlshare/view_depth.csv') as f:
+        data = np.recfromcsv(f)
+    
+    depth = data['max_depth'].astype(float)
+    
+    c = [0,0,0]
+    xpos = np.arange(3)
+    
+    ticklabels=['1-3','4-6','8+']
+
+    for d in depth:
+        if d < 3:
+            c[0] += 1
+        elif d < 6:
+            c[1] += 1
+        else:
+            c[2] += 1
+    ax.bar(xpos, c, 0.3, color = g)
+
+
+    plt.title("Max View Depth for top 100 users")
+
+    ax.set_xticks(xpos)
+    ax.set_xticklabels(ticklabels)
+    ax.xaxis.grid(False)
+    ax.yaxis.grid(False)
+    ax.set_ylim(0, 100)
+
+    ax.set_xlabel('View Depth')
+    ax.set_ylabel('Number of users')
+
+    plt.tight_layout()
+
+    plt.savefig('plot_query_viewdepth.eps', format='eps')
+    plt.show()
+
 if __name__ == '__main__':
-    # ops()
-    # num_ops()
+    # num_dist_ops_hist()
+    # # # ops()
+    # # # num_ops()
     # num_dist_ops()
     # query_length()
-    # table_touch()
-    # column_touch()
-    # runtime()
-    # new_tables()
     # new_tables_for_users()
-    complexity()
     # Q_vs_D()
     # lifetime()
-    # cumulative_q_t()
+    # viewdepth()
+    # # # queries_per_table()
+    query_entropy()
+    # query_length_hist()
+    # viewdepth_hist()
+    # # # complexity()
+    # # # cumulative_q_t()
+    # # # table_touch()
+    # # # column_touch()
+    # # # runtime()
+    # # # new_tables()
