@@ -519,9 +519,9 @@ def analyze_sqlshare(database, all_owners=True):
         top_owners = db.query('select owner from sqlshare_logs group by owner order by count(*) desc limit 100')
         for result in top_owners:
             owners.append(result['owner'])
-    # view_depth_breadth = open('../results/sqlshare/view_depth_breadth.csv', 'w')
+    view_depth_breadth = open('../results/sqlshare/view_depth_breadth.csv', 'w')
     view_depth_breadth_per_view = open('../results/sqlshare/view_depth_breadth_per_view.csv', 'w')
-    # view_depth_breadth.write("user, max_depth, max_breadth\n")
+    view_depth_breadth.write("user, max_depth, max_breadth\n")
     view_depth_breadth_per_view.write("id, depth, breadth\n")
     for owner in owners:
         print owner if owner != '' else 'all'
@@ -539,17 +539,17 @@ def analyze_sqlshare(database, all_owners=True):
 
         # print "Find recurring subtrees in distinct queries (using subset check):"
         q = db.query(distinct_q)
-        # find_recurring_subset(q)
+        find_recurring_subset(q)
 
         all_queries = list(db.query(all_queries_q))
         queries = list(db.query(queries_q))
         views = list(db.query(views_q))
-        # query_with_same_plan = list(db.query(query_with_same_plan_q))
+        query_with_same_plan = list(db.query(query_with_same_plan_q))
 
-        # print '#Total queries with plan: ', len(all_queries)
-        # print '#Total string distinct queries:', len(queries)
-        # explicit_implicit_joins(queries)
-        # print '#Total queries considering all constants the same:', query_with_same_plan[0]['count']
+        print '#Total queries with plan: ', len(all_queries)
+        print '#Total string distinct queries:', len(queries)
+        explicit_implicit_joins(queries)
+        print '#Total queries considering all constants the same:', query_with_same_plan[0]['count']
         all_tables = list(db.query('Select distinct("table") from sqlshare_tables'))
         non_trivial_views = list(db.query("select view from sqlshare_logs where isview=true and lower(query) not like 'select * from %.[table_%]'"))
         list_nt_views =[]
@@ -580,7 +580,7 @@ def analyze_sqlshare(database, all_owners=True):
         tables = []
         view_depth = []
         view_breadth = []
-        # cummu_q_table_by_time = open('../results/sqlshare/' + owner + 'cummu_q_table_by_time.csv', 'w')
+        cummu_q_table_by_time = open('../results/sqlshare/' + owner + 'cummu_q_table_by_time.csv', 'w')
 
         for i, q in enumerate(queries):
             # comp_length = len(bz2.compress(q['query']))
@@ -622,156 +622,156 @@ def analyze_sqlshare(database, all_owners=True):
             view_depth.append(vd)
             if q['isview'] == 1:
                 view_depth_breadth_per_view.write("%s,%d,%d\n" % (q['id'], vd, vb)) 
-            # q_ex_ops = q['expanded_plan_ops_logical'].split(',')
-            # exp_ops[len(q_ex_ops)] += 1
-            # exp_distinct_ops[len(set(q_ex_ops))] += 1
+            q_ex_ops = q['expanded_plan_ops_logical'].split(',')
+            exp_ops[len(q_ex_ops)] += 1
+            exp_distinct_ops[len(set(q_ex_ops))] += 1
 
-            # q_ex_phy_ops = q['expanded_plan_ops'].split(',')
-            # exp_physical_ops[len(q_ex_phy_ops)] += 1
-            # exp_distinct_physical_ops[len(set(q_ex_phy_ops))] += 1
+            q_ex_phy_ops = q['expanded_plan_ops'].split(',')
+            exp_physical_ops[len(q_ex_phy_ops)] += 1
+            exp_distinct_physical_ops[len(set(q_ex_phy_ops))] += 1
 
-            # q_ops = q_ex_ops
-            # q_phy_ops = q_ex_phy_ops
-            # referenced_views = [x for x in q['ref_views'].split(',') if x != '']
-            # for ref_view in referenced_views:
-            #     view = list(db.query('SELECT * from sqlshare_logs where id = {}'.format(ref_view)))
-            #     if view[0]['expanded_plan_ops_logical']:
-            #         for op in view[0]['expanded_plan_ops_logical'].split(','):
-            #             if op in q_ops:
-            #                 q_ops.remove(op)
-            #     if view[0]['expanded_plan_ops']:
-            #         for op in view[0]['expanded_plan_ops'].split(','):
-            #             if op in q_phy_ops:
-            #                 q_phy_ops.remove(op)
+            q_ops = q_ex_ops
+            q_phy_ops = q_ex_phy_ops
+            referenced_views = [x for x in q['ref_views'].split(',') if x != '']
+            for ref_view in referenced_views:
+                view = list(db.query('SELECT * from sqlshare_logs where id = {}'.format(ref_view)))
+                if view[0]['expanded_plan_ops_logical']:
+                    for op in view[0]['expanded_plan_ops_logical'].split(','):
+                        if op in q_ops:
+                            q_ops.remove(op)
+                if view[0]['expanded_plan_ops']:
+                    for op in view[0]['expanded_plan_ops'].split(','):
+                        if op in q_phy_ops:
+                            q_phy_ops.remove(op)
 
-            # exp_lengths[len(expanded_query)] += 1
-            # # comp_exp_lengths[len(bz2.compress(expanded_query))] += 1
-            # ops[len(q_ops)] += 1
+            exp_lengths[len(expanded_query)] += 1
+            # comp_exp_lengths[len(bz2.compress(expanded_query))] += 1
+            ops[len(q_ops)] += 1
 
-            # plan = json.loads(q['plan'])
-            # tables = visit_operators(plan, visitor_tables)
-            # tables = set(tables)
+            plan = json.loads(q['plan'])
+            tables = visit_operators(plan, visitor_tables)
+            tables = set(tables)
 
-            # logical_tables = []
-            # for t in tables:
-            #     short_name = re.findall(p, t)
-            #     if len(short_name) == 0:
-            #         logical_tables.append(t)
-            #         if t not in tables_seen_so_far:
-            #             tables_seen_so_far.append(t)
-            #     else:
-            #         logical_tables.append(short_name[0])
-            #         if short_name[0] not in tables_seen_so_far:
-            #             tables_seen_so_far.append(short_name[0])
+            logical_tables = []
+            for t in tables:
+                short_name = re.findall(p, t)
+                if len(short_name) == 0:
+                    logical_tables.append(t)
+                    if t not in tables_seen_so_far:
+                        tables_seen_so_far.append(t)
+                else:
+                    logical_tables.append(short_name[0])
+                    if short_name[0] not in tables_seen_so_far:
+                        tables_seen_so_far.append(short_name[0])
 
-            # tables_in_query[len(set(logical_tables))] += 1
-            # table_coverage[i] = len(tables_seen_so_far)
-            # dataset_coverage[i] = len(datasets_seen_so_far)
-            # cummu_q_table_by_time.write("%d, %d, %s\n" % (i, len(tables_seen_so_far), q['time_start']))
+            tables_in_query[len(set(logical_tables))] += 1
+            table_coverage[i] = len(tables_seen_so_far)
+            dataset_coverage[i] = len(datasets_seen_so_far)
+            cummu_q_table_by_time.write("%d, %d, %s\n" % (i, len(tables_seen_so_far), q['time_start']))
 
-        # cummu_q_table_by_time.close()
-        # view_depth_breadth.write("%s,%d,%d\n" % (owner if owner != '' else 'all', 0 if len(view_depth) == 0 else max(view_depth), 0 if len(view_depth) == 0 else max(view_breadth)))
+        cummu_q_table_by_time.close()
+        view_depth_breadth.write("%s,%d,%d\n" % (owner if owner != '' else 'all', 0 if len(view_depth) == 0 else max(view_depth), 0 if len(view_depth) == 0 else max(view_breadth)))
 
-        # def write_to_csv(dict_obj, col1, col2, filename, to_reverse=True):
-        #     f = open(filename, 'w')
-        #     f.write("%s,%s\n" % (col1, col2))
-        #     for key in sorted(dict_obj, reverse=to_reverse):
-        #         f.write("%s,%s\n" % (key, dict_obj[key]))
-        #     f.close()
+        def write_to_csv(dict_obj, col1, col2, filename, to_reverse=True):
+            f = open(filename, 'w')
+            f.write("%s,%s\n" % (col1, col2))
+            for key in sorted(dict_obj, reverse=to_reverse):
+                f.write("%s,%s\n" % (key, dict_obj[key]))
+            f.close()
 
-        # # write_to_csv(comp_lengths, 'comp_length', 'count', '../results/sqlshare/'+owner+'comp_lengths.csv')
-        # write_to_csv(exp_lengths, 'exp_length', 'count', '../results/sqlshare/' + owner + 'exp_lengths.csv')
-        # # write_to_csv(comp_exp_lengths, 'comp_exp_length', 'count', '../results/sqlshare/'+owner+'comp_exp_lengths.csv')
-        # write_to_csv(ops, 'ops', 'count', '../results/sqlshare/' + owner + 'ops.csv')
-        # write_to_csv(exp_ops, 'exp_ops', 'count', '../results/sqlshare/' + owner + 'exp_ops.csv')
-        # write_to_csv(exp_distinct_ops, 'exp_distinct_ops', 'count',
-        #              '../results/sqlshare/' + owner + 'exp_distinct_ops.csv')
-        # # write_to_csv(str_ops, 'str_ops', 'count', '../results/sqlshare/'+owner+'str_ops.csv')
-        # # write_to_csv(distinct_str_ops, 'distinct_str_ops', 'count', '../results/sqlshare/'+owner+'distinct_str_ops.csv')
-        # # write_to_csv(exp_str_ops, 'exp_str_ops', 'count', '../results/sqlshare/'+owner+'exp_str_ops.csv')
-        # # write_to_csv(exp_distinct_str_ops, 'exp_distinct_str_ops', 'count', '../results/sqlshare/'+owner+'exp_distinct_str_ops.csv')
-        # write_to_csv(dataset_touch, 'dataset_touch', 'count', '../results/sqlshare/' + owner + 'dataset_touch.csv')
-        # write_to_csv(tables_in_query, 'number', 'count', '../results/sqlshare/' + owner + 'table_touch.csv')
-        # # write_to_csv(time_taken, 'time_taken', 'count', '../results/sqlshare/'+owner+'time_taken.csv')
-        # write_to_csv(exp_physical_ops, 'exp_physical_ops', 'count',
-        #              '../results/sqlshare/' + owner + 'exp_physical_ops.csv')
-        # write_to_csv(exp_distinct_physical_ops, 'exp_distinct_physical_ops', 'count',
-        #              '../results/sqlshare/' + owner + 'exp_distinct_physical_ops.csv')
-        # write_to_csv(table_coverage, 'query_id', 'tables', '../results/sqlshare/' + owner + 'table_coverage.csv',
-        #              to_reverse=False)
-        # write_to_csv(dataset_coverage, 'query_id', 'tables', '../results/sqlshare/' + owner + 'dataset_coverage.csv',
-        #              to_reverse=False)
+        # write_to_csv(comp_lengths, 'comp_length', 'count', '../results/sqlshare/'+owner+'comp_lengths.csv')
+        write_to_csv(exp_lengths, 'exp_length', 'count', '../results/sqlshare/' + owner + 'exp_lengths.csv')
+        # write_to_csv(comp_exp_lengths, 'comp_exp_length', 'count', '../results/sqlshare/'+owner+'comp_exp_lengths.csv')
+        write_to_csv(ops, 'ops', 'count', '../results/sqlshare/' + owner + 'ops.csv')
+        write_to_csv(exp_ops, 'exp_ops', 'count', '../results/sqlshare/' + owner + 'exp_ops.csv')
+        write_to_csv(exp_distinct_ops, 'exp_distinct_ops', 'count',
+                     '../results/sqlshare/' + owner + 'exp_distinct_ops.csv')
+        # write_to_csv(str_ops, 'str_ops', 'count', '../results/sqlshare/'+owner+'str_ops.csv')
+        # write_to_csv(distinct_str_ops, 'distinct_str_ops', 'count', '../results/sqlshare/'+owner+'distinct_str_ops.csv')
+        # write_to_csv(exp_str_ops, 'exp_str_ops', 'count', '../results/sqlshare/'+owner+'exp_str_ops.csv')
+        # write_to_csv(exp_distinct_str_ops, 'exp_distinct_str_ops', 'count', '../results/sqlshare/'+owner+'exp_distinct_str_ops.csv')
+        write_to_csv(dataset_touch, 'dataset_touch', 'count', '../results/sqlshare/' + owner + 'dataset_touch.csv')
+        write_to_csv(tables_in_query, 'number', 'count', '../results/sqlshare/' + owner + 'table_touch.csv')
+        # write_to_csv(time_taken, 'time_taken', 'count', '../results/sqlshare/'+owner+'time_taken.csv')
+        write_to_csv(exp_physical_ops, 'exp_physical_ops', 'count',
+                     '../results/sqlshare/' + owner + 'exp_physical_ops.csv')
+        write_to_csv(exp_distinct_physical_ops, 'exp_distinct_physical_ops', 'count',
+                     '../results/sqlshare/' + owner + 'exp_distinct_physical_ops.csv')
+        write_to_csv(table_coverage, 'query_id', 'tables', '../results/sqlshare/' + owner + 'table_coverage.csv',
+                     to_reverse=False)
+        write_to_csv(dataset_coverage, 'query_id', 'tables', '../results/sqlshare/' + owner + 'dataset_coverage.csv',
+                     to_reverse=False)
 
-        # touch_by_time = {}
-        # q_ops_by_time = {}
-        # q_distinct_ops_by_time = {}
-        # q_logops_by_time = {}
-        # q_distinct_logops_by_time = {}
-        # q_complexity_by_time = {}
-        # q_length_by_time = {}
+        touch_by_time = {}
+        q_ops_by_time = {}
+        q_distinct_ops_by_time = {}
+        q_logops_by_time = {}
+        q_distinct_logops_by_time = {}
+        q_complexity_by_time = {}
+        q_length_by_time = {}
 
-        # f_highcomplexity_queries = open('../results/sqlshare/high_complexity_queries.txt', 'a')
-        # f_lowcomplexity_queries = open('../results/sqlshare/low_complexity_queries.txt', 'a')
-        # for i, q in enumerate(queries):
-        #     q_ex_ops = q['expanded_plan_ops_logical'].split(',')
-        #     q_logops_by_time[i] = len(q_ex_ops)
-        #     q_distinct_logops_by_time[i] = len(set(q_ex_ops))
+        f_highcomplexity_queries = open('../results/sqlshare/high_complexity_queries.txt', 'a')
+        f_lowcomplexity_queries = open('../results/sqlshare/low_complexity_queries.txt', 'a')
+        for i, q in enumerate(queries):
+            q_ex_ops = q['expanded_plan_ops_logical'].split(',')
+            q_logops_by_time[i] = len(q_ex_ops)
+            q_distinct_logops_by_time[i] = len(set(q_ex_ops))
 
-        #     q_ex_phy_ops = q['expanded_plan_ops'].split(',')
-        #     q_ops_by_time[i] = len(q_ex_phy_ops)
-        #     q_distinct_ops_by_time[i] = len(set(q_ex_phy_ops))
+            q_ex_phy_ops = q['expanded_plan_ops'].split(',')
+            q_ops_by_time[i] = len(q_ex_phy_ops)
+            q_distinct_ops_by_time[i] = len(set(q_ex_phy_ops))
 
-        #     plan = json.loads(q['plan'])
-        #     tables = visit_operators(plan, visitor_tables)
-        #     tables = set(tables)
+            plan = json.loads(q['plan'])
+            tables = visit_operators(plan, visitor_tables)
+            tables = set(tables)
 
-        #     logical_tables = []
-        #     for t in tables:
-        #         short_name = re.findall(p, t)
-        #         if len(short_name) == 0:
-        #             logical_tables.append(t)
-        #         else:
-        #             logical_tables.append(short_name[0])
+            logical_tables = []
+            for t in tables:
+                short_name = re.findall(p, t)
+                if len(short_name) == 0:
+                    logical_tables.append(t)
+                else:
+                    logical_tables.append(short_name[0])
 
-        #     touch_by_time[i] = len(set(logical_tables))
-        #     try:
-        #         col_c = columns_count[q['id']]
-        #     except:
-        #         col_c = 0
-        #         print 'Columns count defaulting to 0 for %d' % q['id']
+            touch_by_time[i] = len(set(logical_tables))
+            try:
+                col_c = columns_count[q['id']]
+            except:
+                col_c = 0
+                print 'Columns count defaulting to 0 for %d' % q['id']
 
-        #     try:
-        #         expr_c = expr_count[q['id']]
-        #     except:
-        #         expr_c = 0
-        #         print 'Expr count defaulting to 0 for %d' % q['id']
+            try:
+                expr_c = expr_count[q['id']]
+            except:
+                expr_c = 0
+                print 'Expr count defaulting to 0 for %d' % q['id']
 
-        #     q_length_by_time[i] = len(q['query'])
+            q_length_by_time[i] = len(q['query'])
 
-        #     q_complexity_by_time[i] = (-0.00248) * touch_by_time[i] + 0.000168 * col_c + 0.001571 * q[
-        #         'length'] + 0.012903 * q_logops_by_time[i] + 0.000355 * expr_c + 0.000000896 * q['runtime']
-        #     if q_complexity_by_time[i] > 7:
-        #         f_highcomplexity_queries.write(
-        #             "complexity: %f \n Query: \n %s \n\n\n" % (q_complexity_by_time[i], q['query'].encode('utf-8')))
-        #     if q_complexity_by_time[i] < 1:
-        #         f_lowcomplexity_queries.write(
-        #             "complexity: %f \n Query: \n %s \n\n\n" % (q_complexity_by_time[i], q['query'].encode('utf-8')))
+            q_complexity_by_time[i] = (-0.00248) * touch_by_time[i] + 0.000168 * col_c + 0.001571 * q[
+                'length'] + 0.012903 * q_logops_by_time[i] + 0.000355 * expr_c + 0.000000896 * q['runtime']
+            if q_complexity_by_time[i] > 7:
+                f_highcomplexity_queries.write(
+                    "complexity: %f \n Query: \n %s \n\n\n" % (q_complexity_by_time[i], q['query'].encode('utf-8')))
+            if q_complexity_by_time[i] < 1:
+                f_lowcomplexity_queries.write(
+                    "complexity: %f \n Query: \n %s \n\n\n" % (q_complexity_by_time[i], q['query'].encode('utf-8')))
 
-        # f_lowcomplexity_queries.close()
-        # f_highcomplexity_queries.close()
-        # write_to_csv(q_ops_by_time, 'query_id', 'count', '../results/sqlshare/' + owner + 'exp_ops_by_time.csv')
-        # write_to_csv(q_distinct_ops_by_time, 'query_id', 'count',
-        #              '../results/sqlshare/' + owner + 'exp_distinct_ops_by_time.csv')
-        # write_to_csv(q_logops_by_time, 'query_id', 'count',
-        #              '../results/sqlshare/' + owner + 'exp_physical_ops_by_time.csv')
-        # write_to_csv(q_distinct_logops_by_time, 'query_id', 'count',
-        #              '../results/sqlshare/' + owner + 'exp_distinct_physical_ops_by_time.csv')
-        # write_to_csv(touch_by_time, 'query_id', 'count', '../results/sqlshare/' + owner + 'table_touch_by_time.csv')
-        # write_to_csv(q_complexity_by_time, 'query_id', 'complexity',
-        #              '../results/sqlshare/' + owner + 'complexity_by_time.csv', False)
-        # write_to_csv(q_length_by_time, 'query_id', 'length', '../results/sqlshare/' + owner + 'length_by_time.csv',
-        #              False)
-    # view_depth_breadth.close()
+        f_lowcomplexity_queries.close()
+        f_highcomplexity_queries.close()
+        write_to_csv(q_ops_by_time, 'query_id', 'count', '../results/sqlshare/' + owner + 'exp_ops_by_time.csv')
+        write_to_csv(q_distinct_ops_by_time, 'query_id', 'count',
+                     '../results/sqlshare/' + owner + 'exp_distinct_ops_by_time.csv')
+        write_to_csv(q_logops_by_time, 'query_id', 'count',
+                     '../results/sqlshare/' + owner + 'exp_physical_ops_by_time.csv')
+        write_to_csv(q_distinct_logops_by_time, 'query_id', 'count',
+                     '../results/sqlshare/' + owner + 'exp_distinct_physical_ops_by_time.csv')
+        write_to_csv(touch_by_time, 'query_id', 'count', '../results/sqlshare/' + owner + 'table_touch_by_time.csv')
+        write_to_csv(q_complexity_by_time, 'query_id', 'complexity',
+                     '../results/sqlshare/' + owner + 'complexity_by_time.csv', False)
+        write_to_csv(q_length_by_time, 'query_id', 'length', '../results/sqlshare/' + owner + 'length_by_time.csv',
+                     False)
+    view_depth_breadth.close()
     view_depth_breadth_per_view.close()
 
 
