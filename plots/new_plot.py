@@ -10,6 +10,7 @@ import prettyplotlib as ppl
 import matplotlib.dates as mdates
 from scipy.interpolate import spline
 import re
+import math
 
 # workloads = ["tpch","sdss", "sqlshare"]
 workloads = ["sdss", "sqlshare"]
@@ -421,7 +422,7 @@ def new_tables_for_users():
     ax.yaxis.set_major_formatter(formatter)
     ax.xaxis.set_major_formatter(formatter)
 
-    plt.title("Query coverage of uploaded data for top 12 users")
+    plt.title("Query coverage of uploaded data for 12 most active users")
     ax.set_xlabel('% of queries')
     ax.set_ylabel('% of newly used table')
 
@@ -501,7 +502,7 @@ def lifetime():
         else:
             ax.plot(query_id, Lifetime, color = 'grey', marker = '.', ls ='-', alpha = 0.3)
 
-    plt.title("Lifetime of datasets for top 12 users")
+    plt.title("Lifetime of datasets for 12 most active users")
     ax.set_xlabel('% of datasets')
     ax.set_ylabel('Lifetime (in days)')
     ax.set_yscale('log')
@@ -618,6 +619,11 @@ def queries_per_table():
         num_queries_lt.append(max_num_queries)
 
     c = [0,0,0,0,0]
+    print sorted(num_queries_lt)
+
+    print len(num_queries_lt)
+
+    print sum(num_queries_lt)/len(num_queries_lt)
 
     for num in num_queries_lt:
         if num == 1.0:
@@ -652,14 +658,14 @@ def query_entropy():
     sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
     fig, ax = plt.subplots(1, figsize=(8, 4))
 
-    data = [3, 0.3] 
-    data_sql = [96.18, 60.67]
-    xpos = np.arange(2)
+    data = [3, 0.3, 0.2]
+    data_sql = [96.18, 63.07, 45.35]
+    xpos = np.arange(3)
     # width = 0.2
     margin = 0.1
-    width = (1.-2.*margin)/2
+    width = (1.-3.*margin)/3
 
-    ticklabels=['% Distinct Queries', '% Distinct Query Templates']
+    ticklabels=['% Q_dist_strings', '% Q_dist_templates', '% Q_dist_columns']
     
     rects1 = ax.bar(xpos, data, width, color = colors['sdss'], label = 'SDSS')
     rects2 = ax.bar(xpos+width, data_sql, width, color = colors['sqlshare'], label = 'TableShare')
@@ -673,18 +679,18 @@ def query_entropy():
     ax.xaxis.grid(False)
     ax.yaxis.grid(False)
     ax.set_ylim(0, 120)
-    ax.set_xlim(-0.5, 2.5)
+    ax.set_xlim(-0.1, 2.6)
     plt.tight_layout()
     plt.legend(loc = 1)
     def autolabel(rects):
     # attach some text labels
         for rect in rects:
             height = rect.get_height()
-            ax.text(rect.get_x()+rect.get_width()/2., 1.05*height, '%d'%int(height),
+            ax.text(rect.get_x()+rect.get_width()/2., 1.05*height, '%.2f'%height + '%',
                 ha='center', va='bottom')
 
-    # autolabel(rects1)
-    # autolabel(rects2)
+    autolabel(rects1)
+    autolabel(rects2)
     plt.savefig('plot_query_entropy.eps', format='eps')
     plt.show()
 
@@ -836,12 +842,12 @@ if __name__ == '__main__':
     # # ops()
     # # num_ops()
     # num_dist_ops()
-    query_length()
+    # query_length()
     # new_tables_for_users()
     # Q_vs_D()
     # lifetime()
     # viewdepth()
-    # # queries_per_table()
+    queries_per_table()
     # query_entropy()
     # query_length_hist()
     # viewdepth_hist()
