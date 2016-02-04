@@ -17,7 +17,7 @@ workloads = ["sdss", "sqlshare"]
 labels = {
     # 'tpch' : "TPC-H",
     'sdss': "SDSS",
-    'sqlshare': "TableShare"
+    'sqlshare': "SQLShare"
 }
 
 b, g, r = sns.color_palette("deep", 3)
@@ -668,7 +668,7 @@ def query_entropy():
     ticklabels=['% Q_dist_strings', '% Q_dist_templates', '% Q_dist_columns']
     
     rects1 = ax.bar(xpos, data, width, color = colors['sdss'], label = 'SDSS')
-    rects2 = ax.bar(xpos+width, data_sql, width, color = colors['sqlshare'], label = 'TableShare')
+    rects2 = ax.bar(xpos+width, data_sql, width, color = colors['sqlshare'], label = 'SQLShare')
 
     # ppl.barh(ax, ypos, data, yticklabels=ticklabels, grid='x', annotate=True, color=g)
 
@@ -838,16 +838,16 @@ def viewdepth_hist():
     plt.show()
 
 if __name__ == '__main__':
-    # num_dist_ops_hist()
-    # # ops()
-    # # num_ops()
+    num_dist_ops_hist()
+    ops()
+    num_ops()
     # num_dist_ops()
     # query_length()
     # new_tables_for_users()
     # Q_vs_D()
     # lifetime()
     # viewdepth()
-    queries_per_table()
+    # queries_per_table()
     # query_entropy()
     # query_length_hist()
     # viewdepth_hist()
