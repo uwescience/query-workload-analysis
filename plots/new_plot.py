@@ -12,6 +12,10 @@ from scipy.interpolate import spline
 import re
 import math
 
+from matplotlib import rc
+rc('font',**{'family':'serif','serif':['Palatino']})
+rc('text', usetex=True)
+
 # workloads = ["tpch","sdss", "sqlshare"]
 workloads = ["sdss", "sqlshare"]
 labels = {
@@ -83,7 +87,7 @@ def num_ops():
 
     plt.title("CDF of number of operators per query")
     axes.set_xlabel('Number of physical operators')
-    axes.set_ylabel('% of queries')
+    axes.set_ylabel('\% of queries')
     axes.xaxis.grid(False)
     axes.yaxis.grid(False)
 
@@ -119,7 +123,7 @@ def num_dist_ops():
 
     plt.title("CDF of number of distinct operators per query")
     axes.set_xlabel('Number of distinct physical operators')
-    axes.set_ylabel('% of queries')
+    axes.set_ylabel('\% of queries')
 
     axes.title.set_position((axes.title._x, 1.04))
     axes.xaxis.grid(False)
@@ -154,7 +158,7 @@ def query_length():
 
     plt.title("CDF of query length")
     axes.set_xlabel('Query length in characters')
-    axes.set_ylabel('% of queries')
+    axes.set_ylabel('\% of queries')
 
     axes.title.set_position((axes.title._x, 1.04))
     axes.xaxis.grid(False)
@@ -193,7 +197,7 @@ def table_touch():
 
     plt.title("CDF of table touch")
     axes.set_xlabel('Table touch')
-    axes.set_ylabel('% of queries')
+    axes.set_ylabel('\% of queries')
 
     axes.title.set_position((axes.title._x, 1.04))
     axes.xaxis.grid(False)
@@ -227,7 +231,7 @@ def column_touch():
 
     plt.title("CDF of column touch")
     axes.set_xlabel('Column touch')
-    axes.set_ylabel('% of queries')
+    axes.set_ylabel('\% of queries')
     axes.xaxis.grid(False)
     axes.yaxis.grid(False)
 
@@ -262,7 +266,7 @@ def runtime():
 
     plt.title("CDF of query runtime")
     axes.set_xlabel('Runtime')
-    axes.set_ylabel('% of queries')
+    axes.set_ylabel('\% of queries')
     axes.xaxis.grid(False)
     axes.yaxis.grid(False)
 
@@ -300,7 +304,7 @@ def complexity():
         # axes.yaxis.set_major_formatter(formatter)
 
         plt.title('Query complexity over time for a SQLShare user')
-        axes.set_xlabel('% Queries')
+        axes.set_xlabel('\% Queries')
         axes.set_ylabel('Query Complexity')
 
         axes.title.set_position((axes.title._x, 1.04))
@@ -333,7 +337,7 @@ def ops():
 
         plt.title("Operator Frequency in {}".format(labels[w]))
         #ax.set_ylabel('Physical operator')
-        ax.set_xlabel('% of queries')
+        ax.set_xlabel('\% of queries')
 
         ax.xaxis.grid(False)
         ax.yaxis.grid(False)
@@ -386,8 +390,8 @@ def new_tables():
     ax.xaxis.set_major_formatter(formatter)
 
     plt.title("CDF of new tables")
-    ax.set_xlabel('% of queries')
-    ax.set_ylabel('% of newly used table')
+    ax.set_xlabel('\% of queries')
+    ax.set_ylabel('\% of newly used table')
 
     ax.set_ylim(0, 1.01)
     ax.set_xlim(-0.01, 1)
@@ -423,8 +427,8 @@ def new_tables_for_users():
     ax.xaxis.set_major_formatter(formatter)
 
     plt.title("Query coverage of uploaded data for 12 most active users")
-    ax.set_xlabel('% of queries')
-    ax.set_ylabel('% of newly used table')
+    ax.set_xlabel('\% of queries')
+    ax.set_ylabel('\% of newly used table')
 
     ax.set_ylim(0, 1.01)
     ax.set_xlim(-0.01, 1)
@@ -503,7 +507,7 @@ def lifetime():
             ax.plot(query_id, Lifetime, color = 'grey', marker = '.', ls ='-', alpha = 0.3)
 
     plt.title("Lifetime of datasets for 12 most active users")
-    ax.set_xlabel('% of datasets')
+    ax.set_xlabel('\% of datasets')
     ax.set_ylabel('Lifetime (in days)')
     ax.set_yscale('log')
     for axis in [ax.xaxis, ax.yaxis]:
@@ -641,7 +645,7 @@ def queries_per_table():
     fig, ax = plt.subplots(1, figsize=(8, 4))
 
     ypos = np.arange(len(c))
-    ppl.barh(ax, ypos, c, yticklabels=['1', '2', '3', '4', '>=5'], grid='x', annotate=True, color=g)
+    ppl.barh(ax, ypos, c, yticklabels=['1', '2', '3', '4', '$>=5$'], grid='x', annotate=True, color=g)
 
     plt.title("Number of queries per table")
     ax.set_ylabel('Number of queries')
@@ -665,7 +669,7 @@ def query_entropy():
     margin = 0.1
     width = (1.-3.*margin)/3
 
-    ticklabels=['% Q_dist_strings', '% Q_dist_templates', '% Q_dist_columns']
+    ticklabels=['\% Q_dist_strings', '\% Q_dist_templates', '\% Q_dist_columns']
     
     rects1 = ax.bar(xpos, data, width, color = colors['sdss'], label = 'SDSS')
     rects2 = ax.bar(xpos+width, data_sql, width, color = colors['sqlshare'], label = 'SQLShare')
@@ -673,7 +677,7 @@ def query_entropy():
     # ppl.barh(ax, ypos, data, yticklabels=ticklabels, grid='x', annotate=True, color=g)
 
     plt.title("Workload Entropy")
-    ax.set_ylabel('% of queries')
+    ax.set_ylabel('\% of queries')
     ax.set_xticks(xpos+width)
     ax.set_xticklabels(ticklabels)
     ax.xaxis.grid(False)
@@ -706,7 +710,7 @@ def num_dist_ops_hist():
     xpos['sdss'] = np.arange(3)
     xpos['sqlshare'] = np.arange(3) + width
     
-    ticklabels=['<4', '4-8', '>=8']
+    ticklabels=['$<4$', '4-8', '$>=8$']
 
     for w in workloads:
         count = d[w]['count'].astype(float)
@@ -728,7 +732,7 @@ def num_dist_ops_hist():
 
     plt.title("Distinct Operators in Queries")
     ax.set_xlabel('Number of Distinct Operators')
-    ax.set_ylabel('% of queries')
+    ax.set_ylabel('\% of queries')
 
     ax.set_xticks(xpos['sdss']+width)
     ax.set_xticklabels(ticklabels)
@@ -755,7 +759,7 @@ def query_length_hist():
     xpos['sdss'] = np.arange(4)
     xpos['sqlshare'] = np.arange(4) + width
     
-    ticklabels=['<100','100-500','500-1000','>1000']
+    ticklabels=['$<100$','100-500','500-1000','$>1000$']
 
     for w in workloads:
         count = d[w]['count'].astype(float)
@@ -787,7 +791,7 @@ def query_length_hist():
 
     
     ax.set_xlabel('Query length in characters')
-    ax.set_ylabel('% of queries')
+    ax.set_ylabel('\% of queries')
     ax.set_ylim(0, 110)
 
     plt.legend(loc=1)
@@ -823,7 +827,7 @@ def viewdepth_hist():
 
     plt.title("Max View Depth for top 100 users")
 
-    ax.set_xticks(xpos)
+    ax.set_xticks(xpos + 0.1)
     ax.set_xticklabels(ticklabels)
     ax.xaxis.grid(False)
     ax.yaxis.grid(False)
@@ -840,17 +844,17 @@ def viewdepth_hist():
 if __name__ == '__main__':
     num_dist_ops_hist()
     ops()
-    num_ops()
+    query_length()
+    new_tables_for_users()
+    lifetime()
+    viewdepth_hist()
+    queries_per_table()
+    # num_ops()
     # num_dist_ops()
-    # query_length()
-    # new_tables_for_users()
     # Q_vs_D()
-    # lifetime()
-    # viewdepth()
-    # queries_per_table()
     # query_entropy()
     # query_length_hist()
-    # viewdepth_hist()
+    # viewdepth()
     # # complexity()
     # # cumulative_q_t()
     # # table_touch()
