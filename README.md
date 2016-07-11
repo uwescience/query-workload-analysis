@@ -45,8 +45,9 @@ vim default.ini.local
 You should be able to run `qwla --help`.
 
 ## Views/ copies
+Please skip these instructions if you are only insterested in SQLShare workload analysis.
 
-To speed up analysis, a few vies should be created. Since postgres <9.3 does not support materialized views, we can also make copies.
+To speed up analysis, a few views should be created. Since postgres <9.3 does not support materialized views, we can also make copies. 
 
 ```sql
 CREATE TABLE logs AS SELECT * FROM everything WHERE db='BestDR5';
