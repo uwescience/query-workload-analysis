@@ -280,8 +280,7 @@ def runtime():
 
 def complexity():
     w = 'sqlshare'
-    # owners = ['','billhowe', 'sr320@washington.edu', 'isaphan@washington.edu', 'emmats@washington.edu', 'koesterj@washington.edu', 'micaela@washington.edu', 'bifxcore@gmail.com', 'sism06@comcast.net', 'koenigk92@gmail.com', 'rkodner', 'erin.s1964@gmail.com', 'fridayharboroceanographers@gmail.com']
-    owners = ['sr320@washington.edu', 'koesterj@washington.edu']
+    owners = [''] #TODO: add actual owner list
     for owner in owners:
         with open('../results/sqlshare/'+owner+'complexity_by_time.csv') as f:
             d = np.recfromcsv(f)
@@ -405,8 +404,8 @@ def new_tables():
     plt.show()
 
 def new_tables_for_users():
-    owners = ['billhowe', 'sr320@washington.edu', 'isaphan@washington.edu', 'emmats@washington.edu', 'koesterj@washington.edu', 'micaela@washington.edu',
-              'bifxcore@gmail.com', 'sism06@comcast.net', 'koenigk92@gmail.com', 'rkodner', 'erin.s1964@gmail.com', 'fridayharboroceanographers@gmail.com']
+    owners = [''] #ToDo: replace with owner list.
+
     fig, ax = plt.subplots(1)
     sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
     for owner in owners:
@@ -416,7 +415,7 @@ def new_tables_for_users():
         c /= c[-1]
         q = data['query_id'].astype(float)
         q /= q[-1]
-        if owner == 'sr320@washington.edu':
+        if owner == 'MOST ACTIVE USER':
             ax.plot(q, c, color=r, linewidth=2, drawstyle='steps-post')
         else:
             ax.plot(q, c, color='grey', linewidth=2, drawstyle='steps-post')
@@ -466,7 +465,7 @@ def Q_vs_D():
     ax.set_xscale('log')
     ax.set_yscale('log')
 
-    plt.title("TableShare Usage Patterns")
+    plt.title("SQLShare Usage Patterns")
     ax.set_xlabel('Distinct Datasets')
     ax.set_ylabel('Distinct Queries')
     ax.xaxis.grid(False)
@@ -479,8 +478,7 @@ def Q_vs_D():
     plt.show()
 
 def lifetime():
-    owners = ['billhowe', 'sr320@washington.edu', 'isaphan@washington.edu', 'emmats@washington.edu', 'koesterj@washington.edu', 'micaela@washington.edu',
-              'bifxcore@gmail.com', 'sism06@comcast.net', 'koenigk92@gmail.com', 'rkodner', 'erin.s1964@gmail.com', 'fridayharboroceanographers@gmail.com']
+    owners = [''] #TODO: add actual owner list
     sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
 
     fig, ax = plt.subplots(1)
@@ -501,7 +499,7 @@ def lifetime():
             if l == 0:
                 Lifetime[i] = 1
 
-        if owner == 'sr320@washington.edu':
+        if owner == 'MOST ACTIVE':
             ax.plot(query_id, Lifetime, color = r, marker = '.', ls ='-', alpha = 0.3)
         else:
             ax.plot(query_id, Lifetime, color = 'grey', marker = '.', ls ='-', alpha = 0.3)
@@ -549,8 +547,7 @@ def viewdepth():
     plt.show()
 
 def cumulative_q_t():
-    owners = ['billhowe', 'sr320@washington.edu', 'isaphan@washington.edu', 'emmats@washington.edu', 'koesterj@washington.edu', 'micaela@washington.edu',
-              'bifxcore@gmail.com', 'sism06@comcast.net', 'koenigk92@gmail.com', 'rkodner', 'erin.s1964@gmail.com', 'fridayharboroceanographers@gmail.com']
+    owners = ['']
     years    = mdates.YearLocator()   # every year
     months   = mdates.MonthLocator()  # every month
     yearsFmt = mdates.DateFormatter('%Y')
@@ -812,22 +809,22 @@ def viewdepth_hist():
     
     c = [0,0,0]
     xpos = np.arange(3)
-    
-    ticklabels=['1-3','4-6','8+']
+
+    ticklabels=['2-4','5-8','8+']
 
     for d in depth:
-        if d < 3:
+        if d < 4 and d > 1:
             c[0] += 1
-        elif d < 6:
+        elif d < 8:
             c[1] += 1
         else:
             c[2] += 1
-    ax.bar(xpos, c, 0.3, color = g)
+    ax.bar(xpos + 2.5, c, 0.3, color = g, align='center')
 
 
     plt.title("Max View Depth for top 100 users")
 
-    ax.set_xticks(xpos + 0.1)
+    ax.set_xticks(xpos + 2.5)
     ax.set_xticklabels(ticklabels)
     ax.xaxis.grid(False)
     ax.yaxis.grid(False)
@@ -842,21 +839,22 @@ def viewdepth_hist():
     plt.show()
 
 if __name__ == '__main__':
-    num_dist_ops_hist()
-    ops()
-    query_length()
-    new_tables_for_users()
-    lifetime()
-    viewdepth_hist()
-    queries_per_table()
+    # num_dist_ops_hist()
+    # ops()
+    # query_length()
+    # new_tables_for_users()
+    # lifetime()
+    # viewdepth_hist()
+    # queries_per_table()
+    # query_length_hist()
     # num_ops()
     # num_dist_ops()
     # Q_vs_D()
     # query_entropy()
-    # query_length_hist()
+    # 
     # viewdepth()
-    # # complexity()
-    # # cumulative_q_t()
+    complexity()
+    # cumulative_q_t()
     # # table_touch()
     # # column_touch()
     # # runtime()

@@ -10,8 +10,7 @@ from collections import Counter
 
 
 def calculate(database):
-    owners = ['billhowe', 'sr320@washington.edu', 'isaphan@washington.edu', 'emmats@washington.edu', 'koesterj@washington.edu', 'micaela@washington.edu',
-              'bifxcore@gmail.com', 'sism06@comcast.net', 'koenigk92@gmail.com', 'rkodner', 'erin.s1964@gmail.com', 'fridayharboroceanographers@gmail.com']
+    owners = [''] #TODO: add actual owner list
     db = dataset.connect(database)
     # print 'Total Queries: ', list(db.query('select count(*) from sqlshare_logs where has_plan = true'))[0]['count']
     # queries = list(db.query('select distinct(string_agg("column", \',\')) as query from (select query_id,  "column" from sqlshare_logs a, sqlshare_columns b where a.id = b.query_id order by query_id, "column") a group by query_id;'))
