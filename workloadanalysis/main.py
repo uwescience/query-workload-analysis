@@ -5,7 +5,6 @@ Usage:
     qwla (sdss|sqlshare) summarize [-d DATABASE]
     qwla (sdss|sqlshare|tpch) explain CONFIG [-q] [-d DATABASE] [--dry] [--second] [-s SEGMENT NUMBER] [-o OFFSET]
     qwla (sdss|sqlshare|tpch) extract [-d DATABASE]
-    qwla (sdss|sqlshare|tpch) calcsimilarity [-d DATABASE]
     qwla (sdss|sqlshare|tpch) columnsimilarity [-d DATABASE]
     qwla (sdss|sqlshare|tpch) analyze [-d DATABASE] [--recurring]
     qwla (sdss|sqlshare|tpch) analyze2 [-d DATABASE]
@@ -39,7 +38,7 @@ import query_analysis
 import query_analysis2
 import get_complexity_metrics
 import query_extract
-import attributesimilarity
+# import attributesimilarity
 import workloaddistance
 import summary
 
@@ -107,9 +106,9 @@ def main():
         if arguments['sqlshare']:
             get_complexity_metrics.getmetrics(db)
 
-    if arguments['calcsimilarity']:
-        if arguments['sqlshare']:
-            attributesimilarity.calculate(db)
+    # if arguments['calcsimilarity']:
+    #     if arguments['sqlshare']:
+    #         attributesimilarity.calculate(db)
 
     if arguments['columnsimilarity']:
         if arguments['sqlshare']:
