@@ -15,7 +15,6 @@ nothing continued to happen."
 """
 
 from docopt import docopt
-import matplotlib.pyplot as plt
 import math
 import numpy as np
 import dataset
