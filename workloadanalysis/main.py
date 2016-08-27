@@ -47,7 +47,7 @@ def main():
     arguments = docopt(__doc__, version='SDSS Tools 0.0.1')
 
     db = (('-d' in arguments and arguments['-d'])
-          or 'sqlite:///test.sqlite')
+          or 'sqlite:///sqlshare-sigmod-2016.sqlite')
 
     if arguments['consume']:
         consume_logs.consume(

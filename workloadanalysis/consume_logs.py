@@ -31,7 +31,8 @@ def pretty_query(query):
     return query.strip().strip("")
 
 
-def consume_sdss(db, f):
+# Deprecated method, this expects file to be in an older format.
+def consume_sdss_old(db, f):
     table = db['everything']
     rows = []
     reader = csv.reader(csv_fixer(f), encoding='latin-1', quotechar='"')
@@ -66,6 +67,32 @@ def consume_sdss(db, f):
             print "==> Skipping line with error"
             print e
             print row
+        else:
+            rows.append(data)
+
+    table.insert_many(rows)
+
+def consume_sdss(db, f):
+    table = db['everything']
+    rows = []
+    f.readline()
+
+    for line in f:
+        row = line.split('||')
+
+        try:
+            data = {
+                'time_start': row[0],
+                'seq': row[1],
+                'db': row[2],
+                'access': row[3],
+                'rows': int(row[4]),
+                'query': pretty_query(row[5]).decode('utf8'),
+                'xml': row[6].decode('utf8')
+            }
+        except Exception as e:
+            print "==> Skipping line with error"
+            print e
         else:
             rows.append(data)
 
