@@ -32,7 +32,7 @@ def extract_tpch(db):
 
 
 def extract_sdss(db):
-    return extract(db, 'explained', 'sdss_tables', 'sdss_columns', 'sdss_logops', 'sdss_physops')
+    return extract(db, 'everything', 'sdss_tables', 'sdss_columns', 'sdss_logops', 'sdss_physops')
 
 
 def extract_sqlshare(db):
@@ -42,26 +42,34 @@ def extract_sqlshare(db):
 def extract(db, query_table, tables_name, columns_name, logops_name, physops_name):
     datasetdb = dataset.connect(db)
 
-    queries = datasetdb[query_table]
+    queries = datasetdb.query('select * from {} where has_plan = 1'.format(query_table))
 
     try:
         datasetdb.query("drop table %s" % tables_name)
     except sa.exc.ProgrammingError:
+        pass
+    except sa.exc.OperationalError:
         pass
 
     try:
         datasetdb.query("drop table %s" % columns_name)
     except sa.exc.ProgrammingError:
         pass
+    except sa.exc.OperationalError:
+        pass
 
     try:
         datasetdb.query("drop table %s" % logops_name)
     except sa.exc.ProgrammingError:
         pass
+    except sa.exc.OperationalError:
+        pass
 
     try:
         datasetdb.query("drop table %s" % physops_name)
     except sa.exc.ProgrammingError:
+        pass
+    except sa.exc.OperationalError:
         pass
 
     print "dropped tables"
