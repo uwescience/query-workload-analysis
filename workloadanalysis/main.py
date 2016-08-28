@@ -3,7 +3,7 @@
 Usage:
     qwla (sdss|sqlshare) consume INPUT... [-d DATABASE] [-v]
     qwla (sdss|sqlshare) summarize [-d DATABASE]
-    qwla (sdss|sqlshare|tpch) explain CONFIG [-q] [-d DATABASE] [--dry] [--second] [-s SEGMENT NUMBER] [-o OFFSET]
+    qwla (sdss|sqlshare|tpch) explain [-q] [-d DATABASE] [--dry] [--second] [-s SEGMENT NUMBER] [-o OFFSET]
     qwla (sdss|sqlshare|tpch) extract [-d DATABASE]
     qwla (sdss|sqlshare|tpch) columnsimilarity [-d DATABASE]
     qwla (sdss|sqlshare|tpch) analyze [-d DATABASE] [--recurring]
@@ -47,7 +47,7 @@ def main():
     arguments = docopt(__doc__, version='SDSS Tools 0.0.1')
 
     db = (('-d' in arguments and arguments['-d'])
-          or 'sqlite:///sqlshare-sigmod-2016.sqlite')
+          or 'sqlite:///sqlshare-sdss.sqlite')
 
     if arguments['consume']:
         consume_logs.consume(
@@ -57,11 +57,11 @@ def main():
         summary.summarize(db, arguments['sdss'])
 
     if arguments['explain']:
-        config = {}
-        with open(arguments['CONFIG']) as f:
-            for line in f:
-                key, val = line.split('=')
-                config[key.strip()] = val.strip()
+        # config = {}
+        # with open(arguments['CONFIG']) as f:
+        #     for line in f:
+        #         key, val = line.split('=')
+        #         config[key.strip()] = val.strip()
 
         segments = [0, 1]
 
@@ -69,18 +69,18 @@ def main():
             segments = [int(arguments['SEGMENT']), int(arguments['NUMBER'])]
 
         if arguments['sdss']:
-            explain_queries.explain_sdss(
-                config, db, arguments['-q'], segments, arguments['--dry'], arguments['-o'])
+            # explain_queries.explain_sdss(config, db, arguments['-q'], segments, arguments['--dry'], arguments['-o'])
+            explain_queries.explain_sdss(db, arguments['-q'], segments, arguments['--dry'], arguments['-o'])
         elif arguments['tpch']:
-            explain_queries.explain_tpch(
-                config, db, arguments['-q'], arguments['--dry'])
+            # explain_queries.explain_tpch(config, db, arguments['-q'], arguments['--dry'])
+            explain_queries.explain_tpch(db, arguments['-q'], arguments['--dry'])
         else:
             if arguments['--second']:
-                explain_queries.explain_sqlshare(
-                    config, db, arguments['-q'], False, arguments['--dry'])
+                # explain_queries.explain_sqlshare(config, db, arguments['-q'], False, arguments['--dry'])
+                explain_queries.explain_sqlshare(db, arguments['-q'], False, arguments['--dry'])
             else:
-                explain_queries.explain_sqlshare(
-                    config, db, arguments['-q'], True, arguments['--dry'])
+                # explain_queries.explain_sqlshare(config, db, arguments['-q'], True, arguments['--dry'])
+                explain_queries.explain_sqlshare(db, arguments['-q'], True, arguments['--dry'])
 
     if arguments['extract']:
         if arguments['sdss']:
