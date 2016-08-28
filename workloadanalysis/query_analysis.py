@@ -14,19 +14,19 @@ from utils import format_tabulate as ft
 from pprint import pprint
 
 # table with all queries from DR5
-ALL = 'logs'
+ALL = 'everything'
 
 # table that contains distinct queries from ALL
-DISTINCT = 'distinctlogs'
+DISTINCT = 'everything'
 
 # the queries that have been explained
-EXPLAINED = 'explained'
+EXPLAINED = 'everything'
 
 # the queries that don't have the same query plan
-UNIQUE = 'uniqueplans'
+UNIQUE = 'everything'
 
 # like ALL but joined with explained
-EXPLAINED_ALL = 'logs_explained'
+EXPLAINED_ALL = 'everything'
 
 SDSS_TABLES = map(str.lower,
                   # tables
@@ -263,21 +263,21 @@ def analyze_sdss(database, analyze_recurring):
 
     print "Limited to DR5"
 
-    num_interesting_queries = list(db.query('SELECT COUNT(*) c FROM {}'.format(EXPLAINED)))[0]['c']
+    num_interesting_queries = list(db.query('SELECT COUNT(*) c FROM {} where has_plan = 1'.format(EXPLAINED)))[0]['c']
     print "Distinct queries with query plan:", num_interesting_queries
 
-    num_interesting_queries = list(db.query('SELECT COUNT(*) c FROM {}'.format(UNIQUE)))[0]['c']
+    num_interesting_queries = list(db.query('SELECT COUNT(*) c FROM (SELECT distinct simple_plan from {} where has_plan = 1)'.format(UNIQUE)))[0]['c']
     print "Distinct queries with constants replaced:", num_interesting_queries
 
     expl_queries = '''
-        SELECT query, plan, time_start, elapsed, estimated_cost
+        SELECT query, plan, time_start, estimated_cost
         FROM {}
         WHERE estimated_cost < 100
         ORDER BY time_start ASC
         '''.format(EXPLAINED)
 
     dist_queries = '''
-        SELECT query, plan, elapsed, estimated_cost
+        SELECT query, plan, estimated_cost
         FROM {}
         WHERE estimated_cost < 100
         ORDER BY time_start ASC'''.format(UNIQUE)
@@ -311,6 +311,7 @@ def analyze_sdss(database, analyze_recurring):
 
     # counters for how often we have a certain count in a query
     compressed_lengths = Counter()
+    lengths = Counter()
     str_ops = Counter()
     distinct_str_ops = Counter()
     estimated = Counter()
@@ -365,6 +366,7 @@ def analyze_sdss(database, analyze_recurring):
             table_clusters = [x for i, x in enumerate(table_clusters) if i not in equal[1:]]
 
         query = q['query']
+        lengths[len(query)] += 1
 
         compressed_lengths[len(bz2.compress(query))] += 1
 
@@ -391,8 +393,8 @@ def analyze_sdss(database, analyze_recurring):
         headers=["table_cluster"])
 
     for name, values in zip(
-            ['compressed lengths', 'string ops', 'distinct string ops', 'estimated'],
-            [compressed_lengths, str_ops, distinct_str_ops, estimated]):
+            ['compressed lengths', 'lengths', 'string ops', 'distinct string ops', 'estimated'],
+            [compressed_lengths, lengths, str_ops, distinct_str_ops, estimated]):
         print
         print_table(sorted(
             values.iteritems(),
