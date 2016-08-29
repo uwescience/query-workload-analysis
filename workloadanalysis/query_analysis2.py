@@ -127,7 +127,7 @@ def analyse2(database):
 def main():
     arguments = docopt(__doc__, version='SDSS Tools 0.0.1')
 
-    db = (('-d' in arguments and arguments['-d']) or 'sqlite:///test.sqlite')
+    db = (('-d' in arguments and arguments['-d']) or 'sqlite:///sqlshare-sdss.sqlite')
     analyse2(db)
 
 

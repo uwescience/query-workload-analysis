@@ -514,7 +514,7 @@ def analyze_sqlshare(database, all_owners=True):
 
     # print columns_count, expr_count
 
-    views_q = 'SELECT * FROM sqlshare_logs WHERE isview = true'
+    views_q = 'SELECT * FROM sqlshare_logs WHERE isview = 1'
 
     if not all_owners:
         owners = ['']
@@ -528,16 +528,16 @@ def analyze_sqlshare(database, all_owners=True):
     for owner in owners:
         print owner if owner != '' else 'all'
         if owner == '':
-            distinct_q = 'SELECT plan from sqlshare_logs where has_plan = true group by plan'
-            all_queries_q = 'SELECT * from sqlshare_logs where has_plan = true'
-            queries_q = 'SELECT id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start, isview, view from sqlshare_logs where has_plan = true group by id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start, isview, view order by to_timestamp(time_start, \'MM/DD/YYYY HH12:MI:SS am\')'
-            query_with_same_plan_q = 'SELECT Count(*) as count from (SELECT distinct simple_plan from sqlshare_logs where has_plan = true) as foo'
+            distinct_q = 'SELECT plan from sqlshare_logs where has_plan = 1 group by plan'
+            all_queries_q = 'SELECT * from sqlshare_logs where has_plan = 1'
+            queries_q = 'SELECT id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start, isview, view from sqlshare_logs where has_plan = 1 group by id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start, isview, view order by to_timestamp(time_start, \'MM/DD/YYYY HH12:MI:SS am\')'
+            query_with_same_plan_q = 'SELECT Count(*) as count from (SELECT distinct simple_plan from sqlshare_logs where has_plan = 1) as foo'
         else:
             owner_condition = 'owner = \'' + owner + '\''
-            distinct_q = 'SELECT plan from sqlshare_logs where has_plan = true and ' + owner_condition + ' group by plan'
-            all_queries_q = 'SELECT * from sqlshare_logs where has_plan = true and ' + owner_condition + ' '
-            queries_q = 'SELECT id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start, isview, view from sqlshare_logs where has_plan = true and ' + owner_condition + '  group by id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start, isview, view order by to_timestamp(time_start, \'MM/DD/YYYY HH12:MI:SS am\')'
-            query_with_same_plan_q = 'SELECT Count(*) as count from (SELECT distinct simple_plan from sqlshare_logs where has_plan = true and ' + owner_condition + ' ) as foo'
+            distinct_q = 'SELECT plan from sqlshare_logs where has_plan = 1 and ' + owner_condition + ' group by plan'
+            all_queries_q = 'SELECT * from sqlshare_logs where has_plan = 1 and ' + owner_condition + ' '
+            queries_q = 'SELECT id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start, isview, view from sqlshare_logs where has_plan = 1 and ' + owner_condition + '  group by id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start, isview, view order by to_timestamp(time_start, \'MM/DD/YYYY HH12:MI:SS am\')'
+            query_with_same_plan_q = 'SELECT Count(*) as count from (SELECT distinct simple_plan from sqlshare_logs where has_plan = 1 and ' + owner_condition + ' ) as foo'
 
         # print "Find recurring subtrees in distinct queries (using subset check):"
         q = db.query(distinct_q)
@@ -553,7 +553,7 @@ def analyze_sqlshare(database, all_owners=True):
         explicit_implicit_joins(queries)
         print '#Total queries considering all constants the same:', query_with_same_plan[0]['count']
         all_tables = list(db.query('Select distinct("table") from sqlshare_tables'))
-        non_trivial_views = list(db.query("select view from sqlshare_logs where isview=true and lower(query) not like 'select * from %.[table_%]'"))
+        non_trivial_views = list(db.query("select view from sqlshare_logs where isview = 1 and lower(query) not like 'select * from %.[table_%]'"))
         list_nt_views =[]
         for ntview in non_trivial_views:
             list_nt_views.append(ntview['view'])
