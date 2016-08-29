@@ -518,14 +518,16 @@ def analyze_sqlshare(database, all_owners=True):
 
     if not all_owners:
         owners = ['']
-        top_owners = db.query('select owner from sqlshare_logs group by owner order by count(*) desc limit 100')
+        owners_hash = ['']
+        top_owners = db.query('select owner from sqlshare_logs group by owner order by count(*) desc limit 20')
         for result in top_owners:
             owners.append(result['owner'])
+            owners_hash.append(hashlib.sha256(result['owner']).hexdigest())
     view_depth_breadth = open('../results/sqlshare/view_depth_breadth.csv', 'w')
     view_depth_breadth_per_view = open('../results/sqlshare/view_depth_breadth_per_view.csv', 'w')
     view_depth_breadth.write("user, max_depth, max_breadth\n")
     view_depth_breadth_per_view.write("id, depth, breadth\n")
-    for owner in owners:
+    for oid, owner in enumerate(owners):
         print owner if owner != '' else 'all'
         if owner == '':
             distinct_q = 'SELECT plan from sqlshare_logs where has_plan = 1 group by plan'
@@ -582,7 +584,7 @@ def analyze_sqlshare(database, all_owners=True):
         tables = []
         view_depth = []
         view_breadth = []
-        cummu_q_table_by_time = open('../results/sqlshare/' + owner + 'cummu_q_table_by_time.csv', 'w')
+        cummu_q_table_by_time = open('../results/sqlshare/' + owners_hash[oid] + 'cummu_q_table_by_time.csv', 'w')
 
         for i, q in enumerate(queries):
             # comp_length = len(bz2.compress(q['query']))
@@ -681,27 +683,27 @@ def analyze_sqlshare(database, all_owners=True):
                 f.write("%s,%s\n" % (key, dict_obj[key]))
             f.close()
 
-        # write_to_csv(comp_lengths, 'comp_length', 'count', '../results/sqlshare/'+owner+'comp_lengths.csv')
-        write_to_csv(exp_lengths, 'exp_length', 'count', '../results/sqlshare/' + owner + 'exp_lengths.csv')
-        # write_to_csv(comp_exp_lengths, 'comp_exp_length', 'count', '../results/sqlshare/'+owner+'comp_exp_lengths.csv')
-        write_to_csv(ops, 'ops', 'count', '../results/sqlshare/' + owner + 'ops.csv')
-        write_to_csv(exp_ops, 'exp_ops', 'count', '../results/sqlshare/' + owner + 'exp_ops.csv')
+        # write_to_csv(comp_lengths, 'comp_length', 'count', '../results/sqlshare/'+owners_hash[oid]+'comp_lengths.csv')
+        write_to_csv(exp_lengths, 'exp_length', 'count', '../results/sqlshare/' + owners_hash[oid] + 'exp_lengths.csv')
+        # write_to_csv(comp_exp_lengths, 'comp_exp_length', 'count', '../results/sqlshare/'+owners_hash[oid]+'comp_exp_lengths.csv')
+        write_to_csv(ops, 'ops', 'count', '../results/sqlshare/' + owners_hash[oid] + 'ops.csv')
+        write_to_csv(exp_ops, 'exp_ops', 'count', '../results/sqlshare/' + owners_hash[oid] + 'exp_ops.csv')
         write_to_csv(exp_distinct_ops, 'exp_distinct_ops', 'count',
-                     '../results/sqlshare/' + owner + 'exp_distinct_ops.csv')
-        # write_to_csv(str_ops, 'str_ops', 'count', '../results/sqlshare/'+owner+'str_ops.csv')
-        # write_to_csv(distinct_str_ops, 'distinct_str_ops', 'count', '../results/sqlshare/'+owner+'distinct_str_ops.csv')
-        # write_to_csv(exp_str_ops, 'exp_str_ops', 'count', '../results/sqlshare/'+owner+'exp_str_ops.csv')
-        # write_to_csv(exp_distinct_str_ops, 'exp_distinct_str_ops', 'count', '../results/sqlshare/'+owner+'exp_distinct_str_ops.csv')
-        write_to_csv(dataset_touch, 'dataset_touch', 'count', '../results/sqlshare/' + owner + 'dataset_touch.csv')
-        write_to_csv(tables_in_query, 'number', 'count', '../results/sqlshare/' + owner + 'table_touch.csv')
-        # write_to_csv(time_taken, 'time_taken', 'count', '../results/sqlshare/'+owner+'time_taken.csv')
+                     '../results/sqlshare/' + owners_hash[oid] + 'exp_distinct_ops.csv')
+        # write_to_csv(str_ops, 'str_ops', 'count', '../results/sqlshare/'+owners_hash[oid]+'str_ops.csv')
+        # write_to_csv(distinct_str_ops, 'distinct_str_ops', 'count', '../results/sqlshare/'+owners_hash[oid]+'distinct_str_ops.csv')
+        # write_to_csv(exp_str_ops, 'exp_str_ops', 'count', '../results/sqlshare/'+owners_hash[oid]+'exp_str_ops.csv')
+        # write_to_csv(exp_distinct_str_ops, 'exp_distinct_str_ops', 'count', '../results/sqlshare/'+owners_hash[oid]+'exp_distinct_str_ops.csv')
+        write_to_csv(dataset_touch, 'dataset_touch', 'count', '../results/sqlshare/' + owners_hash[oid] + 'dataset_touch.csv')
+        write_to_csv(tables_in_query, 'number', 'count', '../results/sqlshare/' + owners_hash[oid] + 'table_touch.csv')
+        # write_to_csv(time_taken, 'time_taken', 'count', '../results/sqlshare/'+owners_hash[oid]+'time_taken.csv')
         write_to_csv(exp_physical_ops, 'exp_physical_ops', 'count',
-                     '../results/sqlshare/' + owner + 'exp_physical_ops.csv')
+                     '../results/sqlshare/' + owners_hash[oid] + 'exp_physical_ops.csv')
         write_to_csv(exp_distinct_physical_ops, 'exp_distinct_physical_ops', 'count',
-                     '../results/sqlshare/' + owner + 'exp_distinct_physical_ops.csv')
-        write_to_csv(table_coverage, 'query_id', 'tables', '../results/sqlshare/' + owner + 'table_coverage.csv',
+                     '../results/sqlshare/' + owners_hash[oid] + 'exp_distinct_physical_ops.csv')
+        write_to_csv(table_coverage, 'query_id', 'tables', '../results/sqlshare/' + owners_hash[oid] + 'table_coverage.csv',
                      to_reverse=False)
-        write_to_csv(dataset_coverage, 'query_id', 'tables', '../results/sqlshare/' + owner + 'dataset_coverage.csv',
+        write_to_csv(dataset_coverage, 'query_id', 'tables', '../results/sqlshare/' + owners_hash[oid] + 'dataset_coverage.csv',
                      to_reverse=False)
 
         touch_by_time = {}
@@ -761,17 +763,17 @@ def analyze_sqlshare(database, all_owners=True):
 
         f_lowcomplexity_queries.close()
         f_highcomplexity_queries.close()
-        write_to_csv(q_ops_by_time, 'query_id', 'count', '../results/sqlshare/' + owner + 'exp_ops_by_time.csv')
+        write_to_csv(q_ops_by_time, 'query_id', 'count', '../results/sqlshare/' + owners_hash[oid] + 'exp_ops_by_time.csv')
         write_to_csv(q_distinct_ops_by_time, 'query_id', 'count',
-                     '../results/sqlshare/' + owner + 'exp_distinct_ops_by_time.csv')
+                     '../results/sqlshare/' + owners_hash[oid] + 'exp_distinct_ops_by_time.csv')
         write_to_csv(q_logops_by_time, 'query_id', 'count',
-                     '../results/sqlshare/' + owner + 'exp_physical_ops_by_time.csv')
+                     '../results/sqlshare/' + owners_hash[oid] + 'exp_physical_ops_by_time.csv')
         write_to_csv(q_distinct_logops_by_time, 'query_id', 'count',
-                     '../results/sqlshare/' + owner + 'exp_distinct_physical_ops_by_time.csv')
-        write_to_csv(touch_by_time, 'query_id', 'count', '../results/sqlshare/' + owner + 'table_touch_by_time.csv')
+                     '../results/sqlshare/' + owners_hash[oid] + 'exp_distinct_physical_ops_by_time.csv')
+        write_to_csv(touch_by_time, 'query_id', 'count', '../results/sqlshare/' + owners_hash[oid] + 'table_touch_by_time.csv')
         write_to_csv(q_complexity_by_time, 'query_id', 'complexity',
-                     '../results/sqlshare/' + owner + 'complexity_by_time.csv', False)
-        write_to_csv(q_length_by_time, 'query_id', 'length', '../results/sqlshare/' + owner + 'length_by_time.csv',
+                     '../results/sqlshare/' + owners_hash[oid] + 'complexity_by_time.csv', False)
+        write_to_csv(q_length_by_time, 'query_id', 'length', '../results/sqlshare/' + owners_hash[oid] + 'length_by_time.csv',
                      False)
     view_depth_breadth.close()
     view_depth_breadth_per_view.close()

@@ -96,7 +96,7 @@ def main():
         elif arguments['tpch']:
             query_analysis.analyze_tpch(db)
         else:
-            query_analysis.analyze_sqlshare(db, True)
+            query_analysis.analyze_sqlshare(db, False)
 
     if arguments['analyze2']:
         if arguments['sqlshare']:
