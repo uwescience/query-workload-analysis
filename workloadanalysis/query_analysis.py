@@ -530,13 +530,13 @@ def analyze_sqlshare(database, all_owners=True):
         if owner == '':
             distinct_q = 'SELECT plan from sqlshare_logs where has_plan = 1 group by plan'
             all_queries_q = 'SELECT * from sqlshare_logs where has_plan = 1'
-            queries_q = 'SELECT id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start, isview, view from sqlshare_logs where has_plan = 1 group by id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start, isview, view order by to_timestamp(time_start, \'MM/DD/YYYY HH12:MI:SS am\')'
+            queries_q = 'SELECT id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start, isview, view from sqlshare_logs where has_plan = 1 group by id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start, isview, view order by strftime(time_start, \'MM/DD/YYYY HH12:MI:SS am\')'
             query_with_same_plan_q = 'SELECT Count(*) as count from (SELECT distinct simple_plan from sqlshare_logs where has_plan = 1) as foo'
         else:
             owner_condition = 'owner = \'' + owner + '\''
             distinct_q = 'SELECT plan from sqlshare_logs where has_plan = 1 and ' + owner_condition + ' group by plan'
             all_queries_q = 'SELECT * from sqlshare_logs where has_plan = 1 and ' + owner_condition + ' '
-            queries_q = 'SELECT id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start, isview, view from sqlshare_logs where has_plan = 1 and ' + owner_condition + '  group by id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start, isview, view order by to_timestamp(time_start, \'MM/DD/YYYY HH12:MI:SS am\')'
+            queries_q = 'SELECT id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start, isview, view from sqlshare_logs where has_plan = 1 and ' + owner_condition + '  group by id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start, isview, view order by strftime(time_start, \'MM/DD/YYYY HH12:MI:SS am\')'
             query_with_same_plan_q = 'SELECT Count(*) as count from (SELECT distinct simple_plan from sqlshare_logs where has_plan = 1 and ' + owner_condition + ' ) as foo'
 
         # print "Find recurring subtrees in distinct queries (using subset check):"
