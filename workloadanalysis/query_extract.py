@@ -1,6 +1,7 @@
 import dataset
 import json
 import sqlalchemy as sa
+import time
 
 
 # visitors
@@ -42,10 +43,9 @@ def extract_sqlshare(db):
 def extract(db, query_table, tables_name, columns_name, logops_name, physops_name):
     datasetdb = dataset.connect(db)
 
-    queries = datasetdb.query('select * from {} where has_plan = 1'.format(query_table))
-
     try:
         datasetdb.query("drop table %s" % tables_name)
+        print 'Dropped ' + tables_name
     except sa.exc.ProgrammingError:
         pass
     except sa.exc.OperationalError:
@@ -53,6 +53,7 @@ def extract(db, query_table, tables_name, columns_name, logops_name, physops_nam
 
     try:
         datasetdb.query("drop table %s" % columns_name)
+        print 'Dropped ' + columns_name
     except sa.exc.ProgrammingError:
         pass
     except sa.exc.OperationalError:
@@ -60,6 +61,7 @@ def extract(db, query_table, tables_name, columns_name, logops_name, physops_nam
 
     try:
         datasetdb.query("drop table %s" % logops_name)
+        print 'Dropped ' + logops_name
     except sa.exc.ProgrammingError:
         pass
     except sa.exc.OperationalError:
@@ -67,6 +69,7 @@ def extract(db, query_table, tables_name, columns_name, logops_name, physops_nam
 
     try:
         datasetdb.query("drop table %s" % physops_name)
+        print 'Dropped ' + physops_name
     except sa.exc.ProgrammingError:
         pass
     except sa.exc.OperationalError:
@@ -81,8 +84,7 @@ def extract(db, query_table, tables_name, columns_name, logops_name, physops_nam
 
 
     datasetdb.begin()
-
-    for i, query in enumerate(queries):
+    for i, query in enumerate(datasetdb.query('select * from {} where has_plan = 1'.format(query_table))):
         if not query['plan']:
             continue
 

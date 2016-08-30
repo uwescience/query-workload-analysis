@@ -404,7 +404,8 @@ def new_tables():
     plt.show()
 
 def new_tables_for_users():
-    owners = [''] #ToDo: replace with owner list.
+    owners = ['billhowe', 'sr320@washington.edu', 'isaphan@washington.edu', 'emmats@washington.edu', 'koesterj@washington.edu', 'micaela@washington.edu',
+              'bifxcore@gmail.com', 'sism06@comcast.net', 'koenigk92@gmail.com', 'rkodner', 'erin.s1964@gmail.com', 'fridayharboroceanographers@gmail.com']
 
     fig, ax = plt.subplots(1)
     sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
@@ -415,7 +416,7 @@ def new_tables_for_users():
         c /= c[-1]
         q = data['query_id'].astype(float)
         q /= q[-1]
-        if owner == 'MOST ACTIVE USER':
+        if owner == 'sr320@washington.edu':
             ax.plot(q, c, color=r, linewidth=2, drawstyle='steps-post')
         else:
             ax.plot(q, c, color='grey', linewidth=2, drawstyle='steps-post')
@@ -478,7 +479,8 @@ def Q_vs_D():
     plt.show()
 
 def lifetime():
-    owners = [''] #TODO: add actual owner list
+    owners = ['billhowe', 'sr320@washington.edu', 'isaphan@washington.edu', 'emmats@washington.edu', 'koesterj@washington.edu', 'micaela@washington.edu',
+              'bifxcore@gmail.com', 'sism06@comcast.net', 'koenigk92@gmail.com', 'rkodner', 'erin.s1964@gmail.com', 'fridayharboroceanographers@gmail.com']
     sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
 
     fig, ax = plt.subplots(1)
@@ -499,7 +501,7 @@ def lifetime():
             if l == 0:
                 Lifetime[i] = 1
 
-        if owner == 'MOST ACTIVE':
+        if owner == 'sr320@washington.edu':
             ax.plot(query_id, Lifetime, color = r, marker = '.', ls ='-', alpha = 0.3)
         else:
             ax.plot(query_id, Lifetime, color = 'grey', marker = '.', ls ='-', alpha = 0.3)
@@ -802,7 +804,7 @@ def viewdepth_hist():
 
     fig, ax = plt.subplots(1)
 
-    with open('../results/sqlshare/view_depth.csv') as f:
+    with open('../results/sqlshare/view_depth_new.csv') as f:
         data = np.recfromcsv(f)
     
     depth = data['max_depth'].astype(float)
@@ -810,10 +812,10 @@ def viewdepth_hist():
     c = [0,0,0]
     xpos = np.arange(3)
 
-    ticklabels=['2-4','5-8','8+']
+    ticklabels=['1-3','4-8','8+']
 
     for d in depth:
-        if d < 4 and d > 1:
+        if d < 3:
             c[0] += 1
         elif d < 8:
             c[1] += 1
@@ -839,21 +841,21 @@ def viewdepth_hist():
     plt.show()
 
 if __name__ == '__main__':
-    # num_dist_ops_hist()
-    # ops()
-    # query_length()
-    # new_tables_for_users()
-    # lifetime()
-    # viewdepth_hist()
-    # queries_per_table()
+    num_dist_ops_hist()
+    ops()
+    query_length()
+    new_tables_for_users()
+    lifetime()
+    viewdepth_hist()
+    queries_per_table()
     # query_length_hist()
     # num_ops()
     # num_dist_ops()
-    # Q_vs_D()
+    Q_vs_D()
     # query_entropy()
     # 
     # viewdepth()
-    complexity()
+    # complexity()
     # cumulative_q_t()
     # # table_touch()
     # # column_touch()

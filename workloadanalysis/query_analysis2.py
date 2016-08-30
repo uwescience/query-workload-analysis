@@ -28,7 +28,7 @@ def analyse2(database):
     db = dataset.connect(database);
 
     # The following code calculates dataset sharing.
-    ref_view_q = "select id, owner, view, ref_views from sqlshare_logs where isview = false and ref_views != ''"
+    ref_view_q = "select id, owner, view, ref_views from sqlshare_logs where isview = 0 and ref_views != ''"
 
     datasets = db.query(ref_view_q)
     shared_datasets = 0

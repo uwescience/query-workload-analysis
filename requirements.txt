@@ -5,4 +5,8 @@ docopt
 lxml
 sqlparse
 unicodecsv
+numpy
+scipy
+matplotlib
+seaborn
 

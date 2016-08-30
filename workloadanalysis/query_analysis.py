@@ -663,7 +663,8 @@ def analyze_sqlshare(database, all_owners=True):
             cummu_q_table_by_time.write("%d, %d, %s\n" % (i, len(tables_seen_so_far), q['time_start']))
 
         cummu_q_table_by_time.close()
-        view_depthf.write("%s,%d\n" % (owner if owner != '' else 'all', 0 if len(view_depth) == 0 else max(view_depth)))
+        if owner != '':
+            view_depthf.write("%s,%d\n" % (owner, 0 if len(view_depth) == 0 else max(view_depth)))
 
         def write_to_csv(dict_obj, col1, col2, filename, to_reverse=True):
             f = open(filename, 'w')
