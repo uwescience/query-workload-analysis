@@ -53,3 +53,8 @@ sqlite3 -header -csv sqlshare-sdss.sqlite "select a.owner, a.queries as q, b.dat
 
 echo 'Generating Graphs...'
 python ../plots/new_plot.py
+
+echo "Generating the paper.pdf again"
+
+cd ../2015-sqlshare-sigmod/
+make

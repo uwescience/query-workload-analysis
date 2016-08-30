@@ -40,6 +40,7 @@ lines = {
 
 font_scale = 1.7
 
+root_path = '../2015-sqlshare-sigmod/figures/'
 
 def to_percent(y, position):
     # Ignore the passed in position. This has the effect of scaling the default
@@ -96,7 +97,7 @@ def num_ops():
     plt.legend(loc=4)
     plt.tight_layout()
 
-    plt.savefig('plot_num_physops_cdf.eps', format='eps')
+    plt.savefig(root_path + 'plot_num_physops_cdf.eps', format='eps')
     plt.show()
 
 
@@ -132,7 +133,7 @@ def num_dist_ops():
     plt.legend(loc=4)
     plt.tight_layout()
 
-    plt.savefig('plot_num_dist_physops_cdf.eps', format='eps')
+    plt.savefig(root_path + 'plot_num_dist_physops_cdf.eps', format='eps')
     plt.show()
 
 
@@ -172,7 +173,7 @@ def query_length():
     plt.legend(loc=4)
     plt.tight_layout()
 
-    plt.savefig('plot_length_cdf.eps', format='eps')
+    plt.savefig(root_path + 'plot_length_cdf.eps', format='eps')
     plt.show()
 
 
@@ -206,7 +207,7 @@ def table_touch():
     plt.legend(loc=4)
     plt.tight_layout()
 
-    plt.savefig('plot_touch_cdf.eps', format='eps')
+    plt.savefig(root_path + 'plot_touch_cdf.eps', format='eps')
     plt.show()
 
 
@@ -240,7 +241,7 @@ def column_touch():
     plt.legend(loc=4)
     plt.tight_layout()
 
-    plt.savefig('plot_column_touch_cdf.eps', format='eps')
+    plt.savefig(root_path + 'plot_column_touch_cdf.eps', format='eps')
     plt.show()
 
 
@@ -275,7 +276,7 @@ def runtime():
     plt.legend(loc=4)
     plt.tight_layout()
 
-    plt.savefig('plot_runtime_cdf.eps', format='eps')
+    plt.savefig(root_path + 'plot_runtime_cdf.eps', format='eps')
     plt.show()
 
 def complexity():
@@ -347,7 +348,7 @@ def ops():
         fig.tight_layout(rect=[0.03, 0, 1, 1])
         fig.text(0.02, 0.55, 'Physical operator', rotation=90, va='center')
 
-        plt.savefig('plot_ops_%s.eps' % w, format='eps')
+        plt.savefig(root_path + 'plot_ops_%s.eps' % w, format='eps')
         plt.show()
 
 
@@ -400,7 +401,7 @@ def new_tables():
     plt.legend(loc=4)
     plt.tight_layout()
 
-    plt.savefig('plot_table_coverage.eps', format='eps')
+    plt.savefig(root_path + 'plot_table_coverage.eps', format='eps')
     plt.show()
 
 def new_tables_for_users():
@@ -440,7 +441,7 @@ def new_tables_for_users():
     plt.legend(loc=4)
     plt.tight_layout()
 
-    plt.savefig('plot_table_coverage.eps', format='eps')
+    plt.savefig(root_path + 'plot_table_coverage.eps', format='eps')
     plt.show()
 
 def Q_vs_D():
@@ -475,7 +476,7 @@ def Q_vs_D():
 
     plt.tight_layout()
 
-    plt.savefig('plot_Q_D.eps', format='eps')
+    plt.savefig(root_path + 'plot_Q_D.eps', format='eps')
     plt.show()
 
 def lifetime():
@@ -518,7 +519,7 @@ def lifetime():
     ax.xaxis.grid(False)
     ax.yaxis.grid(False)
 
-    plt.savefig('plot_query_lifetime.eps', format='eps')
+    plt.savefig(root_path + 'plot_query_lifetime.eps', format='eps')
     plt.show()
 
 def viewdepth():
@@ -545,7 +546,7 @@ def viewdepth():
     ax.xaxis.grid(False)
     ax.yaxis.grid(False)
 
-    plt.savefig('plot_query_viewdepth.eps', format='eps')
+    plt.savefig(root_path + 'plot_query_viewdepth.eps', format='eps')
     plt.show()
 
 def cumulative_q_t():
@@ -591,7 +592,7 @@ def cumulative_q_t():
 
         plt.tight_layout()
 
-        plt.savefig('plot_q_t_'+owner+'.eps', format='eps')
+        plt.savefig(root_path + 'plot_q_t_'+owner+'.eps', format='eps')
         plt.show()
 
 def queries_per_table():
@@ -654,7 +655,7 @@ def queries_per_table():
     ax.yaxis.grid(False)
     plt.tight_layout()
 
-    plt.savefig('plot_queries_per_table.eps', format='eps')
+    plt.savefig(root_path + 'plot_queries_per_table.eps', format='eps')
     plt.show()
 
 def query_entropy():
@@ -694,7 +695,7 @@ def query_entropy():
 
     autolabel(rects1)
     autolabel(rects2)
-    plt.savefig('plot_query_entropy.eps', format='eps')
+    plt.savefig(root_path + 'plot_query_entropy.eps', format='eps')
     plt.show()
 
 def num_dist_ops_hist():
@@ -742,7 +743,7 @@ def num_dist_ops_hist():
     plt.legend(loc=1)
     plt.tight_layout()
 
-    plt.savefig('plot_num_dist_physops_cdf.eps', format='eps')
+    plt.savefig(root_path + 'plot_num_dist_physops_cdf.eps', format='eps')
     plt.show()
 
 def query_length_hist():
@@ -796,7 +797,7 @@ def query_length_hist():
     plt.legend(loc=1)
     plt.tight_layout()
 
-    plt.savefig('plot_length_cdf.eps', format='eps')
+    plt.savefig(root_path + 'plot_length_cdf.eps', format='eps')
     plt.show()
 
 def viewdepth_hist():
@@ -837,7 +838,7 @@ def viewdepth_hist():
 
     plt.tight_layout()
 
-    plt.savefig('plot_query_viewdepth.eps', format='eps')
+    plt.savefig(root_path + 'plot_query_viewdepth.eps', format='eps')
     plt.show()
 
 if __name__ == '__main__':
