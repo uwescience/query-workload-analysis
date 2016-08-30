@@ -47,7 +47,7 @@ sqlite3 sqlshare-sdss.sqlite -csv -header "select number, count(*) from (select 
 sqlite3 sqlshare-sdss.sqlite -csv -header "select number, count(*) from (select query_id, count(distinct phys_operator) as number from sdss_physops group by query_id) as f group by number order by number asc" > ../results/num_dist_physops/sdss.csv
 sqlite3 sqlshare-sdss.sqlite -csv -header "select length(query) as l, count(*) as c from everything group by length(query) order by length(query) asc" > ../results/query_length/sdss.csv
 sqlite3 sqlshare-sdss.sqlite -csv -header "select length(query) as l, count(*) as c from sqlshare_logs group by length(query) order by length(query) asc" > ../results/query_length/sqlshare.csv
-sqlite3 -header -csv sqlshare-sdss.sqlite "select a.owner, a.queries as q, b.datasets as d from (select owner, count(distinct query) as queries from sqlshare_logs where isview = 0 and has_plan = 1 group by owner) as a, (select owner, count(*) as datasets from sqlshare_logs where isview=1 group by owner) as b where a.owner = b.owner " > ../results/sqlshare/user_Q_D.csv
+sqlite3 -header -csv sqlshare-sdss.sqlite "select a.owner, a.queries as q, b.datasets as d from (select owner, count(distinct query) as queries from sqlshare_logs where isview = 0 group by owner) as a, (select owner, count(*) as datasets from sqlshare_logs where isview=1 group by owner) as b where a.owner = b.owner " > ../results/sqlshare/user_Q_D.csv
 
 echo 'Generating Graphs...'
 python ../plots/new_plot.py
