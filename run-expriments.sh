@@ -1,3 +1,7 @@
+pip install virtualenv
+virtualenv vqwla
+source vqwla/bin/activate
+
 pip install -r requirements.txt
 python setup.py develop
 sudo apt-get install sqlite3 libsqlite3-dev
