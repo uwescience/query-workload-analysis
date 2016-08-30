@@ -222,8 +222,8 @@ def find_recurring_subset(queries):
         # pprint(plan)
         cost += plan['total']
         check_tree(plan)
-        if not i % 100:
-            print "Looked for reuse in", i, len(seen), len(columns), len(empty_cols)
+        # if not i % 100:
+        #     print "Looked for reuse in", i, len(seen), len(columns), len(empty_cols)
 
     for h, c in usefulness.most_common(5):
         print c, seen[h]
@@ -528,7 +528,6 @@ def analyze_sqlshare(database, all_owners=True):
     view_depth_breadth.write("user, max_depth, max_breadth\n")
     view_depth_breadth_per_view.write("id, depth, breadth\n")
     for owner in owners:
-        print owner if owner != '' else 'all'
         if owner == '':
             distinct_q = 'SELECT plan from sqlshare_logs where has_plan = 1 group by plan'
             all_queries_q = 'SELECT * from sqlshare_logs where has_plan = 1'
@@ -541,33 +540,34 @@ def analyze_sqlshare(database, all_owners=True):
             queries_q = 'SELECT id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start, isview, view from sqlshare_logs where has_plan = 1 and ' + owner_condition + '  group by id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start, isview, view order by strftime(time_start, \'MM/DD/YYYY HH12:MI:SS am\')'
             query_with_same_plan_q = 'SELECT Count(*) as count from (SELECT distinct simple_plan from sqlshare_logs where has_plan = 1 and ' + owner_condition + ' ) as foo'
 
-        # print "Find recurring subtrees in distinct queries (using subset check):"
-        q = db.query(distinct_q)
-        find_recurring_subset(q)
+        if owner == '':
+            print "Find recurring subtrees in distinct queries (using subset check):"
+            q = db.query(distinct_q)
+            find_recurring_subset(q)
 
         all_queries = list(db.query(all_queries_q))
         queries = list(db.query(queries_q))
         views = list(db.query(views_q))
         query_with_same_plan = list(db.query(query_with_same_plan_q))
 
-        print '#Total queries with plan: ', len(all_queries)
-        print '#Total string distinct queries:', len(queries)
-        explicit_implicit_joins(queries)
-        print '#Total queries considering all constants the same:', query_with_same_plan[0]['count']
+        if owner == '':
+            print '#Total queries with plan: ', len(all_queries)
+            print '#Total string distinct queries:', len(queries)
+            explicit_implicit_joins(queries)
+            print '#Total queries considering all constants the same:', query_with_same_plan[0]['count']
+
         all_tables = list(db.query('Select distinct("table") from sqlshare_tables'))
         non_trivial_views = list(db.query("select view from sqlshare_logs where isview = 1 and lower(query) not like 'select * from %.[table_%]'"))
         list_nt_views =[]
         for ntview in non_trivial_views:
             list_nt_views.append(ntview['view'])
         del non_trivial_views
-        #comp_lengths = Counter()
         ops = Counter()
         exp_lengths = Counter()
         exp_ops = Counter()
         exp_distinct_ops = Counter()
         exp_physical_ops = Counter()
         exp_distinct_physical_ops = Counter()
-        # comp_exp_lengths = Counter()
         str_ops = Counter()
         distinct_str_ops = Counter()
         exp_str_ops = Counter()
