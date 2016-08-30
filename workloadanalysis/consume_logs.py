@@ -106,7 +106,10 @@ def consume_sqlshare(db, f, isview):
     id = 250000
     fail_count = 0
     for line in f:
-        print 'Processing Query: ', count
+        # if not isview:
+        #     print 'Processing Query: ', count
+        # else:
+        #     print 'Processing View: ', count
         row = line.split('|')
         count += 1
         try:
@@ -117,11 +120,11 @@ def consume_sqlshare(db, f, isview):
                     'time_end': 'NA',
                     'status': 'NA',
                     'view': row[0],
-                    'query': pretty_query(row[1]),
+                    'query': pretty_query(row[1]).decode('utf8'),
                     'owner': row[0].split(']')[0][1:],
                     'length': len(row[4]),
                     'isview': True,
-                    'xml_plan': row[5],
+                    'xml_plan': row[5].decode('utf8'),
                     'runtime': -1,
                     'has_plan': False
                 }
@@ -133,18 +136,54 @@ def consume_sqlshare(db, f, isview):
                     'time_start': row[2],
                     'time_end': row[3],
                     'status': row[4],
-                    'query': pretty_query(row[5]),
+                    'query': pretty_query(row[5]).decode('utf8'),
                     'length': int(row[6]),
                     'runtime': int(row[7]),
-                    'xml_plan': row[8],
+                    'xml_plan': row[8].decode('utf8'),
                     'isview': False,
                     'view': 'NA',
                     'has_plan': False
                 }
             table.insert(data)
-        except Exception:
-            print 'Exception...'
+        except Exception as e:
+            print e
             fail_count += 1
+        # try:
+        #     if isview:
+        #         data = {
+        #             'id': int(row[0]),
+        #             'time_start': row[1],
+        #             'time_end': row[2],
+        #             'status': row[3],
+        #             'view': row[4],
+        #             'query': row[5],
+        #             'owner': row[6],
+        #             'length': len(row[5]),
+        #             'isview': True,
+        #             'xml_plan': row[8],
+        #             'runtime': int(row[9]),
+        #             'has_plan': False
+        #         }
+        #         id += 1
+        #     else:
+        #         data = {
+        #             'id': int(row[0]),
+        #             'owner': row[1],
+        #             'time_start': row[2],
+        #             'time_end': row[3],
+        #             'status': row[4],
+        #             'query': row[5],
+        #             'length': int(row[5]),
+        #             'runtime': int(row[7]),
+        #             'xml_plan': row[8],
+        #             'isview': False,
+        #             'view': row[9],
+        #             'has_plan': False
+        #         }
+        #     table.insert(data)
+        # except Exception as e:
+        #     print 'Exception...', e
+        #     fail_count += 1
     print fail_count
 
 

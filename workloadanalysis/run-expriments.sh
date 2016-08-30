@@ -1,13 +1,18 @@
-#!/bin/bash
 
-# Need to download datasets
 
 pip install -r requirements.txt
 python setup.py develop
 sudo apt-get install sqlite3 libsqlite3-dev
 
+cd workloadanalysis
+
+# Need to download datasets
+# wget QueriesWithPlan.csv
+# wget ViewsWithPlan.csv
+# wget sdssquerieswithplan.csv
+
 echo 'Consuming SQLShare logs'
-qwla sqlshare consume QueriesWithPlan.csv
+qwla sqlshare consume QueriesWithPlan.csv 
 qwla sqlshare consume ViewsWithPlan.csv -v
 
 echo 'Extracting metrics of interests from SQLShare plans'
@@ -30,17 +35,20 @@ qwla sdss analyze
 
 mkdir ../results/sqlshare/
 mkdir ../results/sdss/
+mkdir ../results/physops/
+mkdir ../results/query_length/
+mkdir ../results/num_dist_physops/
+
+rm -f ../results/physops/sqlshare.csv ../results/physops/sdss.csv ../results/num_dist_physops/sqlshare.csv ../results/num_dist_physops/sdss.csv ../results/query_length/sdss.csv ../results/query_length/sqlshare.csv ../results/sqlshare/user_Q_D.csv
 
 echo 'Extracting result csv files...'
 sqlite3 -header -csv sqlshare-sdss.sqlite 'select replace("table", ",", "`") as "table", count(distinct(query_id)) as num_queries from sqlshare_tables group by "table" order by num_queries desc' > ../results/sqlshare/queries_per_table.csv
 sqlite3 sqlshare-sdss.sqlite -csv -header "select phys_operator, count(*) from sqlshare_physops  where phys_operator != \"Clustered Index Scan\" group by phys_operator order by count(*) desc limit 10" > ../results/physops/sqlshare.csv
 sqlite3 sqlshare-sdss.sqlite -csv -header "select phys_operator, count(*) from sdss_physops group by phys_operator order by count(*) desc limit 10" > ../results/physops/sdss.csv
-
 sqlite3 sqlshare-sdss.sqlite -csv -header "select number, count(*) from (select query_id, count(distinct phys_operator) as number from sqlshare_physops where phys_operator != 'Clustered Index Scan' group by query_id) as f group by number order by number asc" > ../results/num_dist_physops/sqlshare.csv
 sqlite3 sqlshare-sdss.sqlite -csv -header "select number, count(*) from (select query_id, count(distinct phys_operator) as number from sdss_physops group by query_id) as f group by number order by number asc" > ../results/num_dist_physops/sdss.csv
-
-sqlite3 sqlshare-sdss.sqlite -csv -header "select char_length(query), count(*) from logs group by char_length(query) order by char_length(query) asc" > ../results/query_length/sdss.csv
-sqlite3 sqlshare-sdss.sqlite -csv -header "select char_length(query), count(*) from sqlshare_logs group by char_length(query) order by char_length(query) asc" > ../results/query_length/sqlshare.csv
+sqlite3 sqlshare-sdss.sqlite -csv -header "select length(query) as l, count(*) as c from everything group by length(query) order by length(query) asc" > ../results/query_length/sdss.csv
+sqlite3 sqlshare-sdss.sqlite -csv -header "select length(query) as l, count(*) as c from sqlshare_logs group by length(query) order by length(query) asc" > ../results/query_length/sqlshare.csv
 sqlite3 -header -csv sqlshare-sdss.sqlite "select a.owner, a.queries as q, b.datasets as d from (select owner, count(distinct query) as queries from sqlshare_logs where isview = 0 and has_plan = 1 group by owner) as a, (select owner, count(*) as datasets from sqlshare_logs where isview=1 group by owner) as b where a.owner = b.owner " > ../results/sqlshare/user_Q_D.csv
 
 echo 'Generating Graphs...'

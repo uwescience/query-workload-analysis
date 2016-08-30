@@ -234,7 +234,7 @@ def find_recurring_subset(queries):
 
 def print_table(data, headers, workload='sdss'):
     # print tabulate(data, headers, tablefmt='latex')
-    name = 'results/' + workload + '/' + '_'.join(headers).replace(' ', '_') + '.csv'
+    name = '../results/' + workload + '/' + '_'.join(headers).replace(' ', '_') + '.csv'
     with open(name, 'w') as f:
         writer = csv.writer(f)
         writer.writerow(headers)
@@ -527,12 +527,14 @@ def analyze_sqlshare(database, all_owners=True):
         if owner == '':
             distinct_q = 'SELECT plan from sqlshare_logs where has_plan = 1 group by plan'
             all_queries_q = 'SELECT * from sqlshare_logs where has_plan = 1'
+            str_dist_q = 'Select distinct(query) as query from sqlshare_logs where has_plan = 1'
             queries_q = 'SELECT id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start, isview, view from sqlshare_logs where has_plan = 1 group by id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start, isview, view order by strftime(time_start, \'MM/DD/YYYY HH12:MI:SS am\')'
             query_with_same_plan_q = 'SELECT Count(*) as count from (SELECT distinct simple_plan from sqlshare_logs where has_plan = 1) as foo'
         else:
             owner_condition = 'owner = \'' + owner + '\''
             distinct_q = 'SELECT plan from sqlshare_logs where has_plan = 1 and ' + owner_condition + ' group by plan'
             all_queries_q = 'SELECT * from sqlshare_logs where has_plan = 1 and ' + owner_condition + ' '
+            str_dist_q = 'Select distinct(query) as query from sqlshare_logs where has_plan = 1 and ' + owner_condition + ' '
             queries_q = 'SELECT id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start, isview, view from sqlshare_logs where has_plan = 1 and ' + owner_condition + '  group by id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start, isview, view order by strftime(time_start, \'MM/DD/YYYY HH12:MI:SS am\')'
             query_with_same_plan_q = 'SELECT Count(*) as count from (SELECT distinct simple_plan from sqlshare_logs where has_plan = 1 and ' + owner_condition + ' ) as foo'
 
@@ -548,7 +550,7 @@ def analyze_sqlshare(database, all_owners=True):
 
         if owner == '':
             print '#Total queries with plan: ', len(all_queries)
-            print '#Total string distinct queries:', len(queries)
+            print '#Total string distinct queries:', len(db.query(str_dist_q))
             # explicit_implicit_joins(queries)
             print '#Total queries considering all constants the same:', query_with_same_plan[0]['count']
 

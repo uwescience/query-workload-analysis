@@ -144,9 +144,9 @@ def query_length():
     # sns.set_style("whitegrid")
 
     for w in workloads:
-        c = d[w]['count'].astype(float)
+        c = d[w]['c'].astype(float)
         c /= sum(c)
-        plt.plot(d[w]['char_length'], np.cumsum(c)*100,
+        plt.plot(d[w]['l'], np.cumsum(c)*100,
                  label=labels[w], color=colors[w], ls=lines[w])
 
     axes = plt.gca()

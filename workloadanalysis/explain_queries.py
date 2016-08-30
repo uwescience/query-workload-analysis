@@ -30,7 +30,7 @@ def explain_sqlshare(database, quiet, first_pass, dry=False):
         queries = list(db.query('SELECT * FROM sqlshare_logs Where has_plan = 1'))
         views = list(db.query('SELECT * FROM sqlshare_logs Where isview = 1'))
         for i, query in enumerate(queries):
-            print "Explain query pass 2", i
+            # print "Explain query pass 2", i
 
             # Getting all referenced views now
             ref_views = []
@@ -59,7 +59,7 @@ def explain_sqlshare(database, quiet, first_pass, dry=False):
     # views = list(db.query('SELECT * FROM sqlshare_logs WHERE isview = 1'))
 
     for i, query in enumerate(queries):
-        print "Explain query", i
+        # print "Explain query", i
         op_count = [0]
         #see if the plan is valid
         if query['xml_plan'][0] != '<':
@@ -89,8 +89,8 @@ def explain_sqlshare(database, quiet, first_pass, dry=False):
             continue
 
         query_plan = query_plans[0]
-        if not quiet:
-            print utils.json_pretty(query_plan)
+        # if not quiet:
+        #     print utils.json_pretty(query_plan)
 
         query['plan'] = json.dumps(query_plan, cls=utils.SetEncoder)
         simple_query_plan = parse_xml.get_query_plans(
@@ -111,7 +111,7 @@ def explain_sqlshare(database, quiet, first_pass, dry=False):
         if not dry:
             table.update(query, ['id'])
 
-    print "Errors", errors
+    # print "Errors", errors
     print "Error: {0} \%".format(len(errors) * 100.0 / len(queries))
 
 
@@ -149,9 +149,9 @@ def explain_sdss(database, quiet=False, segments=None, dry=False, offset=0):
     errors = []
 
     for i, query in enumerate(queries):
-        print "Process query index:", i
+        # print "Process query index:", i
         query = dict(query)
-        print "query id:", query['id']
+        # print "query id:", query['id']
 
         entry = None
         if not dry:
@@ -193,8 +193,8 @@ def explain_sdss(database, quiet=False, segments=None, dry=False, offset=0):
             assert len(query_plan['children']) == 1
             query_plan = query_plan['children'][0]
 
-        if not quiet:
-            print utils.json_pretty(query_plan)
+        # if not quiet:
+        #     print utils.json_pretty(query_plan)
         query['plan'] = json.dumps(query_plan, cls=utils.SetEncoder, sort_keys=True)
 
         query['estimated_cost'] = query_plan['total']
