@@ -11,3 +11,14 @@ workloadanalysis/sdss/*
 workloadanalysis/sqlshare/*
 workloadanalysis/sqlshare/*/*
 workloadanalysis/sqlshare_analysis.py
+workloadanalysis/anonymize.ipynb
+workloadanalysis/Anonymized_False.csv
+workloadanalysis/Anonymized_True.csv
+workloadanalysis/attributesimilarity.py
+workloadanalysis/complete.png
+workloadanalysis/operators.csv
+workloadanalysis/usage_of_columns.png
+workloadanalysis/used_columns.dat
+workloadanalysis/used_columns.txt
+workloadanalysis/user_hashes.csv
+sqlshare_owner.txt
