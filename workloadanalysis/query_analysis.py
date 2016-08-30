@@ -518,15 +518,11 @@ def analyze_sqlshare(database, all_owners=True):
 
     if not all_owners:
         owners = ['']
-        owners_hash = ['']
-        top_owners = db.query('select owner from sqlshare_logs group by owner order by count(*) desc limit 20')
+        top_owners = db.query('select owner from sqlshare_logs group by owner order by count(*) desc limit 100')
         for result in top_owners:
             owners.append(result['owner'])
-            owners_hash.append(hashlib.sha256(result['owner']).hexdigest())
-    view_depth_breadth = open('../results/sqlshare/view_depth_breadth.csv', 'w')
-    view_depth_breadth_per_view = open('../results/sqlshare/view_depth_breadth_per_view.csv', 'w')
-    view_depth_breadth.write("user, max_depth, max_breadth\n")
-    view_depth_breadth_per_view.write("id, depth, breadth\n")
+    view_depthf = open('../results/sqlshare/view_depth_new.csv', 'w')
+    view_depthf.write("user, max_depth\n")
     for owner in owners:
         if owner == '':
             distinct_q = 'SELECT plan from sqlshare_logs where has_plan = 1 group by plan'
@@ -540,10 +536,10 @@ def analyze_sqlshare(database, all_owners=True):
             queries_q = 'SELECT id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start, isview, view from sqlshare_logs where has_plan = 1 and ' + owner_condition + '  group by id, query, plan, length, runtime, expanded_plan_ops_logical, expanded_plan_ops, ref_views, time_start, isview, view order by strftime(time_start, \'MM/DD/YYYY HH12:MI:SS am\')'
             query_with_same_plan_q = 'SELECT Count(*) as count from (SELECT distinct simple_plan from sqlshare_logs where has_plan = 1 and ' + owner_condition + ' ) as foo'
 
-        if owner == '':
-            print "Find recurring subtrees in distinct queries (using subset check):"
-            q = db.query(distinct_q)
-            find_recurring_subset(q)
+        # if owner == '':
+        #     print "Find recurring subtrees in distinct queries (using subset check):"
+        #     q = db.query(distinct_q)
+        #     find_recurring_subset(q)
 
         all_queries = list(db.query(all_queries_q))
         queries = list(db.query(queries_q))
@@ -553,7 +549,7 @@ def analyze_sqlshare(database, all_owners=True):
         if owner == '':
             print '#Total queries with plan: ', len(all_queries)
             print '#Total string distinct queries:', len(queries)
-            explicit_implicit_joins(queries)
+            # explicit_implicit_joins(queries)
             print '#Total queries considering all constants the same:', query_with_same_plan[0]['count']
 
         all_tables = list(db.query('Select distinct("table") from sqlshare_tables'))
@@ -583,7 +579,6 @@ def analyze_sqlshare(database, all_owners=True):
         tables_in_query = Counter()
         tables = []
         view_depth = []
-        view_breadth = []
         cummu_q_table_by_time = open('../results/sqlshare/' + owner + 'cummu_q_table_by_time.csv', 'w')
 
         for i, q in enumerate(queries):
@@ -597,7 +592,6 @@ def analyze_sqlshare(database, all_owners=True):
             ref_views = {}
             total_ref_views = {}
             vd = 0
-            vb = 0
             while (True):
                 previousLength = len(expanded_query)
                 ref_views = {}
@@ -612,8 +606,6 @@ def analyze_sqlshare(database, all_owners=True):
                 for v in ref_views:
                     if 'table_table' not in ref_views[v]:
                         expanded_query = expanded_query.replace(v, '(' + ref_views[v] + ')')
-                if vb < len(ref_views):
-                    vb = len(ref_views)
                 if len(ref_views) > 0:
                     vd +=1
                 if (len(expanded_query) == previousLength):
@@ -622,10 +614,7 @@ def analyze_sqlshare(database, all_owners=True):
                         if d not in datasets_seen_so_far:
                             datasets_seen_so_far.append(d)
                     break
-            view_breadth.append(vb)
             view_depth.append(vd)
-            if q['isview'] == 1:
-                view_depth_breadth_per_view.write("%s,%d,%d\n" % (q['id'], vd, vb)) 
             q_ex_ops = q['expanded_plan_ops_logical'].split(',')
             exp_ops[len(q_ex_ops)] += 1
             exp_distinct_ops[len(set(q_ex_ops))] += 1
@@ -674,7 +663,7 @@ def analyze_sqlshare(database, all_owners=True):
             cummu_q_table_by_time.write("%d, %d, %s\n" % (i, len(tables_seen_so_far), q['time_start']))
 
         cummu_q_table_by_time.close()
-        view_depth_breadth.write("%s,%d,%d\n" % (owner if owner != '' else 'all', 0 if len(view_depth) == 0 else max(view_depth), 0 if len(view_depth) == 0 else max(view_breadth)))
+        view_depthf.write("%s,%d\n" % (owner if owner != '' else 'all', 0 if len(view_depth) == 0 else max(view_depth)))
 
         def write_to_csv(dict_obj, col1, col2, filename, to_reverse=True):
             f = open(filename, 'w')
@@ -765,9 +754,7 @@ def analyze_sqlshare(database, all_owners=True):
         # write_to_csv(touch_by_time, 'query_id', 'count', '../results/sqlshare/' + owner + 'table_touch_by_time.csv')
         # write_to_csv(q_complexity_by_time, 'query_id', 'complexity', '../results/sqlshare/' + owner + 'complexity_by_time.csv', False)
         # write_to_csv(q_length_by_time, 'query_id', 'length', '../results/sqlshare/' + owner + 'length_by_time.csv', False)
-    view_depth_breadth.close()
-    view_depth_breadth_per_view.close()
-
+    view_depthf.close()
 
 if __name__ == '__main__':
     queries = [{
