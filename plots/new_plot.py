@@ -98,7 +98,7 @@ def num_ops():
     plt.tight_layout()
 
     plt.savefig(root_path + 'plot_num_physops_cdf.eps', format='eps')
-    plt.show()
+    
 
 
 def num_dist_ops():
@@ -134,7 +134,7 @@ def num_dist_ops():
     plt.tight_layout()
 
     plt.savefig(root_path + 'plot_num_dist_physops_cdf.eps', format='eps')
-    plt.show()
+    
 
 
 
@@ -174,7 +174,7 @@ def query_length():
     plt.tight_layout()
 
     plt.savefig(root_path + 'plot_length_cdf.eps', format='eps')
-    plt.show()
+    
 
 
 def table_touch():
@@ -208,7 +208,7 @@ def table_touch():
     plt.tight_layout()
 
     plt.savefig(root_path + 'plot_touch_cdf.eps', format='eps')
-    plt.show()
+    
 
 
 def column_touch():
@@ -242,7 +242,7 @@ def column_touch():
     plt.tight_layout()
 
     plt.savefig(root_path + 'plot_column_touch_cdf.eps', format='eps')
-    plt.show()
+    
 
 
 def runtime():
@@ -277,7 +277,7 @@ def runtime():
     plt.tight_layout()
 
     plt.savefig(root_path + 'plot_runtime_cdf.eps', format='eps')
-    plt.show()
+    
 
 def complexity():
     w = 'sqlshare'
@@ -316,7 +316,7 @@ def complexity():
 
         plt.savefig(owner + 'plot_complexity_cdf.eps', format='eps')
         plt.savefig(owner + 'plot_complexity_cdf.pdf', format='pdf')
-        plt.show()
+        
 
 def ops():
     for w in workloads:
@@ -349,7 +349,7 @@ def ops():
         fig.text(0.02, 0.55, 'Physical operator', rotation=90, va='center')
 
         plt.savefig(root_path + 'plot_ops_%s.eps' % w, format='eps')
-        plt.show()
+        
 
 
 def new_tables():
@@ -402,7 +402,7 @@ def new_tables():
     plt.tight_layout()
 
     plt.savefig(root_path + 'plot_table_coverage.eps', format='eps')
-    plt.show()
+    
 
 def new_tables_for_users():
     owners = ['billhowe', 'sr320@washington.edu', 'isaphan@washington.edu', 'emmats@washington.edu', 'koesterj@washington.edu', 'micaela@washington.edu',
@@ -442,7 +442,7 @@ def new_tables_for_users():
     plt.tight_layout()
 
     plt.savefig(root_path + 'plot_table_coverage.eps', format='eps')
-    plt.show()
+    
 
 def Q_vs_D():
     sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
@@ -477,7 +477,6 @@ def Q_vs_D():
     plt.tight_layout()
 
     plt.savefig(root_path + 'plot_Q_D.eps', format='eps')
-    plt.show()
 
 def lifetime():
     owners = ['billhowe', 'sr320@washington.edu', 'isaphan@washington.edu', 'emmats@washington.edu', 'koesterj@washington.edu', 'micaela@washington.edu',
@@ -520,7 +519,7 @@ def lifetime():
     ax.yaxis.grid(False)
 
     plt.savefig(root_path + 'plot_query_lifetime.eps', format='eps')
-    plt.show()
+    
 
 def viewdepth():
     sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
@@ -547,7 +546,7 @@ def viewdepth():
     ax.yaxis.grid(False)
 
     plt.savefig(root_path + 'plot_query_viewdepth.eps', format='eps')
-    plt.show()
+    
 
 def cumulative_q_t():
     owners = ['']
@@ -593,7 +592,7 @@ def cumulative_q_t():
         plt.tight_layout()
 
         plt.savefig(root_path + 'plot_q_t_'+owner+'.eps', format='eps')
-        plt.show()
+        
 
 def queries_per_table():
     sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
@@ -656,7 +655,7 @@ def queries_per_table():
     plt.tight_layout()
 
     plt.savefig(root_path + 'plot_queries_per_table.eps', format='eps')
-    plt.show()
+    
 
 def query_entropy():
     sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
@@ -696,7 +695,7 @@ def query_entropy():
     autolabel(rects1)
     autolabel(rects2)
     plt.savefig(root_path + 'plot_query_entropy.eps', format='eps')
-    plt.show()
+    
 
 def num_dist_ops_hist():
     d = load_data("num_dist_physops")
@@ -744,7 +743,7 @@ def num_dist_ops_hist():
     plt.tight_layout()
 
     plt.savefig(root_path + 'plot_num_dist_physops_cdf.eps', format='eps')
-    plt.show()
+    
 
 def query_length_hist():
     d = load_data("query_length")
@@ -798,7 +797,7 @@ def query_length_hist():
     plt.tight_layout()
 
     plt.savefig(root_path + 'plot_length_cdf.eps', format='eps')
-    plt.show()
+    
 
 def viewdepth_hist():
     sns.set_context("paper", font_scale=font_scale, rc={"lines.linewidth": 2.5})
@@ -839,7 +838,7 @@ def viewdepth_hist():
     plt.tight_layout()
 
     plt.savefig(root_path + 'plot_query_viewdepth.eps', format='eps')
-    plt.show()
+    
 
 if __name__ == '__main__':
     num_dist_ops_hist()
