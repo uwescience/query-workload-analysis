@@ -148,43 +148,23 @@ def consume_sqlshare(db, f, isview):
         except Exception as e:
             print e
             fail_count += 1
-        # try:
-        #     if isview:
-        #         data = {
-        #             'id': int(row[0]),
-        #             'time_start': row[1],
-        #             'time_end': row[2],
-        #             'status': row[3],
-        #             'view': row[4],
-        #             'query': row[5],
-        #             'owner': row[6],
-        #             'length': len(row[5]),
-        #             'isview': True,
-        #             'xml_plan': row[8],
-        #             'runtime': int(row[9]),
-        #             'has_plan': False
-        #         }
-        #         id += 1
-        #     else:
-        #         data = {
-        #             'id': int(row[0]),
-        #             'owner': row[1],
-        #             'time_start': row[2],
-        #             'time_end': row[3],
-        #             'status': row[4],
-        #             'query': row[5],
-        #             'length': int(row[5]),
-        #             'runtime': int(row[7]),
-        #             'xml_plan': row[8],
-        #             'isview': False,
-        #             'view': row[9],
-        #             'has_plan': False
-        #         }
-        #     table.insert(data)
-        # except Exception as e:
-        #     print 'Exception...', e
-        #     fail_count += 1
     print fail_count
+
+    if isview:
+        vf = open('ViewDepths.csv')
+        table = db['sqlshare_view_depths']
+        vf.readline() # Eat header
+        c = 1
+        for l in vf:
+            rows = l.split('|')
+            data = {
+                'id': c,
+                'owner': rows[0],
+                'view': rows[1],
+                'depth': rows[2]
+            }
+            c +=1
+            table.insert(data)
 
 
 def consume(database, files, sdss, isview):
