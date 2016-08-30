@@ -21,7 +21,13 @@ C4) Secondary Storage: About 20GB.
 C5) Network: N/A, internet connectivity required for script to download dataset.
 
 D) Experimentation Info
-One script does everything, installs virtualenv, install software within virtualenv downloads the datasets, creates sqlite databases, run experiments, creates graphs and updates the paper.pdf with new graphs.
 
-./run-experiments.sh 
+D1) Get the code: git clone https://github.com/uwescience/query-workload-analysis.git
+D2) Software (install virtualenv): pip install virtualenv; virtualenv vqwla
+
+source vqwla/bin/execute
+
+
+Next, one script does everything, installs packages within virtualenv, downloads the datasets, creates sqlite databases, run experiments, creates graphs and updates the paper.pdf with new graphs.
+D3) ./run-experiments.sh 
 ================================================================================

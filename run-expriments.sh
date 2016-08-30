@@ -1,10 +1,6 @@
-pip install virtualenv
-virtualenv vqwla
-source vqwla/bin/activate
-
+sudo apt-get install sqlite3 libsqlite3-dev freetds-dev libfreetype6-dev
 pip install -r requirements.txt
 python setup.py develop
-sudo apt-get install sqlite3 libsqlite3-dev
 
 cd workloadanalysis
 
