@@ -4,10 +4,9 @@ sudo apt-get install sqlite3 libsqlite3-dev
 
 cd workloadanalysis
 
-# Need to download datasets
-# wget QueriesWithPlan.csv
-# wget ViewsWithPlan.csv
-# wget sdssquerieswithplan.csv
+wget https://s3-us-west-2.amazonaws.com/shrquerylogs/sdssquerieswithplan.csv
+wget https://s3-us-west-2.amazonaws.com/shrquerylogs/QueriesWithPlan.csv
+wget https://s3-us-west-2.amazonaws.com/shrquerylogs/ViewsWithPlan.csv
 
 echo 'Consuming SQLShare logs'
 qwla sqlshare consume QueriesWithPlan.csv 
