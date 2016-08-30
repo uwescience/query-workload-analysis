@@ -19,7 +19,7 @@ qwla sqlshare analyze
 qwla sqlshare analyze2 
 
 echo 'Consuming sdss logs'
-qwla sdss consume ~/Downloads/sdssquerieswithplan.csv
+qwla sdss consume sdssquerieswithplan.csv
 
 
 echo 'Extracting metrics of interests from sdss plans'
@@ -41,7 +41,7 @@ sqlite3 sqlshare-sdss.sqlite -csv -header "select number, count(*) from (select 
 
 sqlite3 sqlshare-sdss.sqlite -csv -header "select char_length(query), count(*) from logs group by char_length(query) order by char_length(query) asc" > ../results/query_length/sdss.csv
 sqlite3 sqlshare-sdss.sqlite -csv -header "select char_length(query), count(*) from sqlshare_logs group by char_length(query) order by char_length(query) asc" > ../results/query_length/sqlshare.csv
-sqlite3 -header -csv sqlshare-sdss.sqlite "select a.owner, a.queries as q, b.datasets as d from (select owner, count(*) as queries from sqlshare_logs where isview = 0 and has_plan = 1 group by owner) as a, (select owner, count(*) as datasets from sqlshare_logs where isview=1 group by owner) as b where a.owner = b.owner " > ../results/sqlshare/user_Q_D.csv
+sqlite3 -header -csv sqlshare-sdss.sqlite "select a.owner, a.queries as q, b.datasets as d from (select owner, count(distinct query) as queries from sqlshare_logs where isview = 0 and has_plan = 1 group by owner) as a, (select owner, count(*) as datasets from sqlshare_logs where isview=1 group by owner) as b where a.owner = b.owner " > ../results/sqlshare/user_Q_D.csv
 
 echo 'Generating Graphs...'
 python ../plots/new_plot.py

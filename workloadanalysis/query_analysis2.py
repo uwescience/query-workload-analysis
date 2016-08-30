@@ -56,8 +56,8 @@ def analyse2(database):
         for i, t in enumerate(tables):
             try:
                 timestamps = list(db.query(
-                    'select time_start from sqlshare_logs where id in (select query_id from sqlshare_tables where "table" = $$' +
-                    t['table'] + '$$) order by to_timestamp(time_start, \'MM/DD/YYYY HH12:MI:SS am\') desc'
+                    'select time_start from sqlshare_logs where id in (select query_id from sqlshare_tables where "table" = "' +
+                    t['table'] + '") order by strftime(time_start, \'MM/DD/YYYY HH12:MI:SS am\') desc'
                 ))
                 if len(timestamps) <= 1:
                     lifetime[i] = 0
@@ -65,7 +65,8 @@ def analyse2(database):
                     start = datetime.strptime(timestamps[-1]['time_start'], "%m/%d/%Y %I:%M:%S %p")
                     end = datetime.strptime(timestamps[0]['time_start'], "%m/%d/%Y %I:%M:%S %p")
                     lifetime[i] = (end - start).days
-            except:
+            except Exception as e:
+                print e
                 ecount += 1
                 pass
         print 'done with ' + str(ecount) + ' errors'
@@ -81,47 +82,47 @@ def analyse2(database):
 
     # THIS PART OF THE CODE CALCULATES TABLE TOUCH and COLUMN TOUCH.
 
-    p = re.compile(ur'^.*[A-F0-9]{5}$')
-    tables_ref_q = "select distinct(\"table\") from sqlshare_tables where query_id = '%s'"
-    distinct_query_ids_q = 'select distinct(query_id) from sqlshare_tables'
-    distinct_query_ids = list(db.query(distinct_query_ids_q))
-    table_touch = []
-    for q in distinct_query_ids:
-        tables_ref = list(db.query(tables_ref_q % q['query_id']))
-        logical_tables = []
-        for t in tables_ref:
-            short_name = re.findall(p, t['table'])
-            if len(short_name) == 0:
-                if t['table'] not in logical_tables:
-                    logical_tables.append(t['table'])
-            else:
-                if short_name[0][0:-5] not in logical_tables:
-                    logical_tables.append(short_name[0][0:-5])
-        # print(logical_tables)
-        table_touch.append(len(logical_tables))
-
-    print np.mean(table_touch)
-
-    columns_ref_q = "select \"table\", \"column\" from sqlshare_columns where query_id = '%s' group by \"table\", \"column\" "
-    distinct_query_ids_q = 'select distinct(query_id) from sqlshare_tables'
-    distinct_query_ids = list(db.query(distinct_query_ids_q))
-    column_touch = []
-    for q in distinct_query_ids:
-        columns_ref = list(db.query(columns_ref_q % q['query_id']))
-        logical_columns = []
-        for t in columns_ref:
-            short_name = re.findall(p, t['table'])
-            if len(short_name) == 0:
-                if t['column'] not in logical_columns:
-                    logical_columns.append(t['column'])
-            else:
-                short_col_name = t['column'].replace(short_name[0], short_name[0][0:-5])
-                if short_col_name not in logical_columns:
-                    logical_columns.append(short_col_name)
-        # print(logical_columns)
-        column_touch.append(len(logical_columns))
-
-    print np.mean(column_touch)
+    # p = re.compile(ur'^.*[A-F0-9]{5}$')
+    # tables_ref_q = "select distinct(\"table\") from sqlshare_tables where query_id = '%s'"
+    # distinct_query_ids_q = 'select distinct(query_id) from sqlshare_tables'
+    # distinct_query_ids = list(db.query(distinct_query_ids_q))
+    # table_touch = []
+    # for q in distinct_query_ids:
+    #     tables_ref = list(db.query(tables_ref_q % q['query_id']))
+    #     logical_tables = []
+    #     for t in tables_ref:
+    #         short_name = re.findall(p, t['table'])
+    #         if len(short_name) == 0:
+    #             if t['table'] not in logical_tables:
+    #                 logical_tables.append(t['table'])
+    #         else:
+    #             if short_name[0][0:-5] not in logical_tables:
+    #                 logical_tables.append(short_name[0][0:-5])
+    #     # print(logical_tables)
+    #     table_touch.append(len(logical_tables))
+    #
+    # print np.mean(table_touch)
+    #
+    # columns_ref_q = "select \"table\", \"column\" from sqlshare_columns where query_id = '%s' group by \"table\", \"column\" "
+    # distinct_query_ids_q = 'select distinct(query_id) from sqlshare_tables'
+    # distinct_query_ids = list(db.query(distinct_query_ids_q))
+    # column_touch = []
+    # for q in distinct_query_ids:
+    #     columns_ref = list(db.query(columns_ref_q % q['query_id']))
+    #     logical_columns = []
+    #     for t in columns_ref:
+    #         short_name = re.findall(p, t['table'])
+    #         if len(short_name) == 0:
+    #             if t['column'] not in logical_columns:
+    #                 logical_columns.append(t['column'])
+    #         else:
+    #             short_col_name = t['column'].replace(short_name[0], short_name[0][0:-5])
+    #             if short_col_name not in logical_columns:
+    #                 logical_columns.append(short_col_name)
+    #     # print(logical_columns)
+    #     column_touch.append(len(logical_columns))
+    #
+    # print np.mean(column_touch)
 
 
 def main():

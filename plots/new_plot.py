@@ -853,7 +853,6 @@ if __name__ == '__main__':
     # num_dist_ops()
     Q_vs_D()
     # query_entropy()
-    # 
     # viewdepth()
     # complexity()
     # cumulative_q_t()
