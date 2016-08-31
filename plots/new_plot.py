@@ -1,4 +1,6 @@
 from datetime import datetime
+import matplotlib
+matplotlib.use('Agg')
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
