@@ -494,7 +494,6 @@ def lifetime():
         data.sort(order = 'lifetime')
         Lifetime = data['lifetime'].astype(float)
         query_id = np.arange(len(data['lifetime']))*100.0/len(data['lifetime'])
-        print query_id
         # print query_id,Lifetime
         # Lifetime = Lifetime[::-1]
         # query_id = query_id[::-1]
@@ -624,12 +623,6 @@ def queries_per_table():
         num_queries_lt.append(max_num_queries)
 
     c = [0,0,0,0,0]
-    print sorted(num_queries_lt)
-
-    print len(num_queries_lt)
-
-    print sum(num_queries_lt)/len(num_queries_lt)
-
     for num in num_queries_lt:
         if num == 1.0:
             c[0] += 1
@@ -806,20 +799,20 @@ def viewdepth_hist():
 
     fig, ax = plt.subplots(1)
 
-    with open('../results/sqlshare/view_depth_new.csv') as f:
+    with open('../results/sqlshare/view_depth.csv') as f:
         data = np.recfromcsv(f)
     
     depth = data['max_depth'].astype(float)
-    
+
     c = [0,0,0]
     xpos = np.arange(3)
 
-    ticklabels=['1-3','4-8','8+']
+    ticklabels=['1-4','5-8','8+']
 
     for d in depth:
-        if d < 3:
+        if d < 4:
             c[0] += 1
-        elif d < 7:
+        elif d < 8:
             c[1] += 1
         else:
             c[2] += 1
@@ -840,7 +833,6 @@ def viewdepth_hist():
     plt.tight_layout()
 
     plt.savefig(root_path + 'plot_query_viewdepth.eps', format='eps')
-    
 
 if __name__ == '__main__':
     num_dist_ops_hist()
