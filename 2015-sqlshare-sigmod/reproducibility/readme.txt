@@ -7,7 +7,7 @@ Repository: https://github.com/uwescience/query-workload-analysis
 Programming Language: Python
 Additional Programming Language info:
 Compiler Info: Python2.7
-Packages/Libraries Needed: pip, virtualenv (rest of the requirements are installed by the script, sqllite, various python libraries)
+Packages/Libraries Needed: pip, virtualenv (rest of the requirements are installed by the script, sqllite, various python libraries, latex to build the final paper).
 
 B) Datasets info
 Repository: https://s3-us-west-2.amazonaws.com/shrquerylogs/sdssquerieswithplan.csv, https://s3-us-west-2.amazonaws.com/shrquerylogs/QueriesWithPlan.csv, https://s3-us-west-2.amazonaws.com/shrquerylogs/ViewsWithPlan.csv
@@ -17,7 +17,7 @@ C) Hardware Info
 C1) Processor: N/A
 C2) Caches: N/A
 C3) Memory: 16GB
-C4) Secondary Storage: About 20GB.
+C4) Secondary Storage: About 25GB.
 C5) Network: N/A, internet connectivity required for script to download dataset.
 
 D) Experimentation Info
