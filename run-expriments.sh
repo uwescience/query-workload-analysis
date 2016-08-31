@@ -37,7 +37,7 @@ mkdir ../results/physops/
 mkdir ../results/query_length/
 mkdir ../results/num_dist_physops/
 
-rm -f ../results/physops/sqlshare.csv ../results/physops/sdss.csv ../results/num_dist_physops/sqlshare.csv ../results/num_dist_physops/sdss.csv ../results/query_length/sdss.csv ../results/query_length/sqlshare.csv ../results/sqlshare/user_Q_D.csv
+rm -f ../results/physops/sqlshare.csv ../results/physops/sdss.csv ../results/num_dist_physops/sqlshare.csv ../results/num_dist_physops/sdss.csv ../results/query_length/sdss.csv ../results/query_length/sqlshare.csv ../results/sqlshare/user_Q_D.csv ../results/sqlshare/view_depth.csv
 
 echo 'Extracting result csv files...'
 sqlite3 -header -csv sqlshare-sdss.sqlite 'select owner as user, max(depth) as max_depth from sqlshare_view_depths group by user order by max_depth desc limit 100' > ../results/sqlshare/view_depth.csv
