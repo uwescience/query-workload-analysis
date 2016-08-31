@@ -817,7 +817,7 @@ def viewdepth_hist():
     for d in depth:
         if d < 3:
             c[0] += 1
-        elif d < 8:
+        elif d < 7:
             c[1] += 1
         else:
             c[2] += 1
@@ -843,12 +843,12 @@ def viewdepth_hist():
 if __name__ == '__main__':
     num_dist_ops_hist()
     ops()
-    query_length()
+    # query_length()
     new_tables_for_users()
     lifetime()
     viewdepth_hist()
     queries_per_table()
-    # query_length_hist()
+    query_length_hist()
     # num_ops()
     # num_dist_ops()
     Q_vs_D()
