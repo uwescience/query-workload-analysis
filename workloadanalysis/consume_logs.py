@@ -159,9 +159,9 @@ def consume_sqlshare(db, f, isview):
             rows = l.split('|')
             data = {
                 'id': c,
-                'owner': rows[0],
-                'view': rows[1],
-                'depth': rows[2]
+                'owner': rows[0].decode('utf8'),
+                'view': rows[1].decode('utf8'),
+                'depth': int(rows[2].strip())
             }
             c +=1
             table.insert(data)
