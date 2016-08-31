@@ -1,4 +1,4 @@
-sudo apt-get install sqlite3 libsqlite3-dev freetds-dev libfreetype6-dev
+sudo apt-get install sqlite3 libsqlite3-dev freetds-dev libfreetype6-dev texlive-full
 pip install -r requirements.txt
 python setup.py develop
 

@@ -9,4 +9,4 @@ numpy
 scipy
 matplotlib
 seaborn
-
+prettyplotlib
