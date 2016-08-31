@@ -550,7 +550,7 @@ def analyze_sqlshare(database, all_owners=True):
 
         if owner == '':
             print '#Total queries with plan: ', len(all_queries)
-            print '#Total string distinct queries:', len(db.query(str_dist_q))
+            print '#Total string distinct queries:', len(list(db.query(str_dist_q)))
             # explicit_implicit_joins(queries)
             print '#Total queries considering all constants the same:', query_with_same_plan[0]['count']
 
