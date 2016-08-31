@@ -763,8 +763,8 @@ def query_length_hist():
     ticklabels=['$<100$','100-500','500-1000','$>1000$']
 
     for w in workloads:
-        count = d[w]['count'].astype(float)
-        char_length = d[w]['char_length'].astype(float)
+        count = d[w]['c'].astype(float)
+        char_length = d[w]['l'].astype(float)
         c = [0,0,0,0]
         for i,length in enumerate(char_length):
             if length < 100:
