@@ -40,7 +40,7 @@ mkdir ../results/num_dist_physops/
 rm -f ../results/physops/sqlshare.csv ../results/physops/sdss.csv ../results/num_dist_physops/sqlshare.csv ../results/num_dist_physops/sdss.csv ../results/query_length/sdss.csv ../results/query_length/sqlshare.csv ../results/sqlshare/user_Q_D.csv ../results/sqlshare/view_depth.csv
 
 echo 'Extracting result csv files...'
-sqlite3 -header -csv sqlshare-sdss.sqlite 'select owner as user, max(depth) as max_depth from sqlshare_view_depths group by user order by max_depth desc limit 100' > ../results/sqlshare/view_depth.csv
+sqlite3 -header -csv sqlshare-sdss.sqlite 'select a.owner as user, max(a.depth) as max_depth from sqlshare_view_depths a, (select owner, count(*) from sqlshare_view_depths group by owner order by count(*) desc limit 100) as b where a.owner = b.owner group by user order by max_depth desc' > ../results/sqlshare/view_depth.csv
 sqlite3 -header -csv sqlshare-sdss.sqlite 'select replace("table", ",", "`") as "table", count(distinct(query_id)) as num_queries from sqlshare_tables group by "table" order by num_queries desc' > ../results/sqlshare/queries_per_table.csv
 sqlite3 sqlshare-sdss.sqlite -csv -header "select phys_operator, count(*) from sqlshare_physops  where phys_operator != \"Clustered Index Scan\" group by phys_operator order by count(*) desc limit 10" > ../results/physops/sqlshare.csv
 sqlite3 sqlshare-sdss.sqlite -csv -header "select phys_operator, count(*) from sdss_physops group by phys_operator order by count(*) desc limit 10" > ../results/physops/sdss.csv
