@@ -3,7 +3,8 @@ pip install -r requirements.txt
 python setup.py develop
 
 cd workloadanalysis
-
+rm -f sqlshare-sdss.sqlite
+rm -f sdssquerieswithplan.csv QueriesWithPlan.csv ViewsWithPlan.csv
 wget https://s3-us-west-2.amazonaws.com/shrquerylogs/sdssquerieswithplan.csv
 wget https://s3-us-west-2.amazonaws.com/shrquerylogs/QueriesWithPlan.csv
 wget https://s3-us-west-2.amazonaws.com/shrquerylogs/ViewsWithPlan.csv
@@ -56,3 +57,6 @@ echo "Generating the paper.pdf again"
 
 cd ../2015-sqlshare-sigmod/
 make
+
+cd ../workloadanalysis/
+rm -f sdssquerieswithplan.csv QueriesWithPlan.csv ViewsWithPlan.csv
