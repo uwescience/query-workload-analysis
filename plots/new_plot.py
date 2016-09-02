@@ -810,9 +810,9 @@ def viewdepth_hist():
     ticklabels=['1-4','5-8','8+']
 
     for d in depth:
-        if d < 4:
+        if d < 3:
             c[0] += 1
-        elif d < 8:
+        elif d < 7:
             c[1] += 1
         else:
             c[2] += 1
