@@ -1,3 +1,6 @@
+sudo apt-get update
+sudo apt-get upgrade
+
 sudo apt-get install sqlite3 libsqlite3-dev freetds-dev libfreetype6-dev texlive-full python-dev python-pip python-numpy python-scipy python-matplotlib ipython ipython-notebook python-pandas python-sympy python-nose libxml2-dev libxslt-dev
 pip install -r requirements.txt
 python setup.py develop

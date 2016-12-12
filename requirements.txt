@@ -10,3 +10,8 @@ scipy
 matplotlib
 seaborn
 prettyplotlib
+SQLAlchemy
+alembic
+pyyaml
+normality
+Pygments
