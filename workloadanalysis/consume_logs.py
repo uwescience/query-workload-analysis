@@ -88,7 +88,8 @@ def consume_sdss(db, f):
                 'access': row[3],
                 'rows': int(row[4]),
                 'query': pretty_query(row[5]).decode('utf8'),
-                'xml': row[6].decode('utf8')
+                'xml': row[6].decode('utf8'),
+                'has_plan': False
             }
         except Exception as e:
             print "==> Skipping line with error"
