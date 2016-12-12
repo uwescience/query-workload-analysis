@@ -14,6 +14,7 @@ Repository: https://s3-us-west-2.amazonaws.com/shrquerylogs/sdssquerieswithplan.
 Data generators: N/A
 
 C) Hardware Info
+OS Requirements: Requires a Debian based OS. Preferably Ubuntu.
 C1) Processor: N/A
 C2) Caches: N/A
 C3) Memory: 16GB
