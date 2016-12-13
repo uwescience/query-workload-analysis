@@ -26,7 +26,7 @@ D) Experimentation Info
 D1) Get the code: git clone https://github.com/uwescience/query-workload-analysis.git
 D2) Software (install virtualenv): pip install virtualenv; virtualenv vqwla
 
-source vqwla/bin/execute
+source vqwla/bin/activate
 
 
 Next, one script does everything, installs packages within virtualenv, downloads the datasets, creates sqlite databases, run experiments, creates graphs and updates the paper.pdf with new graphs.
