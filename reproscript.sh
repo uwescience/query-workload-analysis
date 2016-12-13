@@ -1,6 +1,6 @@
 cd workloadanalysis
 rm -f sqlshare-sdss.sqlite
-rm -f QueriesWithPlan.csv ViewsWithPlan.csv
+rm -f sdss.sqlite QueriesWithPlan.csv ViewsWithPlan.csv
 wget https://s3-us-west-2.amazonaws.com/shrquerylogs/QueriesWithPlan.csv
 wget https://s3-us-west-2.amazonaws.com/shrquerylogs/ViewsWithPlan.csv
 wget https://s3-us-west-2.amazonaws.com/shrquerylogs/sdss.sqlite
@@ -47,4 +47,4 @@ cd ../2015-sqlshare-sigmod/
 make
 
 cd ../workloadanalysis/
-rm -f QueriesWithPlan.csv ViewsWithPlan.csv 
+rm -f sdss.sqlite QueriesWithPlan.csv ViewsWithPlan.csv
