@@ -11,6 +11,7 @@ rm -f sdssquerieswithplan.csv QueriesWithPlan.csv ViewsWithPlan.csv
 wget https://s3-us-west-2.amazonaws.com/shrquerylogs/sdssquerieswithplan.csv
 wget https://s3-us-west-2.amazonaws.com/shrquerylogs/QueriesWithPlan.csv
 wget https://s3-us-west-2.amazonaws.com/shrquerylogs/ViewsWithPlan.csv
+wget https://s3-us-west-2.amazonaws.com/shrquerylogs/sdss.sqlite
 
 echo 'Consuming SQLShare logs'
 qwla sqlshare consume QueriesWithPlan.csv 
@@ -25,13 +26,13 @@ qwla sqlshare analyze
 qwla sqlshare analyze2 
 
 echo 'Consuming sdss logs'
-qwla sdss consume sdssquerieswithplan.csv
+#qwla sdss consume sdssquerieswithplan.csv
 
 
 echo 'Extracting metrics of interests from sdss plans'
-qwla sdss explain -q
-qwla sdss extract
-qwla sdss analyze
+#qwla sdss explain -q
+#qwla sdss extract
+qwla sdss analyze -d 'sqlite:///sdss.sqlite'
 
 
 mkdir ../results/sqlshare/
@@ -46,10 +47,10 @@ echo 'Extracting result csv files...'
 sqlite3 -header -csv sqlshare-sdss.sqlite 'select a.owner as user, max(a.depth) as max_depth from sqlshare_view_depths a, (select owner from sqlshare_logs group by owner order by count(*) desc limit 100) as b where a.owner = b.owner group by user order by max_depth desc' > ../results/sqlshare/view_depth.csv
 sqlite3 -header -csv sqlshare-sdss.sqlite 'select replace("table", ",", "`") as "table", count(distinct(query_id)) as num_queries from sqlshare_tables group by "table" order by num_queries desc' > ../results/sqlshare/queries_per_table.csv
 sqlite3 sqlshare-sdss.sqlite -csv -header "select phys_operator, count(*) from sqlshare_physops  where phys_operator != \"Clustered Index Scan\" group by phys_operator order by count(*) desc limit 10" > ../results/physops/sqlshare.csv
-sqlite3 sqlshare-sdss.sqlite -csv -header "select phys_operator, count(*) from sdss_physops group by phys_operator order by count(*) desc limit 10" > ../results/physops/sdss.csv
+sqlite3 sdss.sqlite -csv -header "select phys_operator, count(*) from sdss_physops group by phys_operator order by count(*) desc limit 10" > ../results/physops/sdss.csv
 sqlite3 sqlshare-sdss.sqlite -csv -header "select number, count(*) from (select query_id, count(distinct phys_operator) as number from sqlshare_physops where phys_operator != 'Clustered Index Scan' group by query_id) as f group by number order by number asc" > ../results/num_dist_physops/sqlshare.csv
-sqlite3 sqlshare-sdss.sqlite -csv -header "select number, count(*) from (select query_id, count(distinct phys_operator) as number from sdss_physops group by query_id) as f group by number order by number asc" > ../results/num_dist_physops/sdss.csv
-sqlite3 sqlshare-sdss.sqlite -csv -header "select length(query) as l, count(*) as c from everything group by length(query) order by length(query) asc" > ../results/query_length/sdss.csv
+sqlite3 sdss.sqlite -csv -header "select number, count(*) from (select query_id, count(distinct phys_operator) as number from sdss_physops group by query_id) as f group by number order by number asc" > ../results/num_dist_physops/sdss.csv
+sqlite3 sdss.sqlite -csv -header "select length(query) as l, count(*) as c from everything group by length(query) order by length(query) asc" > ../results/query_length/sdss.csv
 sqlite3 sqlshare-sdss.sqlite -csv -header "select length(query) as l, count(*) as c from sqlshare_logs group by length(query) order by length(query) asc" > ../results/query_length/sqlshare.csv
 sqlite3 -header -csv sqlshare-sdss.sqlite "select a.owner, a.queries as q, b.datasets as d from (select owner, count(distinct query) as queries from sqlshare_logs group by owner) as a, (select owner, count(*) as datasets from sqlshare_logs where isview=1 group by owner) as b where a.owner = b.owner " > ../results/sqlshare/user_Q_D.csv
 
