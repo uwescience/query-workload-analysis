@@ -14,7 +14,7 @@ Repository: https://s3-us-west-2.amazonaws.com/shrquerylogs/sdssquerieswithplan.
 Data generators: N/A
 
 C) Hardware Info
-OS Requirements: Requires a Debian based OS. Preferably Ubuntu.
+OS Requirements: Requires a Debian based OS. Preferably Ubuntu 16.04 (on which this script has been tested.).
 C1) Processor: N/A
 C2) Caches: N/A
 C3) Memory: 16GB
@@ -26,7 +26,7 @@ D) Experimentation Info
 D1) Get the code: git clone https://github.com/uwescience/query-workload-analysis.git
 D2) Software (install virtualenv): pip install virtualenv; virtualenv vqwla
 
-source vqwla/bin/execute
+source vqwla/bin/activate
 
 
 Next, one script does everything, installs packages within virtualenv, downloads the datasets, creates sqlite databases, run experiments, creates graphs and updates the paper.pdf with new graphs.
