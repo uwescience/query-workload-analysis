@@ -837,7 +837,7 @@ def viewdepth_hist():
 if __name__ == '__main__':
     num_dist_ops_hist()
     ops()
-    # query_length()
+    query_length()
     new_tables_for_users()
     lifetime()
     viewdepth_hist()
