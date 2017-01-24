@@ -49,7 +49,7 @@ def stringify_plan(database):
     labels = {}
     for p in plans:
         if p['simple_plan'] not in labels:
-		labels[p['simple_plan']] = p['id']
+            labels[p['simple_plan']] = p['id']
         json_plan = json.loads(p['plan'])
         removeTableAndColumnNames(json_plan)
         out_file.write(json.dumps(json_plan) + '\n')
