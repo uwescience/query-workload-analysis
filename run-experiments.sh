@@ -1,14 +1,13 @@
 sudo apt-get update
 sudo apt-get upgrade
 
-sudo apt-get install sqlite3 libsqlite3-dev freetds-dev libfreetype6-dev texlive-full python-dev python-pip python-numpy python-scipy python-matplotlib ipython ipython-notebook python-pandas python-sympy python-nose libxml2-dev libxslt-dev
+sudo apt-get install sqlite3 libsqlite3-dev freetds-dev libfreetype6-dev texlive-full python-dev python-pip python-numpy python-scipy python-matplotlib ipython ipython-notebook python-pandas python-sympy python-nose libxml2-dev libxslt-dev libpng12-0
 pip install -r requirements.txt
 python setup.py develop
 
 cd workloadanalysis
 rm -f sqlshare-sdss.sqlite
 rm -f sdss.sqlite QueriesWithPlan.csv ViewsWithPlan.csv
-#wget https://s3-us-west-2.amazonaws.com/shrquerylogs/sdssquerieswithplan.csv
 wget https://s3-us-west-2.amazonaws.com/shrquerylogs/QueriesWithPlan.csv
 wget https://s3-us-west-2.amazonaws.com/shrquerylogs/ViewsWithPlan.csv
 wget https://s3-us-west-2.amazonaws.com/shrquerylogs/sdss.sqlite
@@ -24,16 +23,6 @@ qwla sqlshare explain -q --second
 qwla sqlshare extract
 qwla sqlshare analyze
 qwla sqlshare analyze2 
-
-#echo 'Consuming sdss logs'
-#qwla sdss consume sdssquerieswithplan.csv
-
-
-#echo 'Extracting metrics of interests from sdss plans'
-#qwla sdss explain -q
-#qwla sdss extract
-#qwla sdss analyze -d 'sqlite:///sdss.sqlite'
-
 
 mkdir ../results/sqlshare/
 mkdir ../results/sdss/
@@ -53,6 +42,8 @@ sqlite3 sdss.sqlite -csv -header "select number, count(*) from (select query_id,
 sqlite3 sdss.sqlite -csv -header "select length(query) as l, count(*) as c from everything group by length(query) order by length(query) asc" > ../results/query_length/sdss.csv
 sqlite3 sqlshare-sdss.sqlite -csv -header "select length(query) as l, count(*) as c from sqlshare_logs group by length(query) order by length(query) asc" > ../results/query_length/sqlshare.csv
 sqlite3 -header -csv sqlshare-sdss.sqlite "select a.owner, a.queries as q, b.datasets as d from (select owner, count(distinct query) as queries from sqlshare_logs group by owner) as a, (select owner, count(*) as datasets from sqlshare_logs where isview=1 group by owner) as b where a.owner = b.owner " > ../results/sqlshare/user_Q_D.csv
+
+rm -f sdss.sqlite
 
 echo 'Generating Graphs...'
 python ../plots/new_plot.py

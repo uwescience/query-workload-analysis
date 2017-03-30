@@ -12,7 +12,7 @@ def visit_operators(query_plan, visitor):
 def removeTableAndColumnNames(query_plan):
     cols = {}
     for i, k in enumerate(query_plan['columns']):
-        cols[i] = range(len(query_plan['columns'][k]))
+        cols[i] = 'Table' + str(i) + ''.join(["Column" + str(x) for x in range(len(query_plan['columns'][k]))])
 
     query_plan['columns'] = cols
     query_plan['filters'] = ['filter' + str(j) for j in range(1000, 1000 + len(query_plan['filters']))]
@@ -42,9 +42,9 @@ def stringify_plan(database, mode=1):
     """
     db = dataset.connect(database)
 
-    plans = list(db.query('select query, simple_plan, plan from sqlshare_logs where has_plan=true order by id'))
-    out_file = open('/Users/shrainik/Dropbox/SQLShare/query-reco/not_so_simple_plans2.txt','w')
-    out_file_q = open('/Users/shrainik/Dropbox/SQLShare/query-reco/simple_queries.txt','w')
+    plans = list(db.query("select query, simple_plan, plan from sqlshare_logs where has_plan=true and owner='fridayharboroceanographers@gmail.com' order by id"))
+    out_file = open('/Users/shrainik/Dropbox/SQLShare/query-reco/fridayharbour/not_so_simple_plans.txt', 'w')
+    out_file_q = open('/Users/shrainik/Dropbox/SQLShare/query-reco/fridayharbour/orig_simple_queries.txt', 'w')
     for p in plans:
         json_plan = json.loads(p['plan'])
 
@@ -57,7 +57,7 @@ def stringify_plan(database, mode=1):
         else:
             removeTableAndColumnNames(json_plan)
             out_file.write(json.dumps(json_plan) + '\n')
-        out_file_q.write(p['query'].encode('utf-8') + '\n')
+        out_file_q.write(p['query'].encode('utf-8') + ';\n')
     out_file.close()
     out_file_q.close()
 
