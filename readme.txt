@@ -1,3 +1,5 @@
+
+Owner of artifact grants ACM permission to serve the artifact to users of the ACM Digital Library.
 ================================================================================
 Readme for reproducibility submission of paper ID 63
 SQLShare: Results from a Multi-Year SQL-as-a-Service Experiment
