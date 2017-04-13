@@ -3,7 +3,7 @@
 Usage:
     qwla (sdss|sqlshare) consume INPUT... [-d DATABASE] [-v]
     qwla (sdss|sqlshare) summarize [-d DATABASE]
-    qwla (sdss|sqlshare|tpch) explain [-q] [-d DATABASE] [--dry] [--second] [-s SEGMENT NUMBER] [-o OFFSET]
+    qwla (sdss|sqlshare|tpch) explain [-q] [-d DATABASE] [--dry] [--second] [-s SEGMENT NUMBER] [-o OFFSET] [-c CONFIG]
     qwla (sdss|sqlshare|tpch) extract [-d DATABASE]
     qwla (sdss|sqlshare|tpch) columnsimilarity [-d DATABASE]
     qwla (sdss|sqlshare|tpch) analyze [-d DATABASE] [--recurring]
@@ -15,7 +15,7 @@ Usage:
 Options:
     INPUT...       Log files to be read into database
     -d [DATABASE]  The database to read from or write into
-    CONFIG         How to connect to SQLServer
+    -c [CONFIG]         How to connect to SQLServer
     SEGMENT        A segment of the data to explain (only SDSS). Used to parallelize
                    Explain if `id modulo NUMBER == SEGMENT`
     NUMBER         Number of segments
@@ -57,11 +57,11 @@ def main():
         summary.summarize(db, arguments['sdss'])
 
     if arguments['explain']:
-        # config = {}
-        # with open(arguments['CONFIG']) as f:
-        #     for line in f:
-        #         key, val = line.split('=')
-        #         config[key.strip()] = val.strip()
+        config = {}
+        with open(arguments['-c']) as f:
+            for line in f:
+                key, val = line.split('=')
+                config[key.strip()] = val.strip()
 
         segments = [0, 1]
 
@@ -69,8 +69,8 @@ def main():
             segments = [int(arguments['SEGMENT']), int(arguments['NUMBER'])]
 
         if arguments['sdss']:
-            # explain_queries.explain_sdss(config, db, arguments['-q'], segments, arguments['--dry'], arguments['-o'])
-            explain_queries.explain_sdss(db, arguments['-q'], segments, arguments['--dry'], arguments['-o'])
+            explain_queries.explain_sdss_old(config, db, arguments['-q'], segments, arguments['--dry'], arguments['-o'])
+            # explain_queries.explain_sdss(db, arguments['-q'], segments, arguments['--dry'], arguments['-o'])
         elif arguments['tpch']:
             # explain_queries.explain_tpch(config, db, arguments['-q'], arguments['--dry'])
             explain_queries.explain_tpch(db, arguments['-q'], arguments['--dry'])

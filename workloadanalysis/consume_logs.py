@@ -33,7 +33,7 @@ def pretty_query(query):
 
 # Deprecated method, this expects file to be in an older format.
 def consume_sdss_old(db, f):
-    table = db['everything']
+    table = db['sdss']
     rows = []
     reader = csv.reader(csv_fixer(f), encoding='latin-1', quotechar='"')
 
@@ -176,7 +176,7 @@ def consume(database, files, sdss, isview):
     for i, logfile in enumerate(files):
         with open(logfile, 'rU') as f:
             if sdss:
-                consume_sdss(db, f)
+                consume_sdss_old(db, f)
             else:
                 consume_sqlshare(db, f, isview)
         print "Imported", i + 1, "of", len(files), "({})".format(f.name)

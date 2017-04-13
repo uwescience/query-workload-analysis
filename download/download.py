@@ -6,9 +6,9 @@ import urllib
 
 
 # formulate query string
-WGET='/usr/bin/wget'
+WGET='/usr/local/bin/wget'
 URL='http://skyserver.sdss.org/log/en/traffic/x_sql.asp'
-QUERY_TEMPLATE={ 'sql': 'SELECT * FROM SqlLog WHERE yy=%d AND mm=%d AND dd=%d', 'web': 'SELECT * FROM WebLog WHERE yy=%d AND mm=%d AND dd=%d' }
+QUERY_TEMPLATE={ 'sql': 'SELECT * FROM SqlLog WHERE yy=%d', 'web': 'SELECT * FROM WebLog WHERE yy=%d' }
 POSTDATA = { 'format': 'csv' }
 
 def doMain():
@@ -24,7 +24,7 @@ def doMain():
 
     (options, args) = parser.parse_args()
 
-    if options.year is None or options.month is None or options.day is None:
+    if options.year is None:
         parser.error('all year, month, and day must be specified')
 
     if options.outdir is not None and not os.path.exists(options.outdir):
@@ -33,10 +33,11 @@ def doMain():
     if options.query not in QUERY_TEMPLATE:
         parser.error('query type is not given')
 
-    outfn = "%s/sdsslog_%s_%d.%02d.%02d.log" % ( options.outdir, options.query, options.year, options.month, options.day )
+    outfn = "%s/sdsslog_%s_%d.%02s.%02s.log" % ( options.outdir, options.query, options.year, 'XX', 'XX' )
 
     # build post data
-    POSTDATA['cmd'] = QUERY_TEMPLATE[options.query] % ( options.year, options.month, options.day )
+    # POSTDATA['cmd'] = QUERY_TEMPLATE[options.query] % ( options.year, options.month, options.day )
+    POSTDATA['cmd'] = QUERY_TEMPLATE[options.query] % ( options.year )
 
     query = urllib.urlencode(POSTDATA)
 

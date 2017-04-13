@@ -385,20 +385,22 @@ def explain_sdss_old(config, database, quiet=False, segments=None, dry=False, of
     table = None
     ops_table = None
 
-    query = "SELECT * from distinctlogs WHERE id %% {} = {} OFFSET {}".format(
-        segments[1], segments[0], offset)
+    # query = "SELECT * from distinctlogs WHERE id %% {} = {} OFFSET {}".format(
+    #     segments[1], segments[0], offset)
+
+    query = "SELECT * from sdss_distinct"
 
     if database:
         datasetdb = dataset.connect(database)
         queries = datasetdb.query(query)
-        datasetdb.query("truncate table expr_ops")
+        # datasetdb.query("truncate table expr_ops")
     else:
         queries = EXAMPLE
 
     errors = []
     if datasetdb:
-        table = datasetdb['logs']
-        ops_table = datasetdb['expr_ops']
+        table = datasetdb['sdss_logs']
+        ops_table = datasetdb['sdss_expr_ops']
     else:
         dry = True
 
@@ -466,6 +468,7 @@ def explain_sdss_old(config, database, quiet=False, segments=None, dry=False, of
 
             # ignore inserts
             if query_plan['operator'] == 'Insert':
+                continue
                 assert len(query_plan['children']) == 1
                 query_plan = query_plan['children'][0]
 
@@ -482,6 +485,7 @@ def explain_sdss_old(config, database, quiet=False, segments=None, dry=False, of
 
             # ignore inserts
             if simple_query_plan['operator'] == 'Insert':
+                continue
                 assert len(simple_query_plan['children']) == 1
                 simple_query_plan = simple_query_plan['children'][0]
 

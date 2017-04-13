@@ -37,7 +37,7 @@ def doMain():
         queryType = '-s'
 
     while i < end:
-        ret = os.system("python download.py %s -y %d -m %d -d %d" % (queryType, i.year, i.month, i.day))
+        ret = os.system("python ~/Dropbox/Research/SQLShare/qwla/download/download.py %s -y %d -m %d -d %d" % (queryType, i.year, i.month, i.day))
         print "%s: %04x" % (i, ret)
         i += delta
 
