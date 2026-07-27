@@ -8,9 +8,9 @@ python setup.py develop
 cd workloadanalysis
 rm -f sqlshare-sdss.sqlite
 rm -f sdss.sqlite QueriesWithPlan.csv ViewsWithPlan.csv
-wget https://s3-us-west-2.amazonaws.com/shrquerylogs/QueriesWithPlan.csv
-wget https://s3-us-west-2.amazonaws.com/shrquerylogs/ViewsWithPlan.csv
-wget https://s3-us-west-2.amazonaws.com/shrquerylogs/sdss.sqlite
+wget https://shrquerylogs.s3.amazonaws.com/public/QueriesWithPlan.csv
+wget https://shrquerylogs.s3.amazonaws.com/public/ViewsWithPlan.csv
+wget https://shrquerylogs.s3.amazonaws.com/public/sdss.sqlite
 
 echo 'Consuming SQLShare logs'
 qwla sqlshare consume QueriesWithPlan.csv 

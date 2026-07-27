@@ -12,7 +12,7 @@ Compiler Info: Python2.7
 Packages/Libraries Needed: pip, virtualenv (rest of the requirements are installed by the script, sqlite, various python libraries, latex to build the final paper).
 
 B) Datasets info
-Repository: https://s3-us-west-2.amazonaws.com/shrquerylogs/sdssquerieswithplan.csv, https://s3-us-west-2.amazonaws.com/shrquerylogs/QueriesWithPlan.csv, https://s3-us-west-2.amazonaws.com/shrquerylogs/ViewsWithPlan.csv
+Repository: https://shrquerylogs.s3.amazonaws.com/public/sdssquerieswithplan.csv, https://shrquerylogs.s3.amazonaws.com/public/QueriesWithPlan.csv, https://shrquerylogs.s3.amazonaws.com/public/ViewsWithPlan.csv
 Data generators: N/A
 IMPORTANT NOTE: Original datasets used in the paper are not available since we have received more queries in our log since then. As a result, some of the figures
 might look different, specially since dataset deletions by users renders all queries run on it impossible to analyze (as our SQLServer backend can't generate the plans for those queries anymore).
